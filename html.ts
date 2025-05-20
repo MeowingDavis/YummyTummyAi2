@@ -5,23 +5,14 @@ export default `
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yummy Tummy Ai</title>
-  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#faf9f6] text-gray-900 font-sans p-4">
-  <div class="max-w-xl mx-auto bg-[#faf9f6]/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-    <h1 class="text-2xl font-bold mb-4 text-center">Yummy Tummy AI</h1>
-    <div id="chatbox" class="h-96 overflow-y-auto border border-gray-200 p-4 rounded bg-[#faf9f6]/70 mb-4 space-y-2 text-sm"></div>
-    <div class="flex space-x-2">
-      <input
-        id="input"
-        type="text"
-        class="flex-1 p-2 rounded border border-gray-300 bg-[#faf9f6]/50 text-gray-900 placeholder-gray-500"
-        placeholder="Type a message..."
-        autocomplete="off"
-      />
-      <button onclick="send()" class="bg-transparent border border-gray-300 hover:bg-gray-100 text-gray-900 px-4 py-2 rounded">
-        Send
-      </button>
+<body>
+  <div id="container">
+    <h1>Yummy Tummy AI</h1>
+    <div id="chatbox"></div>
+    <div id="message-form">
+      <input id="input" type="text" placeholder="Type a message..." autocomplete="off" />
+      <button onclick="send()">Send</button>
     </div>
   </div>
   <script>

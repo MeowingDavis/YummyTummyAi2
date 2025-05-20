@@ -1,12 +1,10 @@
-/* Body styling (was bg-[#faf9f6] text-gray-900 font-sans p-4) */
 body {
   background-color: #faf9f6;
   color: #1a202c; /* approximates text-gray-900 */
-  font-family: sans-serif;
+  font-family: monospace, sans-serif;
   padding: 1rem;
 }
 
-/* Container styling (was max-w-xl mx-auto bg-[#faf9f6]/80 backdrop-blur-sm rounded-xl p-6 shadow-lg) */
 #container {
   max-width: 36rem; /* max-w-xl */
   margin: 0 auto;

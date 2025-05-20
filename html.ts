@@ -7,19 +7,19 @@ export default `
   <title>Groq LLaMA Chatbot</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white font-sans p-4">
-  <div class="max-w-xl mx-auto bg-gray-800 rounded-xl p-6 shadow-lg">
+<body class="bg-[#faf9f6] text-gray-900 font-sans p-4">
+  <div class="max-w-xl mx-auto bg-[#faf9f6]/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
     <h1 class="text-2xl font-bold mb-4 text-center">🤖 Groq LLaMA Chatbot</h1>
-    <div id="chatbox" class="h-96 overflow-y-auto border border-gray-700 p-4 rounded bg-gray-900 mb-4 space-y-2 text-sm"></div>
+    <div id="chatbox" class="h-96 overflow-y-auto border border-gray-200 p-4 rounded bg-[#faf9f6]/70 mb-4 space-y-2 text-sm"></div>
     <div class="flex space-x-2">
       <input
         id="input"
         type="text"
-        class="flex-1 p-2 rounded bg-gray-700 text-white"
+        class="flex-1 p-2 rounded border border-gray-300 bg-[#faf9f6]/50 text-gray-900 placeholder-gray-500"
         placeholder="Type a message..."
         autocomplete="off"
       />
-      <button onclick="send()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+      <button onclick="send()" class="bg-transparent border border-gray-300 hover:bg-gray-100 text-gray-900 px-4 py-2 rounded">
         Send
       </button>
     </div>

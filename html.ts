@@ -4,12 +4,12 @@ export default `
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Groq LLaMA Chatbot</title>
+  <title>Yummy Tummy AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-[#faf9f6] text-gray-900 font-sans p-4">
   <div class="max-w-xl mx-auto bg-[#faf9f6]/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-    <h1 class="text-2xl font-bold mb-4 text-center">🤖 Groq LLaMA Chatbot</h1>
+    <h1 class="text-2xl font-bold mb-4 text-center">🤖 Yummy Tummy AI</h1>
     <div id="chatbox" class="h-96 overflow-y-auto border border-gray-200 p-4 rounded bg-[#faf9f6]/70 mb-4 space-y-2 text-sm"></div>
     <div class="flex space-x-2">
       <input

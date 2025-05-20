@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           model: "llama3-8b-8192", // You can change model here
           messages: [
-            { role: "system", content: "You are a helpful assistant." },
+            { role: "system", content: "You are a recipe generating chef who creates innovative and delicious recipes based on ingridients supplied by user.." },
             { role: "user", content: message },
           ],
         }),

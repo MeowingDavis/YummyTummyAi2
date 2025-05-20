@@ -5,6 +5,7 @@ export default `
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yummy Tummy AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="bg-[#faf9f6] text-gray-900 font-sans p-4">

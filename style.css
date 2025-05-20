@@ -16,4 +16,11 @@ body {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
+/* Make the chat area narrower */
+#chatbox {
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Add additional custom rules as needed */

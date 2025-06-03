@@ -32,12 +32,14 @@ export default `
       const message = input.value.trim();
       if (!message) return;
 
-      // Only allow recipe-related questions
-      const isRecipeQuestion = /\\brecipe\\b|\\brecipes\\b/i.test(message);
-      if (!isRecipeQuestion) {
-        appendMessage("Bot", "Sorry, I can only answer questions about recipes. Please ask a recipe-related question.");
-        input.value = "";
-        return;
+      // Gentle reminder if message doesn't seem food/cooking related
+      const allowedKeywords = [
+        "cook", "recipe", "food", "ingredient", "bake", "grill", "fry", "boil", "meal", "dish", "kitchen", "dinner", "lunch", "breakfast", "snack", "dessert", "spice", "herb", "nutrition", "calorie", "vegan", "vegetarian", "meat", "fish", "sauce", "flavor", "taste", "garnish", "chef", "cuisine"
+      ];
+      const lowerMsg = message.toLowerCase();
+      const isCookingRelated = allowedKeywords.some(word => lowerMsg.includes(word));
+      if (!isCookingRelated && message.split(" ").length < 8) {
+        appendMessage("Bot", "Tip: For best results, ask about food, cooking, or list your ingredients!");
       }
 
       appendMessage("You", message);

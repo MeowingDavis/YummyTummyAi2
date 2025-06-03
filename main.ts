@@ -8,7 +8,7 @@ if (!GROQ_API_KEY) {
 }
 
 // In-memory chat history store: { [sessionId]: [{role, content}, ...] }
-const chatHistories = new Map();
+const chatHistories: Record<string, { role: string; content: string }[]> = {};
 
 function getSessionId(req: Request): string {
   const cookie = req.headers.get("cookie") || "";
@@ -18,7 +18,7 @@ function getSessionId(req: Request): string {
 }
 
 function setSessionCookie(headers: Headers, sessionId: string) {
-  headers.set("Set-Cookie", `sessionId=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Secure`);
+  headers.set("Set-Cookie", `sessionId=${sessionId}; Path=/; HttpOnly; SameSite=Lax`);
 }
 
 Deno.serve(async (req) => {
@@ -46,39 +46,38 @@ Deno.serve(async (req) => {
             }
           }
         }
-      } catch (_) {}
+      } catch (_e) {}
 
-      if (!chatHistories.has(sessionId)) {
-        chatHistories.set(sessionId, [
+      if (!chatHistories[sessionId]) {
+        chatHistories[sessionId] = [
           {
             role: "system",
             content:
-              "You are Yummy Tummy, a clever and imaginative recipe-generating chef AI. ONLY answer questions about recipes or cooking using the exact ingredients the user provides. If the user asks anything unrelated to recipes, cooking, or food, politely refuse and remind them you only answer recipe or cooking questions based on their ingredients. Never answer questions outside this scope. Do not add or assume any ingredients that aren't listed. Focus on creative combinations, clear instructions, and fun meal ideas based strictly on what's available."
-          }
-        ]);
+              "You are Yummy Tummy, a clever and imaginative recipe-generating chef AI. ONLY answer questions about recipes or cooking using the exact ingredients the user provides. If the user asks anything unrelated to recipes, cooking, or food, politely refuse and remind them you only answer recipe or cooking questions based on their ingredients. Never answer questions outside this scope. Do not add or assume any ingredients that aren't listed. Focus on creative combinations, clear instructions, and fun meal ideas based strictly on what's available.",
+          },
+        ];
       }
 
-      const history = chatHistories.get(sessionId);
-      history.push({ role: "user", content: message });
+      chatHistories[sessionId].push({ role: "user", content: message });
 
       if (matchedRecipe) {
-        history.push({ role: "assistant", content: matchedRecipe });
+        chatHistories[sessionId].push({ role: "assistant", content: matchedRecipe });
         const headers = new Headers({ "Content-Type": "application/json" });
         setSessionCookie(headers, sessionId);
         return new Response(JSON.stringify({ reply: matchedRecipe, markdown: matchedRecipeMarkdown }), { headers });
       }
 
-      const limitedHistory = history.slice(-15);
+      const history = chatHistories[sessionId].slice(-15);
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${GROQ_API_KEY}`,
+          Authorization: `Bearer ${GROQ_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           model: "llama3-8b-8192",
-          messages: limitedHistory,
+          messages: history,
         }),
       });
 
@@ -90,14 +89,16 @@ Deno.serve(async (req) => {
         );
       }
 
-      const data = await response.json();
-      const reply = data.choices?.[0]?.message?.content || "Sorry, no response.";
+      let reply = (await response.json()).choices?.[0]?.message?.content || "Sorry, no response.";
+      if (!reply.startsWith("```")) {
+        reply = "```\n" + reply.trim() + "\n```";
+      }
 
-      history.push({ role: "assistant", content: reply });
+      chatHistories[sessionId].push({ role: "assistant", content: reply });
 
       const headers = new Headers({ "Content-Type": "application/json" });
       setSessionCookie(headers, sessionId);
-      return new Response(JSON.stringify({ reply }), { headers });
+      return new Response(JSON.stringify({ markdown: reply }), { headers });
     } catch (error) {
       return new Response(
         JSON.stringify({ error: error.message }),
@@ -107,8 +108,8 @@ Deno.serve(async (req) => {
   }
 
   const sessionId = getSessionId(req);
-  if (chatHistories.has(sessionId)) {
-    chatHistories.delete(sessionId);
+  if (chatHistories[sessionId]) {
+    delete chatHistories[sessionId];
   }
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },

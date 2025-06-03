@@ -38,7 +38,6 @@ export default `
       const message = input.value.trim();
       if (!message) return;
 
-      // Gentle reminder if message doesn't seem food/cooking related
       const allowedKeywords = [
         "cook", "recipe", "food", "ingredient", "bake", "grill", "fry", "boil", "meal", "dish", "kitchen", "dinner", "lunch", "breakfast", "snack", "dessert", "spice", "herb", "nutrition", "calorie", "vegan", "vegetarian", "meat", "fish", "sauce", "flavor", "taste", "garnish", "chef", "cuisine"
       ];
@@ -59,18 +58,12 @@ export default `
           body: JSON.stringify({ message }),
         });
 
-        if (!res.ok) {
-          appendMessage("Error", "Failed to get response");
-          input.disabled = false;
-          return;
-        }
-
         const data = await res.json();
-        // If markdown is present, render it as markdown. Otherwise, render reply as plain text.
+
         if (data.markdown) {
           appendMarkdown("Chef", data.markdown);
         } else if (data.reply) {
-          appendMessage("Chef", data.reply);
+          appendMarkdown("Chef", data.reply);
         }
       } catch (err) {
         appendMessage("Error", err.message);

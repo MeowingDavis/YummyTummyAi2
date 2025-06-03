@@ -8,19 +8,19 @@ export default `
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      background: linear-gradient(135deg, #f7f5ef 0%, #f3f0e8 100%);
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] text-gray-900 font-sans">
-  <div class="w-full max-w-2xl mx-auto bg-white/60 backdrop-blur-lg rounded-3xl p-4 sm:p-8 shadow-2xl border border-white/40">
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f7f5ef] to-[#f3f0e8] text-gray-900 font-sans">
+  <div class="w-full max-w-2xl mx-auto bg-[#f9f6f2]/70 backdrop-blur-lg rounded-3xl p-4 sm:p-8 shadow-2xl border border-white/40">
     <h1 class="text-3xl sm:text-4xl font-extrabold mb-6 text-center tracking-tight text-gray-800 drop-shadow">Yummy Tummy AI</h1>
-    <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-gray-200 p-4 sm:p-6 rounded-2xl bg-white/40 mb-6 space-y-4 text-base shadow-inner"></div>
+    <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-gray-200 p-4 sm:p-6 rounded-2xl bg-[#f9f6f2]/60 mb-6 space-y-4 text-base shadow-inner"></div>
     <div class="flex flex-col sm:flex-row gap-3">
       <input
         id="input"
         type="text"
-        class="flex-1 p-3 rounded-xl border border-gray-300 bg-white/70 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff6b6b] transition"
+        class="flex-1 p-3 rounded-xl border border-gray-300 bg-[#f9f6f2]/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff6b6b] transition"
         placeholder="Type a recipe question..."
         autocomplete="off"
       />

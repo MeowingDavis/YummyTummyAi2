@@ -4,7 +4,6 @@ Toffee is a great sugary treat that's buttery, crunchy, and delicious! It's a pe
 <br>
 This recipe was written by **Davis Lang.**
 ---
-
 ## Ingredients
 
 - **1 cup (200g)** granulated sugar  

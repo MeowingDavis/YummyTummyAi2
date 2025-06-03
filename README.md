@@ -4,12 +4,13 @@ Yummy Tummy AI is a modern, mobile-friendly web app that helps you generate crea
 
 ## Features
 
-- **Recipe-Only Chatbot:** Only answers questions about recipes or cooking.
+- **Recipe-Only Chatbot (Default):** Only answers questions about recipes or cooking.
 - **Ingredient-Constrained:** Will not add or assume ingredients you didn't list.
 - **Existing Recipe Search:** Checks your local `.txt` recipe files for matches before using AI.
 - **Session Memory:** Remembers your chat during a session, but clears memory on page refresh.
 - **Modern UI:** Sleek, glassmorphism-inspired interface, fully responsive for mobile and desktop.
 - **Privacy:** No user accounts or tracking.
+- **Fully Customizable:** You can adapt the app for any chat or knowledge domain, not just recipes.
 
 ## Usage
 
@@ -26,10 +27,25 @@ Yummy Tummy AI is a modern, mobile-friendly web app that helps you generate crea
    - Type a recipe-related question or list your ingredients.
    - The bot will reply with a recipe using only your ingredients, or pull from your `.txt` recipes if there's a match.
 
-## Recipe Files
+## Customization
+
+Yummy Tummy AI is designed to be easily adapted for other use cases beyond recipes.  
+You can change the system prompt, UI, and file search logic to fit any chat or knowledge domain (e.g., workout plans, trivia, study guides, etc.).
+
+- **Change the domain:**  
+  Edit the system prompt in `main.ts` to instruct the AI for your use case.
+- **Change file search:**  
+  Adjust the `.txt` file search logic in `main.ts` to match your content type.
+- **UI tweaks:**  
+  Edit `html.ts` for different styles, branding, or input behavior.
+- **AI Model:**  
+  Change the model in `main.ts` if desired.
+
+## Recipe Files (Example)
 
 - Place your `.txt` recipe files in a `recipes/` directory at the project root.
 - The app will search these files for matches based on your chat input.
+- You can use this mechanism for any text-based knowledge base, not just recipes.
 
 ## Project Structure
 
@@ -40,11 +56,3 @@ Yummy Tummy AI is a modern, mobile-friendly web app that helps you generate crea
 /.gitattributes  # Git settings
 ```
 
-## Customization
-
-- **AI Model:** Change the model in `main.ts` if desired.
-- **UI:** Edit `html.ts` for further style tweaks.
-
-## License
-
-MIT License

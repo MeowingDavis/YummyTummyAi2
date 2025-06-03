@@ -1,3 +1,4 @@
+import html from "./html.ts";
 
 const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 

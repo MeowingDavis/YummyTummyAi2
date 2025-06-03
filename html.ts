@@ -6,20 +6,25 @@ export default `
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yummy Tummy Ai</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+  </style>
 </head>
-<body class="bg-[#faf9f6] text-gray-900 font-sans p-2 sm:p-4">
-  <div class="w-full max-w-2xl mx-auto bg-[#faf9f6]/80 backdrop-blur-sm rounded-xl p-2 sm:p-6 shadow-lg">
-    <h1 class="text-xl sm:text-2xl font-bold mb-4 text-center">Yummy Tummy AI</h1>
-    <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-gray-200 p-2 sm:p-4 rounded bg-[#faf9f6]/70 mb-4 space-y-2 text-sm"></div>
-    <div class="flex flex-col sm:flex-row gap-2">
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] text-gray-900 font-sans">
+  <div class="w-full max-w-2xl mx-auto bg-white/60 backdrop-blur-lg rounded-3xl p-4 sm:p-8 shadow-2xl border border-white/40">
+    <h1 class="text-3xl sm:text-4xl font-extrabold mb-6 text-center tracking-tight text-gray-800 drop-shadow">Yummy Tummy AI</h1>
+    <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-gray-200 p-4 sm:p-6 rounded-2xl bg-white/40 mb-6 space-y-4 text-base shadow-inner"></div>
+    <div class="flex flex-col sm:flex-row gap-3">
       <input
         id="input"
         type="text"
-        class="flex-1 p-2 rounded border border-gray-300 bg-[#faf9f6]/50 text-gray-900 placeholder-gray-500"
-        placeholder="Type a message..."
+        class="flex-1 p-3 rounded-xl border border-gray-300 bg-white/70 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff6b6b] transition"
+        placeholder="Type a recipe question..."
         autocomplete="off"
       />
-      <button onclick="send()" class="bg-transparent border border-gray-300 hover:bg-gray-100 text-gray-900 px-4 py-2 rounded w-full sm:w-auto">
+      <button onclick="send()" class="bg-[#ff6b6b] hover:bg-[#ff8787] text-white font-semibold px-6 py-3 rounded-xl shadow transition w-full sm:w-auto">
         Send
       </button>
     </div>

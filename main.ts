@@ -29,10 +29,10 @@ Deno.serve(async (req) => {
       const { message } = await req.json();
       const sessionId = getSessionId(req);
 
-      // --- Search for a matching recipe in .md/.txt files ---
       const recipesDir = "./recipes";
-      let matchedRecipe = null;
-      let matchedRecipeMarkdown = null;
+      let matchedRecipe: string | null = null;
+      let matchedRecipeMarkdown: string | null = null;
+
       try {
         for await (const entry of Deno.readDir(recipesDir)) {
           if (entry.isFile && (entry.name.endsWith(".md") || entry.name.endsWith(".txt"))) {
@@ -46,14 +46,14 @@ Deno.serve(async (req) => {
             }
           }
         }
-      } catch (_e) {}
+      } catch (_) {}
 
       if (!chatHistories[sessionId]) {
         chatHistories[sessionId] = [
           {
             role: "system",
             content:
-              "You are Yummy Tummy, a clever and imaginative recipe-generating chef AI. ONLY answer questions about recipes or cooking using the exact ingredients the user provides. If the user asks anything unrelated to recipes, cooking, or food, politely refuse and remind them you only answer recipe or cooking questions based on their ingredients. Never answer questions outside this scope. Do not add or assume any ingredients that aren't listed. Focus on creative combinations, clear instructions, and fun meal ideas based strictly on what's available.",
+              "You are Yummy Tummy, a clever and imaginative recipe-generating chef AI. ONLY answer questions about recipes or cooking using the exact ingredients the user provides. If the user asks anything unrelated to recipes, cooking, or food, politely refuse and remind them you only answer recipe or cooking questions based on their ingredients. Never answer questions outside this scope. Do not add or assume any ingredients that aren't listed. Focus on creative combinations, clear instructions, and fun meal ideas based strictly on what's available. Format your responses in Markdown. Use bold for section titles, lists for ingredients and steps, and headers when appropriate."
           },
         ];
       }
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
+          "Authorization": `Bearer ${GROQ_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -83,27 +83,26 @@ Deno.serve(async (req) => {
 
       if (!response.ok) {
         const errText = await response.text();
-        return new Response(
-          JSON.stringify({ error: `Groq API error: ${errText}` }),
-          { status: 500, headers: { "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: `Groq API error: ${errText}` }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
       }
 
-      let reply = (await response.json()).choices?.[0]?.message?.content || "Sorry, no response.";
-      if (!reply.startsWith("```")) {
-        reply = "```\n" + reply.trim() + "\n```";
-      }
+      const data = await response.json();
+      let reply = data.choices?.[0]?.message?.content || "Sorry, no response.";
+      reply = reply.trim();
 
       chatHistories[sessionId].push({ role: "assistant", content: reply });
 
       const headers = new Headers({ "Content-Type": "application/json" });
       setSessionCookie(headers, sessionId);
-      return new Response(JSON.stringify({ markdown: reply }), { headers });
+      return new Response(JSON.stringify({ reply, markdown: reply }), { headers });
     } catch (error) {
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
   }
 
@@ -111,6 +110,7 @@ Deno.serve(async (req) => {
   if (chatHistories[sessionId]) {
     delete chatHistories[sessionId];
   }
+
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });

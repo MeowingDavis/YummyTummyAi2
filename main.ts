@@ -30,12 +30,12 @@ Deno.serve(async (req) => {
       const { message } = await req.json();
       const sessionId = getSessionId(req);
 
-      // --- Search for a matching recipe in .txt files ---
+      // --- Search for a matching recipe in .md files ---
       const recipesDir = "./recipes";
       let matchedRecipe = null;
       try {
         for await (const entry of Deno.readDir(recipesDir)) {
-          if (entry.isFile && entry.name.endsWith(".txt")) {
+          if (entry.isFile && entry.name.endsWith(".md")) {
             const recipeText = await Deno.readTextFile(join(recipesDir, entry.name));
             const msgWords = message.toLowerCase().split(/\s+/);
             const haystack = (entry.name + " " + recipeText).toLowerCase();

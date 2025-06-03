@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
             const msgWords = message.toLowerCase().split(/\s+/);
             const haystack = (entry.name + " " + recipeText).toLowerCase();
             if (msgWords.every(w => haystack.includes(w))) {
-              matchedRecipe = `Recipe from file "${entry.name}":\n\n${recipeText}`;
+              matchedRecipe = recipeText;
               matchedRecipeMarkdown = recipeText;
               break;
             }

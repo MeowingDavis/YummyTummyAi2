@@ -27,22 +27,6 @@ export default `
   <script>
     const chatbox = document.getElementById('chatbox');
     const input = document.getElementById('input');
-    const CHAT_KEY = "yummytummyai_chat_history";
-
-    // Load chat history from localStorage
-    function loadChatHistory() {
-      const history = JSON.parse(localStorage.getItem(CHAT_KEY) || "[]");
-      history.forEach(({ sender, text }) => appendMessage(sender, text, false));
-    }
-
-    // Save chat history to localStorage
-    function saveChatHistory() {
-      const messages = Array.from(chatbox.children).map(div => {
-        const match = div.innerHTML.match(/^<strong>([^:]+):<\/strong> (.*)$/s);
-        return match ? { sender: match[1], text: match[2].replace(/<br>/g, "\n") } : null;
-      }).filter(Boolean);
-      localStorage.setItem(CHAT_KEY, JSON.stringify(messages));
-    }
 
     async function send() {
       const message = input.value.trim();
@@ -51,7 +35,6 @@ export default `
       appendMessage("You", message);
       input.value = "";
       input.disabled = true;
-      saveChatHistory();
 
       try {
         const res = await fetch("/chat", {
@@ -63,36 +46,29 @@ export default `
         if (!res.ok) {
           appendMessage("Error", "Failed to get response");
           input.disabled = false;
-          saveChatHistory();
           return;
         }
 
         const data = await res.json();
         appendMessage("Bot", data.reply);
-        saveChatHistory();
       } catch (err) {
         appendMessage("Error", err.message);
-        saveChatHistory();
       } finally {
         input.disabled = false;
         input.focus();
       }
     }
 
-    function appendMessage(sender, text, save = true) {
+    function appendMessage(sender, text) {
       const div = document.createElement("div");
       div.innerHTML = \`<strong>\${sender}:</strong> \${text.replace(/\\n/g, "<br>")}\`;
       chatbox.appendChild(div);
       chatbox.scrollTop = chatbox.scrollHeight;
-      if (save) saveChatHistory();
     }
 
     input.addEventListener("keypress", (e) => {
       if (e.key === "Enter") send();
     });
-
-    // Load chat history on page load
-    loadChatHistory();
   </script>
 </body>
 </html>

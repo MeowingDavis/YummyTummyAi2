@@ -111,6 +111,11 @@ Deno.serve(async (req) => {
   }
 
   // Serve frontend HTML for GET /
+  // Clear chat history for this session on page load
+  const sessionId = getSessionId(req);
+  if (chatHistories[sessionId]) {
+    delete chatHistories[sessionId];
+  }
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });

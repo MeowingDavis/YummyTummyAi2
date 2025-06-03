@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
       // --- Search for a matching recipe in .md files ---
       const recipesDir = "./recipes";
       let matchedRecipe = null;
+      let matchedRecipeMarkdown = null;
       try {
         for await (const entry of Deno.readDir(recipesDir)) {
           if (entry.isFile && entry.name.endsWith(".md")) {
@@ -41,6 +42,17 @@ Deno.serve(async (req) => {
             const haystack = (entry.name + " " + recipeText).toLowerCase();
             if (msgWords.every(w => haystack.includes(w))) {
               matchedRecipe = `Recipe from file "${entry.name}":\n\n${recipeText}`;
+              matchedRecipeMarkdown = recipeText;
+              break;
+            }
+          }
+          if (entry.isFile && entry.name.endsWith(".txt")) {
+            const recipeText = await Deno.readTextFile(join(recipesDir, entry.name));
+            const msgWords = message.toLowerCase().split(/\s+/);
+            const haystack = (entry.name + " " + recipeText).toLowerCase();
+            if (msgWords.every(w => haystack.includes(w))) {
+              matchedRecipe = `Recipe from file "${entry.name}":\n\n${recipeText}`;
+              matchedRecipeMarkdown = recipeText;
               break;
             }
           }
@@ -67,7 +79,7 @@ Deno.serve(async (req) => {
         chatHistories[sessionId].push({ role: "assistant", content: matchedRecipe });
         const headers = new Headers({ "Content-Type": "application/json" });
         setSessionCookie(headers, sessionId);
-        return new Response(JSON.stringify({ reply: matchedRecipe }), { headers });
+        return new Response(JSON.stringify({ reply: matchedRecipe, markdown: matchedRecipeMarkdown }), { headers });
       }
 
       // Send full chat history to Groq API (limit to last 15 messages for brevity)

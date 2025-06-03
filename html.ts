@@ -6,6 +6,7 @@ export default `
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yummy Tummy Ai</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     body {
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -65,7 +66,11 @@ export default `
         }
 
         const data = await res.json();
-        appendMessage("Chef", data.reply);
+        if (data.markdown) {
+          appendMarkdown("Chef", data.markdown);
+        } else {
+          appendMessage("Chef", data.reply);
+        }
       } catch (err) {
         appendMessage("Error", err.message);
       } finally {
@@ -77,6 +82,14 @@ export default `
     function appendMessage(sender, text) {
       const div = document.createElement("div");
       div.innerHTML = \`<strong>\${sender}:</strong> \${text.replace(/\\n/g, "<br>")}\`;
+      chatbox.appendChild(div);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function appendMarkdown(sender, markdown) {
+      const div = document.createElement("div");
+      div.innerHTML = \`<strong>\${sender}:</strong><br>\` + marked.parse(markdown);
+      div.classList.add("prose", "max-w-none");
       chatbox.appendChild(div);
       chatbox.scrollTop = chatbox.scrollHeight;
     }

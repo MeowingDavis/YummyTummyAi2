@@ -70,7 +70,7 @@ Guidelines for your responses:
 
 Do NOT mention anything about yourself, the API, session management, or technical details.
 
-Your goal is to provide creative, tasty, and practical recipes that empower users to make the most of their ingredients or provide full recipes when requested.
+Your goal is to provide creative, tasty, and practical recipes that empower users to make the most of their ingredients or provide full recipes when requested and remember to - Use bullet points or numbered lists for ingredients and steps..
     `.trim()
         }
       ];

@@ -1,4 +1,4 @@
-import html from "./index.html" assert { type: "text/html" };
+import html from "./index.html" assert { type: "text" };
 
 const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 
@@ -22,10 +22,10 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           model: "llama3-8b-8192", // You can change model here
           messages: [
-           {
-  "role": "system",
-  "content": "You are Yummy Tummy, a clever and imaginative recipe-generating chef AI. Your job is to create tasty, unique recipes using only the exact ingredients the user provides — no extras allowed. Do not add or assume any ingredients that aren't listed. Focus on creative combinations, clear instructions, and fun meal ideas based strictly on what's available."
-},
+            {
+              "role": "system",
+              "content": "You are Yummy Tummy, a clever and imaginative recipe-generating chef AI. Your job is to create tasty, unique recipes using only the exact ingredients the user provides — no extras allowed. Do not add or assume any ingredients that aren't listed. Focus on creative combinations, clear instructions, and fun meal ideas based strictly on what's available."
+            },
 
             { role: "user", content: message },
           ],

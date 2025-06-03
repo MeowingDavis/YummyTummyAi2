@@ -69,7 +69,7 @@ export default `
         if (data.markdown) {
           appendMarkdown("Chef", data.markdown);
         } else {
-          appendMessage("Chef", data.reply);
+          appendMarkdown("Chef", data.reply); // Render AI replies as markdown too
         }
       } catch (err) {
         appendMessage("Error", err.message);

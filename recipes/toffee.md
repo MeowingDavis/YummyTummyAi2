@@ -2,8 +2,7 @@
 
 Toffee is a great sugary treat that's buttery, crunchy, and delicious! It's a perfect sweet snack or homemade gift for any occasion.
 <br>
-This recipe is from our **human** made archive.
-
+This recipe was written by **Davis Lang.**
 ---
 
 ## Ingredients

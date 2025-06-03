@@ -32,6 +32,14 @@ export default `
       const message = input.value.trim();
       if (!message) return;
 
+      // Only allow recipe-related questions
+      const isRecipeQuestion = /\\brecipe\\b|\\brecipes\\b/i.test(message);
+      if (!isRecipeQuestion) {
+        appendMessage("Bot", "Sorry, I can only answer questions about recipes. Please ask a recipe-related question.");
+        input.value = "";
+        return;
+      }
+
       appendMessage("You", message);
       input.value = "";
       input.disabled = true;

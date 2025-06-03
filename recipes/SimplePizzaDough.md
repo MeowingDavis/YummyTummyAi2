@@ -1,6 +1,7 @@
 # Simple Pizza Dough
 
 Make the perfect pizza dough at home with this easy recipe.
+<br>
 This recipe is from our human made archive.
 
 ---

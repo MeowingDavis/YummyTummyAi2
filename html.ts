@@ -39,7 +39,7 @@ export default `
       const lowerMsg = message.toLowerCase();
       const isCookingRelated = allowedKeywords.some(word => lowerMsg.includes(word));
       if (!isCookingRelated && message.split(" ").length < 8) {
-        appendMessage("Bot", "Tip: For best results, ask about food, cooking, or list your ingredients!");
+        appendMessage("Chef", "Tip: For best results, ask about food, cooking, or list your ingredients!");
       }
 
       appendMessage("You", message);
@@ -60,7 +60,7 @@ export default `
         }
 
         const data = await res.json();
-        appendMessage("Bot", data.reply);
+        appendMessage("Chef", data.reply);
       } catch (err) {
         appendMessage("Error", err.message);
       } finally {

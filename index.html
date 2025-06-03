@@ -26,6 +26,39 @@
   <script>
     const chatbox = document.getElementById('chatbox');
     const input = document.getElementById('input');
+    const STORAGE_KEY = 'chatHistory';
+
+    // Load chat history from local storage on page load
+    function loadChatHistory() {
+      const history = localStorage.getItem(STORAGE_KEY);
+      if (history) {
+        try {
+          const messages = JSON.parse(history);
+          messages.forEach(msg => appendMessage(msg.sender, msg.text, false));
+        } catch (e) {
+          console.error("Error parsing chat history", e);
+        }
+      }
+    }
+
+    // Save a message to local storage
+    function saveMessage(sender, text) {
+      const history = localStorage.getItem(STORAGE_KEY);
+      const messages = history ? JSON.parse(history) : [];
+      messages.push({ sender, text });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    }
+
+    // Append the message to chatbox and optionally save to storage
+    function appendMessage(sender, text, persist = true) {
+      const div = document.createElement("div");
+      div.innerHTML = `<strong>${sender}:</strong> ${text.replace(/\n/g, "<br>")}`;
+      chatbox.appendChild(div);
+      chatbox.scrollTop = chatbox.scrollHeight;
+      if (persist) {
+        saveMessage(sender, text);
+      }
+    }
 
     async function send() {
       const message = input.value.trim();
@@ -58,16 +91,12 @@
       }
     }
 
-    function appendMessage(sender, text) {
-      const div = document.createElement("div");
-      div.innerHTML = `<strong>${sender}:</strong> ${text.replace(/\n/g, "<br>")}`;
-      chatbox.appendChild(div);
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
-
     input.addEventListener("keypress", (e) => {
       if (e.key === "Enter") send();
     });
+
+    // Initialize chat history on page load
+    loadChatHistory();
   </script>
 </body>
 </html>

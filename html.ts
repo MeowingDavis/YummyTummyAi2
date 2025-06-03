@@ -34,6 +34,9 @@ export default `
     const chatbox = document.getElementById('chatbox');
     const input = document.getElementById('input');
 
+    // Store chat history in memory for this page session
+    let chatHistory = [];
+
     async function send() {
       const message = input.value.trim();
       if (!message) return;
@@ -48,6 +51,7 @@ export default `
       }
 
       appendMessage("You", message);
+      chatHistory.push({ role: "user", content: message });
       input.value = "";
       input.disabled = true;
 
@@ -55,15 +59,20 @@ export default `
         const res = await fetch("/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message }),
+          body: JSON.stringify({ 
+            message,
+            history: chatHistory // send chat history to backend
+          }),
         });
 
         const data = await res.json();
 
         if (data.markdown) {
           appendMarkdown("Chef", data.markdown);
+          chatHistory.push({ role: "assistant", content: data.markdown });
         } else if (data.reply) {
           appendMarkdown("Chef", data.reply);
+          chatHistory.push({ role: "assistant", content: data.reply });
         }
       } catch (err) {
         appendMessage("Error", err.message);

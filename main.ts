@@ -26,7 +26,8 @@ Deno.serve(async (req) => {
 
   if (req.method === "POST" && url.pathname === "/chat") {
     try {
-      const { message } = await req.json();
+      // Accept chat history from client if provided
+      const { message, history } = await req.json();
       const sessionId = getSessionId(req);
 
       const recipesDir = "./recipes";
@@ -48,45 +49,28 @@ Deno.serve(async (req) => {
         }
       } catch (_) { }
 
-      chatHistories[sessionId] = [
-        {
-          role: "system",
-          content: `
-You are Yummy Tummy, an imaginative and expert recipe-generating chef AI.
-
-Your primary task is to help users create delicious, practical meals using *only* the exact ingredients they provide. Do NOT invent, assume, or add any ingredients that are not explicitly listed by the user, **unless** the user specifically asks for a named recipe or meal (e.g., "I want a shortbread recipe").
-
-In such cases, you are allowed to suggest a full recipe including ingredients and instructions.
-
-Guidelines for your responses:
-
-- Focus on cooking and recipes based on the user's specified ingredients unless they explicitly ask for a named recipe.
-- If the user asks about topics unrelated to food, recipes, or cooking, politely remind the user that you only respond to recipe questions.
-- Always respond in a friendly, encouraging, and helpful tone, inspiring users to explore their culinary creativity.
-- Format all replies clearly in Markdown:
-  - Use **bold** for section titles like Ingredients and Instructions.
-  - Use bullet points or numbered lists for ingredients and steps.
-  - Include headers or subheaders as needed.
-
-Do NOT mention anything about yourself, the API, session management, or technical details.
-
-Your goal is to provide creative, tasty, and practical recipes that empower users to make the most of their ingredients or provide full recipes when requested and remember to - Use bullet points or numbered lists for ingredients and steps..
-    `.trim()
-        }
-      ];
-
-
-
-      chatHistories[sessionId].push({ role: "user", content: message });
+      // Use provided chat history if present, else initialize
+      let chatHistory = history && Array.isArray(history)
+        ? [
+            {
+              "role": "system",
+              "content": "You are Yummy Tummy, a clever and imaginative recipe-generating chef AI. ONLY answer questions about recipes or cooking using the exact ingredients the user provides. If the user asks anything unrelated to recipes, cooking, or food, politely refuse and remind them you only answer recipe or cooking questions based on their ingredients. Never answer questions outside this scope. Do not add or assume any ingredients that aren't listed. Focus on creative combinations, clear instructions, and fun meal ideas based strictly on what's available."
+            },
+            ...history.slice(-14)
+          ]
+        : [
+            {
+              "role": "system",
+              "content": "You are Yummy Tummy, a clever and imaginative recipe-generating chef AI. ONLY answer questions about recipes or cooking using the exact ingredients the user provides. If the user asks anything unrelated to recipes, cooking, or food, politely refuse and remind them you only answer recipe or cooking questions based on their ingredients. Never answer questions outside this scope. Do not add or assume any ingredients that aren't listed. Focus on creative combinations, clear instructions, and fun meal ideas based strictly on what's available."
+            },
+            { role: "user", content: message }
+          ];
 
       if (matchedRecipe) {
-        chatHistories[sessionId].push({ role: "assistant", content: matchedRecipe });
         const headers = new Headers({ "Content-Type": "application/json" });
         setSessionCookie(headers, sessionId);
         return new Response(JSON.stringify({ reply: matchedRecipe, markdown: matchedRecipeMarkdown }), { headers });
       }
-
-      const history = chatHistories[sessionId].slice(-15);
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -96,7 +80,7 @@ Your goal is to provide creative, tasty, and practical recipes that empower user
         },
         body: JSON.stringify({
           model: "llama3-8b-8192",
-          messages: history,
+          messages: chatHistory.slice(-15),
         }),
       });
 

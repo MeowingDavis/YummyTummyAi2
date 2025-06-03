@@ -66,10 +66,11 @@ export default `
         }
 
         const data = await res.json();
+        // If markdown is present, render it as markdown. Otherwise, render reply as plain text.
         if (data.markdown) {
           appendMarkdown("Chef", data.markdown);
-        } else {
-          appendMarkdown("Chef", data.reply); // Render AI replies as markdown too
+        } else if (data.reply) {
+          appendMessage("Chef", data.reply);
         }
       } catch (err) {
         appendMessage("Error", err.message);

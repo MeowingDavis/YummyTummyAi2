@@ -52,77 +52,85 @@ Deno.serve(async (req) => {
         chatHistories[sessionId] = [
           {
             role: "system",
-            content:
-              `You are Yummy Tummy, a clever and imaginative recipe-generating chef AI.
+            content: `
+You are Yummy Tummy, an imaginative and expert recipe-generating chef AI.
 
-- ONLY answer questions about recipes or cooking using the exact ingredients the user provides.
-- If the user asks anything unrelated to recipes, cooking, or food, politely refuse and remind them you only answer recipe or cooking questions based on their ingredients.
-- Never add or assume any ingredients that aren't listed.
-- Focus on creative combinations, clear instructions, and fun meal ideas based strictly on what's available.
-- Format all responses in Markdown.
-- Use bold for section titles, lists for ingredients and steps, and headers when appropriate.
-- Keep your tone friendly, helpful, and encouraging.
+Your primary task is to help users create delicious, practical meals using *only* the exact ingredients they provide. Do NOT invent, assume, or add any ingredients that are not explicitly listed by the user.
 
-Remember, your goal is to help users make delicious meals from the ingredients they have, no matter how limited!`
-          },
+Guidelines for your responses:
+
+- Focus strictly on cooking and recipes based on the user's specified ingredients.
+- Do NOT provide general cooking advice, tips, or unrelated information.
+- If asked about topics unrelated to food, recipes, or cooking, politely remind the user that you only respond to recipe questions based on their ingredients.
+- Always respond in a friendly, encouraging, and helpful tone, inspiring users to explore their culinary creativity.
+- Format all replies clearly in Markdown to enhance readability:
+  - Use **bold** for section titles such as Ingredients, Instructions, or Tips.
+  - Use bullet points or numbered lists for ingredients and step-by-step instructions.
+  - Include headers or subheaders where relevant to organize the content.
+  
+Strictly avoid mentioning anything about yourself, the API, session management, chat history, server, environment, code, platform, technology, tools, or processes.
+
+Your goal is to provide creative, tasty, and practical recipe ideas that empower users to make the most of their available ingredients with fun and satisfying meals.
+    `.trim()
+          }
         ];
-      }
 
 
-      chatHistories[sessionId].push({ role: "user", content: message });
 
-      if (matchedRecipe) {
-        chatHistories[sessionId].push({ role: "assistant", content: matchedRecipe });
+        chatHistories[sessionId].push({ role: "user", content: message });
+
+        if (matchedRecipe) {
+          chatHistories[sessionId].push({ role: "assistant", content: matchedRecipe });
+          const headers = new Headers({ "Content-Type": "application/json" });
+          setSessionCookie(headers, sessionId);
+          return new Response(JSON.stringify({ reply: matchedRecipe, markdown: matchedRecipeMarkdown }), { headers });
+        }
+
+        const history = chatHistories[sessionId].slice(-15);
+
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${GROQ_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "llama3-8b-8192",
+            messages: history,
+          }),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          return new Response(JSON.stringify({ error: `Groq API error: ${errText}` }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        const data = await response.json();
+        let reply = data.choices?.[0]?.message?.content || "Sorry, no response.";
+        reply = reply.trim();
+
+        chatHistories[sessionId].push({ role: "assistant", content: reply });
+
         const headers = new Headers({ "Content-Type": "application/json" });
         setSessionCookie(headers, sessionId);
-        return new Response(JSON.stringify({ reply: matchedRecipe, markdown: matchedRecipeMarkdown }), { headers });
-      }
-
-      const history = chatHistories[sessionId].slice(-15);
-
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama3-8b-8192",
-          messages: history,
-        }),
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        return new Response(JSON.stringify({ error: `Groq API error: ${errText}` }), {
+        return new Response(JSON.stringify({ reply, markdown: reply }), { headers });
+      } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
           status: 500,
           headers: { "Content-Type": "application/json" },
         });
       }
-
-      const data = await response.json();
-      let reply = data.choices?.[0]?.message?.content || "Sorry, no response.";
-      reply = reply.trim();
-
-      chatHistories[sessionId].push({ role: "assistant", content: reply });
-
-      const headers = new Headers({ "Content-Type": "application/json" });
-      setSessionCookie(headers, sessionId);
-      return new Response(JSON.stringify({ reply, markdown: reply }), { headers });
-    } catch (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
     }
-  }
 
   const sessionId = getSessionId(req);
-  if (chatHistories[sessionId]) {
-    delete chatHistories[sessionId];
-  }
+    if (chatHistories[sessionId]) {
+      delete chatHistories[sessionId];
+    }
 
-  return new Response(html, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+    return new Response(html, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
   });
-});

@@ -56,6 +56,15 @@ export default `
       input.value = "";
       input.disabled = true;
 
+      // Prevent "hi", "hello", "hey" etc. from triggering a recipe search
+      const greetings = ["hi", "hello", "hey", "greetings"];
+      if (greetings.includes(lowerMsg)) {
+        appendMessage("Chef", "Hello! Please ask a recipe question or list your ingredients.");
+        input.disabled = false;
+        input.focus();
+        return;
+      }
+
       try {
         const res = await fetch("/chat", {
           method: "POST",

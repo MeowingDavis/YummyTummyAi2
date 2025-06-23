@@ -28,13 +28,14 @@ export default `
       <button onclick="send()" class="bg-[#ff6b6b] hover:bg-[#ff8787] text-white font-semibold px-6 py-3 rounded-xl shadow transition w-full sm:w-auto">
         Send
       </button>
+      <button onclick="newChat()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-3 rounded-xl shadow transition w-full sm:w-auto">
+        New Chat
+      </button>
     </div>
   </div>
   <script>
     const chatbox = document.getElementById('chatbox');
     const input = document.getElementById('input');
-
-    // Store chat history in memory for this page session
     let chatHistory = [];
 
     async function send() {
@@ -59,10 +60,7 @@ export default `
         const res = await fetch("/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            message,
-            history: chatHistory // send chat history to backend
-          }),
+          body: JSON.stringify({ message }),
         });
 
         const data = await res.json();
@@ -80,6 +78,20 @@ export default `
         input.disabled = false;
         input.focus();
       }
+    }
+
+    async function newChat() {
+      chatbox.innerHTML = "";
+      chatHistory = [];
+      input.value = "";
+      input.disabled = false;
+      input.focus();
+      // Notify backend to clear session memory
+      await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "Let's start a new chat!", newChat: true }),
+      });
     }
 
     function appendMessage(sender, text) {

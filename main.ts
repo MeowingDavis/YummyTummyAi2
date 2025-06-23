@@ -26,8 +26,13 @@ Deno.serve(async (req) => {
 
   if (req.method === "POST" && url.pathname === "/chat") {
     try {
-      const { message } = await req.json();
+      const { message, newChat } = await req.json();
       const sessionId = getSessionId(req);
+
+      // Support "new chat" by clearing session history if requested
+      if (newChat && chatHistories[sessionId]) {
+        delete chatHistories[sessionId];
+      }
 
       const recipesDir = "./recipes";
       let matchedRecipe: string | null = null;
@@ -48,10 +53,12 @@ Deno.serve(async (req) => {
         }
       } catch (_) { }
 
-      chatHistories[sessionId] = [
-        {
-          role: "system",
-          content: `
+      // Only initialize if not already present
+      if (!chatHistories[sessionId]) {
+        chatHistories[sessionId] = [
+          {
+            role: "system",
+            content: `
 You are Yummy Tummy, an imaginative and expert recipe-generating chef AI.
 
 Your primary task is to help users create delicious, practical meals using *only* the exact ingredients they provide. Do NOT invent, assume, or add any ingredients that are not explicitly listed by the user, **unless** the user specifically asks for a named recipe or meal (e.g., "I want a shortbread recipe").
@@ -72,10 +79,9 @@ Do NOT mention anything about yourself, the API, session management, or technica
 
 Your goal is to provide creative, tasty, and practical recipes that empower users to make the most of their ingredients or provide full recipes when requested and remember to - Use bullet points or numbered lists for ingredients and steps..
     `.trim()
-        }
-      ];
-
-
+          }
+        ];
+      }
 
       chatHistories[sessionId].push({ role: "user", content: message });
 
@@ -125,11 +131,7 @@ Your goal is to provide creative, tasty, and practical recipes that empower user
     }
   }
 
-  const sessionId = getSessionId(req);
-  if (chatHistories[sessionId]) {
-    delete chatHistories[sessionId];
-  }
-
+  // Remove auto-clear on GET: let user control new chat via POST
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });

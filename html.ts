@@ -9,8 +9,7 @@ export default `
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     body {
-      background-color: #101010;
-    }
+      background: linear-gradient(to bottom right, #1e1e1e, #2a2a2a);    }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center text-white font-sans bg-[#101010]">

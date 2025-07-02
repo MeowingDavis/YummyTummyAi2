@@ -32,7 +32,7 @@ export default `
     }
     .glass-input {
       background: rgba(21, 21, 21, 0.88) !important;
-      border: 1.5px solid rgba(52,211,153,0.18) !important;
+      border: 1px solid rgba(52,211,153,0.18) !important;
       backdrop-filter: blur(4px) saturate(110%);
       -webkit-backdrop-filter: blur(4px) saturate(110%);
       padding: 0.75rem 1rem !important; /* less vertical padding for alignment */
@@ -52,7 +52,7 @@ export default `
       letter-spacing: 0.01em;
     }
     .glass-input:focus {
-      border: 2px solid #34d399 !important;
+      border: 1px solid #34d399 !important;
       box-shadow: 0 0 0 3px rgba(52,211,153,0.18);
       background: rgba(21, 21, 21, 0.97) !important;
     }

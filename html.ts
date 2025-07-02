@@ -31,10 +31,20 @@ export default `
       border: 1px solid rgba(255,255,255,0.08);
     }
     .glass-input {
-      background: rgba(21, 21, 21, 0.75) !important;
-      border: 1.5px solid rgba(255,255,255,0.10) !important;
+      background: rgba(21, 21, 21, 0.85) !important;
+      border: 1.5px solid rgba(52,211,153,0.18) !important;
       backdrop-filter: blur(4px) saturate(110%);
       -webkit-backdrop-filter: blur(4px) saturate(110%);
+      padding: 1rem 1.25rem !important;
+      font-size: 1.1rem !important;
+      border-radius: 1.25rem !important;
+      box-shadow: 0 2px 8px 0 rgba(52,211,153,0.06);
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    .glass-input:focus {
+      border: 2px solid #34d399 !important;
+      box-shadow: 0 0 0 3px rgba(52,211,153,0.18);
+      background: rgba(21, 21, 21, 0.95) !important;
     }
     .glass-btn {
       background: rgba(52, 211, 153, 0.13) !important;
@@ -92,13 +102,14 @@ export default `
         </h1>
         <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-[#2f2f2f] p-4 sm:p-6 bg-[#1a1a1a]/60 glass space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
         <div class="flex flex-col sm:flex-row gap-3 mt-6">
-          <input
+          <textarea
             id="input"
-            type="text"
-            class="flex-1 p-3 glass-input text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
+            rows="1"
+            class="flex-1 glass-input text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition resize-none"
             placeholder="Type a recipe question..."
             autocomplete="off"
-          />
+            style="min-height: 48px; max-height: 180px; overflow-y:auto;"
+          ></textarea>
           <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition w-full sm:w-auto">
             Send
           </button>
@@ -187,6 +198,7 @@ export default `
       appendMessage("You", message);
       chatHistory.push({ role: "user", content: message });
       input.value = "";
+      input.style.height = "48px";
       input.disabled = true;
 
       const greetings = ["hi", "hello", "hey", "greetings"];
@@ -248,6 +260,18 @@ export default `
       chatbox.appendChild(div);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
+
+    // Auto-grow textarea and handle Shift+Enter for new lines, Enter to send
+    input.addEventListener("input", () => {
+      input.style.height = "48px";
+      input.style.height = Math.min(input.scrollHeight, 180) + "px";
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
 
     input.addEventListener("keypress", (e) => {
       if (e.key === "Enter") send();

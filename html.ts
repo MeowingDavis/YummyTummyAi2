@@ -15,59 +15,62 @@ export default `
         linear-gradient(135deg, #181a1b 0%, #232526 60%, #101112 100%);
     }
     .glass {
-      background: rgba(30, 30, 30, 0.45);
+      background: rgba(30, 30, 30, 0.70); /* more matte, less transparent */
       border-radius: 1.25rem;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
-      backdrop-filter: blur(16px) saturate(180%);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
-      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 4px 18px 0 rgba(31, 38, 135, 0.10); /* softer shadow */
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      border: 1.5px solid rgba(255, 255, 255, 0.10);
     }
     .glass-sidebar {
-      background: rgba(24, 24, 24, 0.38);
+      background: rgba(24, 24, 24, 0.60); /* more matte */
       border-radius: 1rem;
-      box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.10);
-      backdrop-filter: blur(12px) saturate(160%);
-      -webkit-backdrop-filter: blur(12px) saturate(160%);
-      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 2px 12px 0 rgba(31, 38, 135, 0.06);
+      backdrop-filter: blur(6px) saturate(110%);
+      -webkit-backdrop-filter: blur(6px) saturate(110%);
+      border: 1px solid rgba(255,255,255,0.08);
     }
     .glass-input {
-      background: rgba(21, 21, 21, 0.55) !important;
-      border: 1.5px solid rgba(255,255,255,0.13) !important;
-      backdrop-filter: blur(8px) saturate(140%);
-      -webkit-backdrop-filter: blur(8px) saturate(140%);
+      background: rgba(21, 21, 21, 0.75) !important;
+      border: 1.5px solid rgba(255,255,255,0.10) !important;
+      backdrop-filter: blur(4px) saturate(110%);
+      -webkit-backdrop-filter: blur(4px) saturate(110%);
     }
     .glass-btn {
-      background: rgba(52, 211, 153, 0.18) !important;
-      border: 1.5px solid rgba(52, 211, 153, 0.25) !important;
-      backdrop-filter: blur(6px) saturate(120%);
-      -webkit-backdrop-filter: blur(6px) saturate(120%);
+      background: rgba(52, 211, 153, 0.13) !important;
+      border: 1.5px solid rgba(52, 211, 153, 0.18) !important;
+      backdrop-filter: blur(2px) saturate(110%);
+      -webkit-backdrop-filter: blur(2px) saturate(110%);
       transition: background 0.2s, border 0.2s;
+      border-radius: 1.5rem !important;
     }
     .glass-btn:hover {
-      background: rgba(52, 211, 153, 0.32) !important;
-      border: 1.5px solid rgba(52, 211, 153, 0.38) !important;
+      background: rgba(52, 211, 153, 0.22) !important;
+      border: 1.5px solid rgba(52, 211, 153, 0.28) !important;
     }
     .glass-btn-blue {
-      background: rgba(59, 130, 246, 0.18) !important;
-      border: 1.5px solid rgba(59, 130, 246, 0.25) !important;
-      backdrop-filter: blur(6px) saturate(120%);
-      -webkit-backdrop-filter: blur(6px) saturate(120%);
+      background: rgba(59, 130, 246, 0.13) !important;
+      border: 1.5px solid rgba(59, 130, 246, 0.18) !important;
+      backdrop-filter: blur(2px) saturate(110%);
+      -webkit-backdrop-filter: blur(2px) saturate(110%);
       transition: background 0.2s, border 0.2s;
+      border-radius: 1.5rem !important;
     }
     .glass-btn-blue:hover {
-      background: rgba(59, 130, 246, 0.32) !important;
-      border: 1.5px solid rgba(59, 130, 246, 0.38) !important;
+      background: rgba(59, 130, 246, 0.22) !important;
+      border: 1.5px solid rgba(59, 130, 246, 0.28) !important;
     }
     .glass-btn-dark {
-      background: rgba(42, 42, 42, 0.22) !important;
-      border: 1.5px solid rgba(255,255,255,0.10) !important;
-      backdrop-filter: blur(6px) saturate(120%);
-      -webkit-backdrop-filter: blur(6px) saturate(120%);
+      background: rgba(42, 42, 42, 0.16) !important;
+      border: 1.5px solid rgba(255,255,255,0.07) !important;
+      backdrop-filter: blur(2px) saturate(110%);
+      -webkit-backdrop-filter: blur(2px) saturate(110%);
       transition: background 0.2s, border 0.2s;
+      border-radius: 1.5rem !important;
     }
     .glass-btn-dark:hover {
-      background: rgba(51, 51, 51, 0.32) !important;
-      border: 1.5px solid rgba(255,255,255,0.18) !important;
+      background: rgba(51, 51, 51, 0.22) !important;
+      border: 1.5px solid rgba(255,255,255,0.13) !important;
     }
     @media (max-width: 900px) {
       .sidebar { display: none; }

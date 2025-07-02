@@ -93,13 +93,14 @@ export default `
       border: 1.5px solid rgba(255,255,255,0.13) !important;
     }
     @media (max-width: 900px) {
-      .sidebar { display: none; }
+      .sidebar { display: none !important; }
     }
     @media (max-width: 640px) {
       .glass {
         padding: 1rem !important;
         border-radius: 0.75rem;
       }
+      /* Remove display: none for .glass-sidebar so it can be shown as modal */
       .glass-sidebar {
         display: none !important;
       }
@@ -115,16 +116,77 @@ export default `
         min-width: 90px !important;
         height: 2.5rem !important;
       }
+      .mobile-saved-toggle {
+        display: flex !important;
+      }
+    }
+    .mobile-saved-toggle {
+      display: none;
+      position: fixed;
+      bottom: 1.5rem;
+      left: 1.5rem;
+      z-index: 50;
+      background: rgba(24,24,24,0.85);
+      border: 1px solid #232323;
+      border-radius: 9999px;
+      padding: 0.7rem 1.2rem;
+      color: #34d399;
+      font-weight: 600;
+      box-shadow: 0 2px 12px 0 rgba(31,38,135,0.10);
+      cursor: pointer;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.08rem;
+    }
+    .mobile-saved-modal-bg {
+      display: none;
+      position: fixed;
+      z-index: 60;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+    }
+    .mobile-saved-modal {
+      display: none;
+      position: fixed;
+      z-index: 70;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(24,24,24,0.98);
+      border-radius: 1rem;
+      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.18);
+      padding: 1.5rem 1.2rem;
+      min-width: 80vw;
+      max-width: 95vw;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .mobile-saved-modal.active,
+    .mobile-saved-modal-bg.active {
+      display: block !important;
     }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center text-white font-sans bg-[#101010]">
   <div class="flex w-full max-w-6xl mx-auto">
     <!-- Sidebar for saved chats -->
-    <aside class="sidebar w-64 glass-sidebar border-r border-[#232323] p-4 hidden md:block">
+    <aside class="sidebar w-64 glass-sidebar border-r border-[#232323] p-4 hidden md:block" id="desktopSidebar">
       <h2 class="text-lg font-bold mb-4 text-emerald-400">Saved Chats</h2>
       <ul id="savedChats" class="space-y-2"></ul>
     </aside>
+    <!-- Mobile Saved Chats Button -->
+    <button class="mobile-saved-toggle" onclick="showMobileSavedChats()" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="inline mr-1" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v14l7-7 7 7V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"/></svg>
+      Saved
+    </button>
+    <div class="mobile-saved-modal-bg" id="mobileSavedModalBg"></div>
+    <div class="mobile-saved-modal" id="mobileSavedModal">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-bold text-emerald-400">Saved Chats</h2>
+        <button onclick="hideMobileSavedChats()" class="text-white text-2xl leading-none px-2 py-1 rounded hover:bg-[#232323]">&times;</button>
+      </div>
+      <ul id="mobileSavedChats" class="space-y-2"></ul>
+    </div>
     <!-- Main chat area -->
     <div class="flex-1 flex flex-col">
       <div class="w-full max-w-3xl mx-auto glass p-6 sm:p-8 shadow-xl border border-[#2a2a2a]">
@@ -307,6 +369,50 @@ export default `
       chatbox.appendChild(div);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
+
+    // --- Mobile Saved Chats Modal Logic ---
+    function showMobileSavedChats() {
+      document.getElementById('mobileSavedModalBg').classList.add('active');
+      document.getElementById('mobileSavedModal').classList.add('active');
+      renderMobileSavedChats();
+    }
+    function hideMobileSavedChats() {
+      document.getElementById('mobileSavedModalBg').classList.remove('active');
+      document.getElementById('mobileSavedModal').classList.remove('active');
+    }
+    function renderMobileSavedChats() {
+      const savedChats = getSavedChats();
+      const ul = document.getElementById("mobileSavedChats");
+      ul.innerHTML = "";
+      savedChats.forEach((chat, idx) => {
+        const li = document.createElement("li");
+        li.className = "flex items-center justify-between bg-[#232323] rounded px-2 py-1";
+        li.innerHTML = `
+          <span class="truncate max-w-[120px]">${chat.title || "Chat " + (idx + 1)}</span>
+          <span>
+            <button onclick="loadChat(${idx});hideMobileSavedChats()" class="text-emerald-400 hover:underline mr-2">Load</button>
+            <button onclick="deleteChat(${idx});renderMobileSavedChats()" class="text-red-400 hover:underline">Delete</button>
+          </span>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    // Show mobile saved chats button on mobile
+    function handleMobileSavedToggle() {
+      const btn = document.querySelector('.mobile-saved-toggle');
+      if (window.innerWidth <= 640) {
+        btn.style.display = 'flex';
+      } else {
+        btn.style.display = 'none';
+        hideMobileSavedChats();
+      }
+    }
+    window.addEventListener('resize', handleMobileSavedToggle);
+    window.addEventListener('DOMContentLoaded', handleMobileSavedToggle);
+
+    // Hide modal when clicking background
+    document.getElementById('mobileSavedModalBg').onclick = hideMobileSavedChats;
 
     // Auto-grow textarea and handle Shift+Enter for new lines, Enter to send
     input.addEventListener("input", () => {

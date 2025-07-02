@@ -19,9 +19,15 @@ export default `
 <body class="min-h-screen flex items-center justify-center text-white font-sans bg-[#101010]">
   <div class="flex w-full max-w-6xl mx-auto">
     <!-- Sidebar for saved chats -->
-    <aside class="sidebar w-64 bg-[#181818] border-r border-[#232323] p-4 hidden md:block">
-      <h2 class="text-lg font-bold mb-4 text-emerald-400">Saved Chats</h2>
-      <ul id="savedChats" class="space-y-2"></ul>
+    <aside class="sidebar w-64 min-h-[70vh] bg-gradient-to-b from-[#23272f] to-[#18181c] border-r border-[#232323] p-4 rounded-l-3xl shadow-2xl hidden md:flex flex-col gap-4">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2h5m6-16v4m0 0a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <h2 class="text-lg font-bold text-emerald-400 tracking-wide">Saved Chats</h2>
+      </div>
+      <ul id="savedChats" class="space-y-3 flex-1 overflow-y-auto pr-1"></ul>
+      <div class="text-xs text-gray-400 text-center mt-2">Your saved recipe chats appear here</div>
     </aside>
     <!-- Main chat area -->
     <div class="flex-1 flex flex-col">
@@ -66,12 +72,12 @@ export default `
       ul.innerHTML = "";
       savedChats.forEach((chat, idx) => {
         const li = document.createElement("li");
-        li.className = "flex items-center justify-between bg-[#232323] rounded px-2 py-1";
+        li.className = "flex items-center justify-between bg-[#232323] hover:bg-[#23272f] rounded-xl px-3 py-2 shadow transition-all duration-150 border border-[#262a32]";
         li.innerHTML = \`
-          <span class="truncate max-w-[120px]">\${chat.title || "Chat " + (idx + 1)}</span>
-          <span>
-            <button onclick="loadChat(\${idx})" class="text-emerald-400 hover:underline mr-2">Load</button>
-            <button onclick="deleteChat(\${idx})" class="text-red-400 hover:underline">Delete</button>
+          <span class="truncate max-w-[120px] font-medium text-white/90">\${chat.title || "Chat " + (idx + 1)}</span>
+          <span class="flex gap-1">
+            <button onclick="loadChat(\${idx})" class="rounded px-2 py-1 text-xs bg-emerald-500 hover:bg-emerald-400 text-white font-semibold transition">Load</button>
+            <button onclick="deleteChat(\${idx})" class="rounded px-2 py-1 text-xs bg-red-500 hover:bg-red-400 text-white font-semibold transition">Delete</button>
           </span>
         \`;
         ul.appendChild(li);

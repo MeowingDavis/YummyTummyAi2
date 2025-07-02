@@ -119,7 +119,7 @@ export default `
               class="glass-input text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
               placeholder="Type a recipe question..."
               autocomplete="off"
-              style="min-height: 48px; max-height: 180px; overflow-y:auto;"
+              style="min-height: 48px; max-height: 200px; overflow-y:auto;"
             ></textarea>
             <div class="flex flex-row gap-2 sm:gap-3 items-end">
               <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition">

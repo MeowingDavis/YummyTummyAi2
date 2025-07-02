@@ -9,7 +9,10 @@ export default `
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     body {
-      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+      /* Smoother, darker gradient with radial overlay for less banding */
+      background:
+        radial-gradient(ellipse at 60% 40%, rgba(30,30,30,0.7) 0%, rgba(20,20,20,0.95) 100%),
+        linear-gradient(135deg, #181a1b 0%, #232526 60%, #101112 100%);
     }
     .glass {
       background: rgba(30, 30, 30, 0.45);

@@ -31,21 +31,30 @@ export default `
       border: 1px solid rgba(255,255,255,0.08);
     }
     .glass-input {
-      background: rgba(21, 21, 21, 0.85) !important;
+      background: rgba(21, 21, 21, 0.88) !important;
       border: 1.5px solid rgba(52,211,153,0.18) !important;
       backdrop-filter: blur(4px) saturate(110%);
       -webkit-backdrop-filter: blur(4px) saturate(110%);
-      padding: 1rem 1.25rem !important;
-      font-size: 1.1rem !important;
-      border-radius: 0.5rem !important; /* less round */
+      padding: 0.75rem 1rem !important; /* less vertical padding for alignment */
+      font-size: 1.08rem !important;
+      border-radius: 0.5rem !important;
       box-shadow: 0 2px 8px 0 rgba(52,211,153,0.06);
       transition: border 0.2s, box-shadow 0.2s;
       resize: none;
+      line-height: 1.5 !important;
+      font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif !important;
+    }
+    .glass-input::placeholder {
+      color: #a3a3a3 !important;
+      opacity: 1 !important;
+      font-style: italic;
+      font-size: 1.05rem;
+      letter-spacing: 0.01em;
     }
     .glass-input:focus {
       border: 2px solid #34d399 !important;
       box-shadow: 0 0 0 3px rgba(52,211,153,0.18);
-      background: rgba(21, 21, 21, 0.95) !important;
+      background: rgba(21, 21, 21, 0.97) !important;
     }
     .glass-btn,
     .glass-btn-blue,
@@ -103,7 +112,7 @@ export default `
         </h1>
         <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-[#2f2f2f] p-4 sm:p-6 bg-[#1a1a1a]/60 glass space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
         <div class="flex gap-3 mt-6 items-end">
-          <div class="flex-1 flex flex-col">
+          <div class="flex-1 flex flex-row items-end gap-3">
             <textarea
               id="input"
               rows="1"
@@ -112,17 +121,17 @@ export default `
               autocomplete="off"
               style="min-height: 48px; max-height: 180px; overflow-y:auto;"
             ></textarea>
-          </div>
-          <div class="flex flex-col gap-2 sm:flex-row sm:gap-3 w-full sm:w-auto">
-            <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition">
-              Send
-            </button>
-            <button onclick="newChat()" class="glass-btn-dark text-white font-semibold px-6 py-3 shadow transition">
-              New Chat
-            </button>
-            <button onclick="saveChat()" class="glass-btn-blue text-white font-semibold px-6 py-3 shadow transition">
-              Save Chat
-            </button>
+            <div class="flex flex-row gap-2 sm:gap-3 items-end">
+              <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition">
+                Send
+              </button>
+              <button onclick="newChat()" class="glass-btn-dark text-white font-semibold px-6 py-3 shadow transition">
+                New Chat
+              </button>
+              <button onclick="saveChat()" class="glass-btn-blue text-white font-semibold px-6 py-3 shadow transition">
+                Save Chat
+              </button>
+            </div>
           </div>
         </div>
       </div>

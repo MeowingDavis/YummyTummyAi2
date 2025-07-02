@@ -122,13 +122,13 @@ export default `
               style="min-height: 48px; max-height: 220px; overflow-y:auto; width:100%;"
             ></textarea>
             <div class="flex flex-row gap-2 sm:gap-3 items-end">
-              <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition">
+              <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition" style="border-radius:0.5rem;">
                 Send
               </button>
-              <button onclick="newChat()" class="glass-btn-dark text-white font-semibold px-6 py-3 shadow transition">
+              <button onclick="newChat()" class="glass-btn-dark text-white font-semibold px-6 py-3 shadow transition" style="border-radius:0.5rem;">
                 New Chat
               </button>
-              <button onclick="saveChat()" class="glass-btn-blue text-white font-semibold px-6 py-3 shadow transition">
+              <button onclick="saveChat()" class="glass-btn-blue text-white font-semibold px-6 py-3 shadow transition" style="border-radius:0.5rem;">
                 Save Chat
               </button>
             </div>

@@ -95,6 +95,27 @@ export default `
     @media (max-width: 900px) {
       .sidebar { display: none; }
     }
+    @media (max-width: 640px) {
+      .glass {
+        padding: 1rem !important;
+        border-radius: 0.75rem;
+      }
+      .glass-sidebar {
+        display: none !important;
+      }
+      .glass-input {
+        font-size: 1rem !important;
+        padding: 0.7rem 0.8rem !important;
+      }
+      .glass-btn,
+      .glass-btn-blue,
+      .glass-btn-dark {
+        font-size: 0.98rem !important;
+        padding: 0.7rem 0.9rem !important;
+        min-width: 90px !important;
+        height: 2.5rem !important;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center text-white font-sans bg-[#101010]">
@@ -112,7 +133,7 @@ export default `
         </h1>
         <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-[#2f2f2f] p-4 sm:p-6 bg-[#1a1a1a]/60 glass space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
         <div class="flex gap-3 mt-6 items-end">
-          <div class="flex-1 flex flex-row items-end gap-3">
+          <div class="flex-1 flex flex-row items-end gap-3 flex-wrap sm:flex-nowrap">
             <textarea
               id="input"
               rows="1"
@@ -121,14 +142,26 @@ export default `
               autocomplete="off"
               style="min-height: 48px; max-height: 220px; overflow-y:auto; width:100%;"
             ></textarea>
-            <div class="flex flex-row gap-2 sm:gap-3 items-end">
-              <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition" style="border-radius:0.5rem;">
+            <div class="flex flex-row gap-2 sm:gap-3 items-end flex-wrap sm:flex-nowrap w-full sm:w-auto">
+              <button
+                onclick="send()"
+                class="glass-btn text-white font-semibold shadow transition h-12 px-6"
+                style="border-radius:0.5rem; min-width:110px;"
+              >
                 Send
               </button>
-              <button onclick="newChat()" class="glass-btn-dark text-white font-semibold px-6 py-3 shadow transition" style="border-radius:0.5rem;">
+              <button
+                onclick="newChat()"
+                class="glass-btn-dark text-white font-semibold shadow transition h-12 px-6"
+                style="border-radius:0.5rem; min-width:110px;"
+              >
                 New Chat
               </button>
-              <button onclick="saveChat()" class="glass-btn-blue text-white font-semibold px-6 py-3 shadow transition" style="border-radius:0.5rem;">
+              <button
+                onclick="saveChat()"
+                class="glass-btn-blue text-white font-semibold shadow transition h-12 px-6"
+                style="border-radius:0.5rem; min-width:110px;"
+              >
                 Save Chat
               </button>
             </div>

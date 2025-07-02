@@ -37,22 +37,25 @@ export default `
       -webkit-backdrop-filter: blur(4px) saturate(110%);
       padding: 1rem 1.25rem !important;
       font-size: 1.1rem !important;
-      border-radius: 1.25rem !important;
+      border-radius: 0.5rem !important; /* less round */
       box-shadow: 0 2px 8px 0 rgba(52,211,153,0.06);
       transition: border 0.2s, box-shadow 0.2s;
+      resize: none;
     }
     .glass-input:focus {
       border: 2px solid #34d399 !important;
       box-shadow: 0 0 0 3px rgba(52,211,153,0.18);
       background: rgba(21, 21, 21, 0.95) !important;
     }
-    .glass-btn {
+    .glass-btn,
+    .glass-btn-blue,
+    .glass-btn-dark {
+      border-radius: 0.5rem !important; /* less round for all buttons */
       background: rgba(52, 211, 153, 0.13) !important;
       border: 1.5px solid rgba(52, 211, 153, 0.18) !important;
       backdrop-filter: blur(2px) saturate(110%);
       -webkit-backdrop-filter: blur(2px) saturate(110%);
       transition: background 0.2s, border 0.2s;
-      border-radius: 1.5rem !important;
     }
     .glass-btn:hover {
       background: rgba(52, 211, 153, 0.22) !important;
@@ -64,7 +67,6 @@ export default `
       backdrop-filter: blur(2px) saturate(110%);
       -webkit-backdrop-filter: blur(2px) saturate(110%);
       transition: background 0.2s, border 0.2s;
-      border-radius: 1.5rem !important;
     }
     .glass-btn-blue:hover {
       background: rgba(59, 130, 246, 0.22) !important;
@@ -76,7 +78,6 @@ export default `
       backdrop-filter: blur(2px) saturate(110%);
       -webkit-backdrop-filter: blur(2px) saturate(110%);
       transition: background 0.2s, border 0.2s;
-      border-radius: 1.5rem !important;
     }
     .glass-btn-dark:hover {
       background: rgba(51, 51, 51, 0.22) !important;
@@ -101,24 +102,28 @@ export default `
           Yummy Tummy <span class="text-emerald-400">AI</span>
         </h1>
         <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-[#2f2f2f] p-4 sm:p-6 bg-[#1a1a1a]/60 glass space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
-        <div class="flex flex-col sm:flex-row gap-3 mt-6">
-          <textarea
-            id="input"
-            rows="1"
-            class="flex-1 glass-input text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition resize-none"
-            placeholder="Type a recipe question..."
-            autocomplete="off"
-            style="min-height: 48px; max-height: 180px; overflow-y:auto;"
-          ></textarea>
-          <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition w-full sm:w-auto">
-            Send
-          </button>
-          <button onclick="newChat()" class="glass-btn-dark text-white font-semibold px-6 py-3 shadow transition w-full sm:w-auto">
-            New Chat
-          </button>
-          <button onclick="saveChat()" class="glass-btn-blue text-white font-semibold px-6 py-3 shadow transition w-full sm:w-auto">
-            Save Chat
-          </button>
+        <div class="flex gap-3 mt-6 items-end">
+          <div class="flex-1 flex flex-col">
+            <textarea
+              id="input"
+              rows="1"
+              class="glass-input text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
+              placeholder="Type a recipe question..."
+              autocomplete="off"
+              style="min-height: 48px; max-height: 180px; overflow-y:auto;"
+            ></textarea>
+          </div>
+          <div class="flex flex-col gap-2 sm:flex-row sm:gap-3 w-full sm:w-auto">
+            <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition">
+              Send
+            </button>
+            <button onclick="newChat()" class="glass-btn-dark text-white font-semibold px-6 py-3 shadow transition">
+              New Chat
+            </button>
+            <button onclick="saveChat()" class="glass-btn-blue text-white font-semibold px-6 py-3 shadow transition">
+              Save Chat
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -271,10 +276,7 @@ export default `
         e.preventDefault();
         send();
       }
-    });
-
-    input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") send();
+      // Shift+Enter inserts newline by default, so no need to handle
     });
 
     // Render saved chats on load

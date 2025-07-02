@@ -112,26 +112,23 @@ export default `
         </h1>
         <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-[#2f2f2f] p-4 sm:p-6 bg-[#1a1a1a]/60 glass space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
         <div class="flex gap-3 mt-6 items-end">
-          <div class="flex-1 flex flex-row items-end gap-0">
+          <div class="flex-1 flex flex-row items-end gap-3">
             <textarea
               id="input"
               rows="1"
               class="glass-input text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
               placeholder="Type a recipe question..."
               autocomplete="off"
-              style="min-height: 48px; max-height: 180px; overflow-y:auto; border-top-right-radius:0; border-bottom-right-radius:0;"
+              style="min-height: 48px; max-height: 180px; overflow-y:auto;"
             ></textarea>
-            <div class="flex flex-row items-end gap-0">
-              <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition"
-                style="border-top-left-radius:0.0rem;border-bottom-left-radius:0.0rem;">
+            <div class="flex flex-row gap-2 sm:gap-3 items-end">
+              <button onclick="send()" class="glass-btn text-white font-semibold px-6 py-3 shadow transition">
                 Send
               </button>
-              <button onclick="newChat()" class="glass-btn-dark text-white font-semibold px-6 py-3 shadow transition"
-                style="border-radius:0;">
+              <button onclick="newChat()" class="glass-btn-dark text-white font-semibold px-6 py-3 shadow transition">
                 New Chat
               </button>
-              <button onclick="saveChat()" class="glass-btn-blue text-white font-semibold px-6 py-3 shadow transition"
-                style="border-top-right-radius:0.5rem;border-bottom-right-radius:0.5rem;border-top-left-radius:0;border-bottom-left-radius:0;">
+              <button onclick="saveChat()" class="glass-btn-blue text-white font-semibold px-6 py-3 shadow transition">
                 Save Chat
               </button>
             </div>

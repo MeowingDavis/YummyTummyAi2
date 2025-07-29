@@ -228,11 +228,15 @@ export default `
     function showMobileSavedChats() {
       document.getElementById('mobileSavedModalBg').classList.add('active');
       document.getElementById('mobileSavedModal').classList.add('active');
+      document.getElementById('mobileSavedModalBg').style.display = 'block';
+      document.getElementById('mobileSavedModal').style.display = 'block';
       renderMobileSavedChats();
     }
     function hideMobileSavedChats() {
       document.getElementById('mobileSavedModalBg').classList.remove('active');
       document.getElementById('mobileSavedModal').classList.remove('active');
+      document.getElementById('mobileSavedModalBg').style.display = 'none';
+      document.getElementById('mobileSavedModal').style.display = 'none';
     }
     function renderMobileSavedChats() {
       const savedChats = getSavedChats();
@@ -259,6 +263,11 @@ export default `
       } else {
         btn.style.display = 'none';
         hideMobileSavedChats();
+      }
+      // Always hide modal when resizing to desktop
+      if (window.innerWidth > 640) {
+        document.getElementById('mobileSavedModalBg').style.display = 'none';
+        document.getElementById('mobileSavedModal').style.display = 'none';
       }
     }
     window.addEventListener('resize', handleMobileSavedToggle);

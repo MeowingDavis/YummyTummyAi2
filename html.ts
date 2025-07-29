@@ -20,14 +20,14 @@ export default `
     <!-- Mobile Saved Chats Button -->
     <button class="mobile-saved-toggle" onclick="showMobileSavedChats()" style="display:none;">
       <svg xmlns="http://www.w3.org/2000/svg" class="inline mr-1" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v14l7-7 7 7V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"/></svg>
-      Saved
+      Saved Chats
     </button>
     <div class="mobile-saved-modal-bg" id="mobileSavedModalBg"></div>
     <div class="mobile-saved-modal" id="mobileSavedModal">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-bold text-emerald-400">Saved Chats</h2>
+      <div class="flex justify-end items-center mb-3">
         <button onclick="hideMobileSavedChats()" class="text-white text-2xl leading-none px-2 py-1 rounded hover:bg-[#232323]">&times;</button>
       </div>
+      <h2 class="text-lg font-bold text-emerald-400 mb-2">Saved Chats</h2>
       <ul id="mobileSavedChats" class="space-y-2"></ul>
     </div>
     <!-- Main chat area -->

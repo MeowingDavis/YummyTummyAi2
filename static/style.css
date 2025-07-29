@@ -42,7 +42,8 @@ body {
   transition: border 0.2s, box-shadow 0.2s, background 0.2s;
   resize: none;
   line-height: 1.5;
-  color: #e2e8f0;
+  color: #e2e8f0 !important;
+  background: rgba(30,41,59,0.97) !important;
   font-family: inherit;
 }
 
@@ -57,7 +58,8 @@ body {
 .glass-input:focus {
   border: 2px solid #38bdf8;
   box-shadow: 0 0 0 3px rgba(56,189,248,0.18);
-  background: rgba(30,41,59,0.97);
+  color: #e2e8f0 !important;
+  background: rgba(30,41,59,1) !important;
   outline: none;
 }
 

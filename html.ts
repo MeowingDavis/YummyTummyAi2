@@ -225,8 +225,10 @@ export default `
     window.addEventListener('resize', handleMobileSavedToggle);
     window.addEventListener('DOMContentLoaded', handleMobileSavedToggle);
 
+    // Hide modal when clicking background
     document.getElementById('mobileSavedModalBg').onclick = hideMobileSavedChats;
 
+    // Auto-grow textarea and handle Shift+Enter for new lines, Enter to send
     input.addEventListener("input", () => {
       input.style.height = "48px";
       input.style.height = Math.min(input.scrollHeight, 220) + "px";
@@ -236,17 +238,15 @@ export default `
         e.preventDefault();
         send();
       }
+      // Shift+Enter inserts newline by default, so no need to handle
     });
 
+    // Render saved chats on load
     renderSavedChats();
   </script>
 </body>
 </html>
 `;
-        btn.style.display = 'flex';
-      } else {
-        btn.style.display = 'none';
-        hideMobileSavedChats();
       }
     }
     window.addEventListener('resize', handleMobileSavedToggle);

@@ -92,7 +92,7 @@ export default `
         const li = document.createElement("li");
         li.className = "flex items-center justify-between bg-[#232323] rounded px-2 py-1";
         li.innerHTML =
-          '<span class="truncate max-w-[120px]">' + (chat.title || ("Chat " + (idx + 1))) + '</span>' +
+          '<span class="truncate max-w-[120px]">' + (chat.title ? chat.title : "Chat " + (idx + 1)) + '</span>' +
           '<span>' +
             '<button onclick="loadChat(' + idx + ')" class="text-emerald-400 hover:underline mr-2">Load</button>' +
             '<button onclick="deleteChat(' + idx + ')" class="text-red-400 hover:underline">Delete</button>' +
@@ -229,13 +229,12 @@ export default `
       savedChats.forEach((chat, idx) => {
         const li = document.createElement("li");
         li.className = "flex items-center justify-between bg-[#232323] rounded px-2 py-1";
-        li.innerHTML = `
-          <span class="truncate max-w-[120px]">${chat.title || "Chat " + (idx + 1)}</span>
-          <span>
-            <button onclick="loadChat(${idx});hideMobileSavedChats()" class="text-emerald-400 hover:underline mr-2">Load</button>
-            <button onclick="deleteChat(${idx});renderMobileSavedChats()" class="text-red-400 hover:underline">Delete</button>
-          </span>
-        `;
+        li.innerHTML =
+          '<span class="truncate max-w-[120px]">' + (chat.title ? chat.title : "Chat " + (idx + 1)) + '</span>' +
+          '<span>' +
+            '<button onclick="loadChat(' + idx + ');hideMobileSavedChats()" class="text-emerald-400 hover:underline mr-2">Load</button>' +
+            '<button onclick="deleteChat(' + idx + ');renderMobileSavedChats()" class="text-red-400 hover:underline">Delete</button>' +
+          '</span>';
         ul.appendChild(li);
       });
     }
@@ -274,5 +273,6 @@ export default `
   </script>
 </body>
 </html>
+`;
 `;
 `;

@@ -41,47 +41,49 @@ export default `
         <div id="chatbox" class="flex-1 min-h-[350px] max-h-[75vh] overflow-y-auto border border-slate-800 p-4 sm:p-6 bg-slate-800/60 rounded-lg space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
         <div class="flex gap-3 mt-6 items-end">
           <div class="flex-1 flex flex-row items-end gap-3 flex-wrap sm:flex-nowrap">
-            <textarea
-              id="input"
-              rows="1"
-              class="flex-1 bg-slate-800 text-white placeholder-slate-400 rounded-xl border border-emerald-400 p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition resize-none shadow-lg"
-              placeholder="Type a recipe question..."
-              autocomplete="off"
-              style="min-height: 48px; max-height: 220px; overflow-y:auto; width:100%;"
-            ></textarea>
-            <div class="flex flex-row gap-2 sm:gap-3 items-end flex-wrap sm:flex-nowrap w-full sm:w-auto">
-              <button
-                onclick="send()"
-                class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
-                title="Send"
-              >
-                <!-- Paper Airplane Icon (Send) -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
-                </svg>
-              </button>
-              <button
-                onclick="newChat()"
-                class="bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
-                title="New Chat"
-              >
-                <!-- Plus Icon (New Chat) -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-              </button>
-              <button
-                onclick="saveChat()"
-                class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
-                title="Save Chat"
-              >
-                <!-- Floppy Disk Icon (Save) -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
-                </svg>
-              </button>
-            
+            <div style="display: flex; flex-direction: column-reverse; width: 100%;">
+              <textarea
+                id="input"
+                rows="1"
+                class="flex-1 bg-slate-800 text-white placeholder-slate-400 rounded-xl border border-emerald-400 p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition resize-none shadow-lg"
+                placeholder="Type a recipe question..."
+                autocomplete="off"
+                style="min-height: 48px; max-height: 220px; overflow-y:auto; width:100%;"
+              ></textarea>
+              <div class="flex flex-row gap-2 sm:gap-3 items-end flex-wrap sm:flex-nowrap w-full sm:w-auto">
+                <button
+                  onclick="send()"
+                  class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
+                  title="Send"
+                >
+                  <!-- Paper Airplane Icon (Send) -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
+                  </svg>
+                </button>
+                <button
+                  onclick="newChat()"
+                  class="bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
+                  title="New Chat"
+                >
+                  <!-- Plus Icon (New Chat) -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                </button>
+                <button
+                  onclick="saveChat()"
+                  class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
+                  title="Save Chat"
+                >
+                  <!-- Floppy Disk Icon (Save) -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
+                  </svg>
+                </button>
+              
+              </div>
             </div>
           </div>
         </div>
@@ -292,7 +294,7 @@ export default `
 
     document.getElementById('mobileSavedModalBg').onclick = hideMobileSavedChats;
 
-    // Auto-grow textarea and shrink chatbox as input grows
+    // Auto-grow textarea and shrink chatbox as input grows, moving textarea up
     input.addEventListener("input", () => {
       input.style.height = "48px";
       input.style.height = Math.min(input.scrollHeight, 220) + "px";
@@ -301,7 +303,7 @@ export default `
       const baseChatboxHeight = 0.7 * window.innerHeight; // 70vh
       const inputHeight = input.scrollHeight;
       const maxInputHeight = 220;
-      const usedHeight = Math.min(inputHeight, maxInputHeight) - 48; // extra height above base
+      const usedHeight = Math.min(inputHeight, maxInputHeight) - 48;
       chatboxDiv.style.height = `calc(${baseChatboxHeight}px - ${usedHeight}px)`;
     });
     input.addEventListener("keydown", (e) => {

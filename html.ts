@@ -79,16 +79,7 @@ export default `
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
                 </svg>
               </button>
-              <button
-                onclick="deleteChat()"
-                class="bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
-                title="Delete Chat"
-              >
-                <!-- Trash Can Icon (Delete) -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10"/>
-                </svg>
-              </button>
+            
             </div>
           </div>
         </div>

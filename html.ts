@@ -6,41 +6,43 @@ export default `
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yummy Tummy AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Heroicons for modern SVG icons -->
+  <script src="https://unpkg.com/heroicons@2.0.18/dist/heroicons.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-950 text-white font-sans">
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white font-sans">
   <div class="flex w-full max-w-6xl mx-auto">
     <!-- Sidebar for saved chats -->
-    <aside class="hidden md:block w-64 bg-gray-900/70 rounded-lg shadow border border-gray-800 p-4 mr-4" id="desktopSidebar">
+    <aside class="hidden md:block w-64 bg-slate-900/70 rounded-xl shadow-xl border border-slate-800 p-4 mr-4 backdrop-blur-lg" id="desktopSidebar">
       <h2 class="text-lg font-bold mb-4 text-emerald-400">Saved Chats</h2>
       <ul id="savedChats" class="space-y-2"></ul>
     </aside>
     <!-- Mobile Saved Chats Button -->
-    <button class="fixed bottom-6 left-6 z-50 bg-gray-900/90 border border-gray-800 rounded-full px-4 py-2 text-emerald-400 font-semibold shadow flex items-center gap-2 md:hidden" onclick="showMobileSavedChats()" style="display:none;">
-      <svg xmlns="http://www.w3.org/2000/svg" class="inline mr-1" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v14l7-7 7 7V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"/></svg>
+    <button class="fixed bottom-6 left-6 z-50 bg-slate-900/90 border border-slate-800 rounded-full px-4 py-2 text-emerald-400 font-semibold shadow flex items-center gap-2 md:hidden backdrop-blur-lg" onclick="showMobileSavedChats()" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="inline mr-1" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v14l7-7 7 7V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"/></svg>
       Saved
     </button>
     <div class="fixed inset-0 bg-black/60 z-40 hidden" id="mobileSavedModalBg"></div>
-    <div class="fixed left-1/2 top-1/2 z-50 bg-gray-900 rounded-xl shadow-lg p-6 min-w-[80vw] max-w-[95vw] max-h-[80vh] overflow-y-auto hidden" id="mobileSavedModal" style="transform:translate(-50%,-50%)">
+    <div class="fixed left-1/2 top-1/2 z-50 bg-slate-900 rounded-xl shadow-lg p-6 min-w-[80vw] max-w-[95vw] max-h-[80vh] overflow-y-auto hidden backdrop-blur-lg" id="mobileSavedModal" style="transform:translate(-50%,-50%)">
       <div class="flex justify-between items-center mb-3">
         <h2 class="text-lg font-bold text-emerald-400">Saved Chats</h2>
-        <button onclick="hideMobileSavedChats()" class="text-white text-2xl leading-none px-2 py-1 rounded hover:bg-gray-800">&times;</button>
+        <button onclick="hideMobileSavedChats()" class="text-white text-2xl leading-none px-2 py-1 rounded hover:bg-slate-800">&times;</button>
       </div>
       <ul id="mobileSavedChats" class="space-y-2"></ul>
     </div>
     <!-- Main chat area -->
     <div class="flex-1 flex flex-col">
-      <div class="w-full max-w-3xl mx-auto bg-gray-900/80 rounded-xl shadow-xl border border-gray-800 p-6 sm:p-8">
+      <div class="w-full max-w-3xl mx-auto bg-slate-900/80 rounded-xl shadow-xl border border-slate-800 p-6 sm:p-8 backdrop-blur-lg">
         <h1 class="text-3xl sm:text-4xl font-bold mb-6 text-center tracking-tight text-white">
           Yummy Tummy <span class="text-emerald-400">AI</span>
         </h1>
-        <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-gray-800 p-4 sm:p-6 bg-gray-800/60 rounded-lg space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
+        <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-slate-800 p-4 sm:p-6 bg-slate-800/60 rounded-lg space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
         <div class="flex gap-3 mt-6 items-end">
           <div class="flex-1 flex flex-row items-end gap-3 flex-wrap sm:flex-nowrap">
             <textarea
               id="input"
               rows="1"
-              class="flex-1 bg-gray-800 text-white placeholder-gray-400 rounded-lg border border-emerald-400 p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition resize-none"
+              class="flex-1 bg-slate-800 text-white placeholder-slate-400 rounded-xl border border-emerald-400 p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition resize-none shadow-lg"
               placeholder="Type a recipe question..."
               autocomplete="off"
               style="min-height: 48px; max-height: 220px; overflow-y:auto; width:100%;"
@@ -48,21 +50,30 @@ export default `
             <div class="flex flex-row gap-2 sm:gap-3 items-end flex-wrap sm:flex-nowrap w-full sm:w-auto">
               <button
                 onclick="send()"
-                class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg px-6 py-3 shadow transition h-12 min-w-[110px]"
+                class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
+                title="Send"
               >
-                Send
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
+                </svg>
               </button>
               <button
                 onclick="newChat()"
-                class="bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-lg px-6 py-3 shadow transition h-12 min-w-[110px]"
+                class="bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
+                title="New Chat"
               >
-                New Chat
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
               </button>
               <button
                 onclick="saveChat()"
-                class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 shadow transition h-12 min-w-[110px]"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
+                title="Save Chat"
               >
-                Save Chat
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
               </button>
             </div>
           </div>

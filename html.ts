@@ -6,20 +6,21 @@ export default `
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yummy Tummy AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/style.css" />
   <!-- Heroicons for modern SVG icons -->
   <script src="https://unpkg.com/heroicons@2.0.18/dist/heroicons.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white font-sans">
+<body class="min-h-screen flex items-center justify-center text-white font-sans bg-[#101010]">
   <div id="verificationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-    <div class="bg-slate-900 rounded-xl shadow-xl p-8 max-w-sm w-full text-center border border-slate-800">
+    <div class="glass rounded-xl shadow-xl p-8 max-w-sm w-full text-center border border-[#232323]">
       <h2 class="text-2xl font-bold mb-4 text-emerald-400">Human Verification</h2>
       <p class="mb-6 text-slate-300">Please solve the challenge to continue:</p>
       <div class="mb-4">
         <span id="humanQuestion" class="text-lg font-semibold"></span>
       </div>
-      <input id="humanAnswer" type="text" class="w-full p-2 rounded bg-slate-800 text-white border border-slate-700 mb-4 focus:outline-none" placeholder="Your answer..." autocomplete="off" />
-      <button onclick="verifyHuman()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded px-5 py-2 shadow transition w-full">Verify</button>
+      <input id="humanAnswer" type="text" class="w-full p-2 rounded glass-input mb-4 focus:outline-none" placeholder="Your answer..." autocomplete="off" />
+      <button onclick="verifyHuman()" class="glass-btn bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded px-5 py-2 shadow transition w-full">Verify</button>
       <div id="humanError" class="mt-3 text-red-400 text-sm hidden"></div>
     </div>
   </div>

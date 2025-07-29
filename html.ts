@@ -18,15 +18,17 @@ export default `
       <ul id="savedChats" class="space-y-2"></ul>
     </aside>
     <!-- Mobile Saved Chats Button -->
-    <button class="fixed bottom-6 left-6 z-50 bg-slate-900/90 border border-slate-800 rounded-full px-4 py-2 text-emerald-400 font-semibold shadow flex items-center gap-2 md:hidden backdrop-blur-lg" onclick="showMobileSavedChats()" style="display:none;">
-      <svg xmlns="http://www.w3.org/2000/svg" class="inline mr-1" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v14l7-7 7 7V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"/></svg>
-      Saved
+    <button id="mobileMenuBtn" class="fixed top-4 left-4 z-50 bg-slate-900/90 border border-slate-800 rounded-full p-3 text-emerald-400 shadow flex items-center justify-center md:hidden backdrop-blur-lg" onclick="toggleMobileSavedChats()" aria-label="Show saved chats">
+      <!-- Hamburger Icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+      </svg>
     </button>
     <div class="fixed inset-0 bg-black/60 z-40 hidden" id="mobileSavedModalBg"></div>
-    <div class="fixed left-1/2 top-1/2 z-50 bg-slate-900 rounded-xl shadow-lg p-6 min-w-[80vw] max-w-[95vw] max-h-[80vh] overflow-y-auto hidden backdrop-blur-lg" id="mobileSavedModal" style="transform:translate(-50%,-50%)">
+    <div class="fixed left-0 top-0 z-50 bg-slate-900 rounded-r-xl shadow-lg p-6 w-[80vw] max-w-xs h-full overflow-y-auto hidden backdrop-blur-lg" id="mobileSavedModal">
       <div class="flex justify-between items-center mb-3">
         <h2 class="text-lg font-bold text-emerald-400">Saved Chats</h2>
-        <button onclick="hideMobileSavedChats()" class="text-white text-2xl leading-none px-2 py-1 rounded hover:bg-slate-800">&times;</button>
+        <button onclick="hideMobileSavedChats()" class="text-white text-2xl leading-none px-2 py-1 rounded hover:bg-slate-800" aria-label="Close">&times;</button>
       </div>
       <ul id="mobileSavedChats" class="space-y-2"></ul>
     </div>
@@ -225,18 +227,34 @@ export default `
     }
 
     // --- Mobile Saved Chats Modal Logic ---
+    function toggleMobileSavedChats() {
+      const modalBg = document.getElementById('mobileSavedModalBg');
+      const modal = document.getElementById('mobileSavedModal');
+      const isOpen = modal.style.display === 'block';
+      if (isOpen) {
+        modalBg.classList.remove('active');
+        modal.classList.remove('active');
+        modalBg.style.display = 'none';
+        modal.style.display = 'none';
+      } else {
+        modalBg.classList.add('active');
+        modal.classList.add('active');
+        modalBg.style.display = 'block';
+        modal.style.display = 'block';
+        renderMobileSavedChats();
+      }
+    }
     function showMobileSavedChats() {
-      document.getElementById('mobileSavedModalBg').classList.add('active');
-      document.getElementById('mobileSavedModal').classList.add('active');
-      document.getElementById('mobileSavedModalBg').style.display = 'block';
-      document.getElementById('mobileSavedModal').style.display = 'block';
-      renderMobileSavedChats();
+      // Deprecated, use toggleMobileSavedChats
+      toggleMobileSavedChats();
     }
     function hideMobileSavedChats() {
-      document.getElementById('mobileSavedModalBg').classList.remove('active');
-      document.getElementById('mobileSavedModal').classList.remove('active');
-      document.getElementById('mobileSavedModalBg').style.display = 'none';
-      document.getElementById('mobileSavedModal').style.display = 'none';
+      const modalBg = document.getElementById('mobileSavedModalBg');
+      const modal = document.getElementById('mobileSavedModal');
+      modalBg.classList.remove('active');
+      modal.classList.remove('active');
+      modalBg.style.display = 'none';
+      modal.style.display = 'none';
     }
     function renderMobileSavedChats() {
       const savedChats = getSavedChats();
@@ -255,16 +273,15 @@ export default `
       });
     }
 
-    // Show mobile saved chats button on mobile
+    // Show hamburger button only on mobile
     function handleMobileSavedToggle() {
-      const btn = document.querySelector('.mobile-saved-toggle');
+      const btn = document.getElementById('mobileMenuBtn');
       if (window.innerWidth <= 640) {
         btn.style.display = 'flex';
       } else {
         btn.style.display = 'none';
         hideMobileSavedChats();
       }
-      // Always hide modal when resizing to desktop
       if (window.innerWidth > 640) {
         document.getElementById('mobileSavedModalBg').style.display = 'none';
         document.getElementById('mobileSavedModal').style.display = 'none';
@@ -273,7 +290,6 @@ export default `
     window.addEventListener('resize', handleMobileSavedToggle);
     window.addEventListener('DOMContentLoaded', handleMobileSavedToggle);
 
-    // Hide modal when clicking background
     document.getElementById('mobileSavedModalBg').onclick = hideMobileSavedChats;
 
     // Auto-grow textarea and handle Shift+Enter for new lines, Enter to send

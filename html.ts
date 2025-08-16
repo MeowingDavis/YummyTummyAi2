@@ -10,7 +10,7 @@ export default `
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Sanitizer + Markdown -->
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <!-- Syntax highlight -->
@@ -24,6 +24,7 @@ export default `
     /* Message action bar visibility */
     .msg:hover .msg-actions { opacity: 1; }
     @media (hover: none) { .msg-actions { opacity: 1; } }
+    @supports(padding: max(0px)) { .composer-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); } }
   </style>
 </head>
 
@@ -51,7 +52,9 @@ export default `
                 Yummy Tummy <span class="text-emerald-400">AI</span>
               </h1>
               <div class="flex items-center gap-2">
-                <button id="themeBtn" class="hidden sm:inline-flex rounded-lg px-3 py-2 text-sm ring-1 ring-slate-700 bg-slate-800/70 hover:bg-slate-700">Toggle theme</button>
+                <button id="newChatBtn" class="inline-flex rounded-lg px-3 py-2 text-sm ring-1 ring-slate-700 bg-slate-800/70 hover:bg-slate-700">
+                  New Chat
+                </button>
                 <!-- Mobile Saved Chats toggle -->
                 <button id="mobileMenuBtn"
                         onclick="toggleMobileSavedChats()"
@@ -117,20 +120,10 @@ export default `
                   </button>
 
                   <button
-                    id="newBtn"
-                    onclick="newChat()"
-                    class="h-11 w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98] transition"
-                    title="New chat" aria-label="New chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                  </button>
-
-                  <button
                     id="sendBtn"
                     onclick="send()"
                     class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 sm:px-5 h-11 text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Send" aria-label="Send message">
+                    title="Send" aria-label="Send message" disabled>
                     <span class="hidden sm:inline">Send</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
@@ -167,14 +160,13 @@ export default `
     const tray     = document.getElementById('previewTray');
     const input    = document.getElementById('input');
     const sendBtn  = document.getElementById('sendBtn');
-    const root     = document.documentElement;
+    const newChatBtn = document.getElementById('newChatBtn');
 
     let chatHistory = [];
     let pendingFiles = [];
     const DRAFT_KEY = "yt_ai_draft";
-    const THEME_KEY = "yt_theme";
 
-    // ---- Suggestion pool (randomized each refresh) ----
+    // ---- Suggestion pool (randomized each refresh/new chat) ----
     const SUGGESTIONS = [
       "What can I cook with eggs, spinach, and feta?",
       "Make a 20-minute vegan dinner plan.",
@@ -205,16 +197,6 @@ export default `
       }
       return a.slice(0, k);
     }
-
-    // ---------- Theme ----------
-    function applyTheme(t){ root.dataset.theme = t; localStorage.setItem(THEME_KEY, t); }
-    applyTheme(localStorage.getItem(THEME_KEY) || "dark");
-    document.getElementById('themeBtn')?.addEventListener('click', () => {
-      applyTheme(root.dataset.theme === "light" ? "dark" : "light");
-    });
-
-    // Restore draft
-    input.value = localStorage.getItem(DRAFT_KEY) || "";
 
     // ---------- Saved Chats ----------
     function getSavedChats() {
@@ -395,8 +377,11 @@ export default `
       const next = Math.min(input.scrollHeight, 224);
       input.style.height = next + "px";
     }
+
+    // Draft autosave
     function saveDraft(){ localStorage.setItem(DRAFT_KEY, input.value); }
     function clearDraft(){ localStorage.removeItem(DRAFT_KEY); }
+    input.value = localStorage.getItem(DRAFT_KEY) || "";
 
     let composing = false; // IME safety
     input.addEventListener("compositionstart", () => composing = true);
@@ -418,7 +403,6 @@ export default `
     // Keyboard shortcuts
     document.addEventListener("keydown", (e) => {
       const k = e.key.toLowerCase();
-      if ((e.metaKey || e.ctrlKey) && k === "k") { e.preventDefault(); input.focus(); }
       if ((e.metaKey || e.ctrlKey) && k === "s") { e.preventDefault(); saveChat(); }
       if ((e.metaKey || e.ctrlKey) && k === "n") { e.preventDefault(); newChat(); }
     });
@@ -532,10 +516,12 @@ export default `
       showTyping();
       try {
         const data = await postJSON("/chat", { message, attachments });
-        const md = data.markdown ?? data.reply;
+        const md = data?.markdown ?? data?.reply ?? "";
         if (md) {
           appendMarkdown("Chef", md);
           chatHistory.push({ role: "assistant", content: md });
+        } else {
+          appendMessage("Chef", "Hmm, I didn't get a response. Try again?");
         }
       } catch (err) {
         appendMessage("Error", "❌ " + err.message);
@@ -546,18 +532,19 @@ export default `
     }
     window.send = send;
 
-    async function newChat() {
+    function newChat(){
       chatbox.innerHTML = "";
       chatHistory = [];
       input.value = "";
       clearDraft();
       autoresize();
       refreshSendState();
+      renderEmptyState(); // randomized suggestions each time
       input.focus();
-      try { await postJSON("/chat", { message: "Let's start a new chat!", newChat: true }); } catch {}
-      renderEmptyState(); // randomized suggestions on new chat
+      // Optional ping to backend:
+      postJSON("/chat", { message: "Let's start a new chat!", newChat: true }).catch(()=>{});
     }
-    window.newChat = newChat;
+    newChatBtn.addEventListener("click", newChat);
 
     // ---------- Mobile Saved Chats Modal ----------
     function toggleMobileSavedChats() {

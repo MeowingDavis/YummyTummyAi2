@@ -38,7 +38,7 @@ export default `
         <h1 class="text-3xl sm:text-4xl font-bold mb-6 text-center tracking-tight text-white">
           Yummy Tummy <span class="text-emerald-400">AI</span>
         </h1>
-        <div id="chatbox" class="flex-1 min-h-[350px] max-h-[75vh] overflow-y-auto border border-slate-800 p-4 sm:p-6 bg-slate-800/60 rounded-lg space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
+        <div id="chatbox" class="h-[70vh] min-h-[350px] max-h-[75vh] overflow-y-auto border border-slate-800 p-4 sm:p-6 bg-slate-800/60 rounded-lg space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
         <div class="flex gap-3 mt-6 items-end">
           <div class="flex-1 flex flex-row items-end gap-3 flex-wrap sm:flex-nowrap">
             <div style="display: flex; flex-direction: column-reverse; width: 100%;">
@@ -294,6 +294,7 @@ export default `
 
     document.getElementById('mobileSavedModalBg').onclick = hideMobileSavedChats;
 
+<<<<<<< HEAD
     // Auto-grow textarea and shrink chatbox as input grows, moving textarea up
     input.addEventListener("input", () => {
       input.style.height = "48px";
@@ -305,6 +306,12 @@ export default `
       const maxInputHeight = 220;
       const usedHeight = Math.min(inputHeight, maxInputHeight) - 48;
       chatboxDiv.style.height = `calc(${baseChatboxHeight}px - ${usedHeight}px)`;
+=======
+    // Auto-grow textarea and handle Shift+Enter for new lines, Enter to send
+    input.addEventListener("input", () => {
+      input.style.height = "48px";
+      input.style.height = Math.min(input.scrollHeight, 220) + "px";
+>>>>>>> parent of be5f96f (Update html.ts)
     });
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {

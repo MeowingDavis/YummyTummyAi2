@@ -1,12 +1,30 @@
 export default `
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Yummy Tummy AI</title>
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Sanitizer + Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Syntax highlight -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
+
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+    /* Message action bar visibility */
+    .msg:hover .msg-actions { opacity: 1; }
+    @media (hover: none) { .msg-actions { opacity: 1; }
+  </style>
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
@@ -28,33 +46,54 @@ export default `
         <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden">
           <!-- Header -->
           <header class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
               <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
                 Yummy Tummy <span class="text-emerald-400">AI</span>
               </h1>
-              <!-- Mobile Saved Chats toggle -->
-              <button id="mobileMenuBtn"
-                      onclick="toggleMobileSavedChats()"
-                      class="md:hidden inline-flex h-10 items-center justify-center rounded-xl bg-slate-800/80 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
-                      aria-label="Show saved chats">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
-                </svg>
-              </button>
+              <div class="flex items-center gap-2">
+                <button id="themeBtn" class="hidden sm:inline-flex rounded-lg px-3 py-2 text-sm ring-1 ring-slate-700 bg-slate-800/70 hover:bg-slate-700">Toggle theme</button>
+                <!-- Mobile Saved Chats toggle -->
+                <button id="mobileMenuBtn"
+                        onclick="toggleMobileSavedChats()"
+                        class="md:hidden inline-flex h-10 items-center justify-center rounded-xl bg-slate-800/80 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+                        aria-label="Show saved chats">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </header>
 
           <!-- Chat body -->
           <section class="flex flex-col h-[72vh] sm:h-[75vh]">
             <!-- Messages -->
-            <div id="chatbox"
-                 class="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth">
+            <div id="chatbox" class="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth"></div>
+
+            <!-- Typing indicator (hidden by default) -->
+            <div id="typing" class="hidden px-5 sm:px-8">
+              <div class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-slate-300">
+                <span>Chef is typing</span>
+                <span class="inline-flex gap-1">
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                </span>
+              </div>
             </div>
 
-            <!-- Composer: mobile stacks; border ONLY on textarea -->
-            <div class="sticky bottom-0 px-5 sm:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
+            <!-- Attachments preview tray -->
+            <div id="previewTray" class="px-5 sm:px-8 hidden">
+              <div class="flex gap-2 flex-wrap py-2"></div>
+            </div>
+
+            <!-- SR live region -->
+            <div id="srLive" class="sr-only" aria-live="polite"></div>
+
+            <!-- Composer -->
+            <div class="composer-safe sticky bottom-0 px-5 sm:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
               <div class="flex flex-col sm:flex-row sm:items-end gap-2">
-                <!-- Textarea -->
+                <!-- Textarea (border ONLY here) -->
                 <label for="input" class="sr-only">Your message</label>
                 <textarea
                   id="input"
@@ -120,15 +159,45 @@ export default `
   </div>
 
   <script>
-    const chatbox = document.getElementById('chatbox');
-    const input = document.getElementById('input');
-    const sendBtn = document.getElementById('sendBtn');
-    let chatHistory = [];
+    // ---------- Setup ----------
+    marked.setOptions({ gfm: true, breaks: true });
 
-    // --- Saved Chats Sidebar Logic ---
+    const chatbox  = document.getElementById('chatbox');
+    const typingEl = document.getElementById('typing');
+    const tray     = document.getElementById('previewTray');
+    const input    = document.getElementById('input');
+    const sendBtn  = document.getElementById('sendBtn');
+    const root     = document.documentElement;
+
+    let chatHistory = [];
+    let pendingFiles = [];
+    const DRAFT_KEY = "yt_ai_draft";
+    const THEME_KEY = "yt_theme";
+
+    // ---------- Theme ----------
+    function applyTheme(t){ root.dataset.theme = t; localStorage.setItem(THEME_KEY, t); }
+    applyTheme(localStorage.getItem(THEME_KEY) || "dark");
+    document.getElementById('themeBtn')?.addEventListener('click', () => {
+      applyTheme(root.dataset.theme === "light" ? "dark" : "light");
+    });
+
+    // Restore draft
+    input.value = localStorage.getItem(DRAFT_KEY) || "";
+
+    // ---------- Saved Chats ----------
     function getSavedChats() {
       return JSON.parse(localStorage.getItem("savedChats") || "[]");
     }
+    function saveChats(arr) {
+      localStorage.setItem("savedChats", JSON.stringify(arr));
+    }
+    function saveChatCapped(obj, cap = 30){
+      const saved = getSavedChats();
+      saved.push(obj);
+      while (saved.length > cap) saved.shift();
+      saveChats(saved);
+    }
+
     function renderSavedChats() {
       const savedChats = getSavedChats();
       const ul = document.getElementById("savedChats");
@@ -141,6 +210,7 @@ export default `
           <span class="truncate max-w-[160px] text-slate-200">\${chat.title || "Chat " + (idx + 1)}</span>
           <span class="shrink-0 space-x-2">
             <button onclick="loadChat(\${idx})" class="text-emerald-300 hover:text-emerald-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded px-2 py-1">Load</button>
+            <button onclick="exportChat(\${idx})" class="text-sky-300 hover:text-sky-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 rounded px-2 py-1">Export</button>
             <button onclick="deleteChat(\${idx})" class="text-rose-400 hover:text-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 rounded px-2 py-1">Delete</button>
           </span>
         \`;
@@ -152,9 +222,7 @@ export default `
     function saveChat() {
       const title = prompt("Name this chat:", "Recipe Chat");
       if (!title) return;
-      const savedChats = getSavedChats();
-      savedChats.push({ title, history: chatHistory });
-      localStorage.setItem("savedChats", JSON.stringify(savedChats));
+      saveChatCapped({ title, history: chatHistory });
       renderSavedChats();
       renderMobileSavedChats();
     }
@@ -176,42 +244,235 @@ export default `
     function deleteChat(idx) {
       const savedChats = getSavedChats();
       savedChats.splice(idx, 1);
-      localStorage.setItem("savedChats", JSON.stringify(savedChats));
+      saveChats(savedChats);
       renderSavedChats();
       renderMobileSavedChats();
     }
     window.deleteChat = deleteChat;
 
-    // --- Chat Logic ---
+    function exportChat(idx){
+      const saved = getSavedChats()[idx];
+      if (!saved) return;
+      const blob = new Blob([JSON.stringify(saved, null, 2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = (saved.title || "chat") + ".json"; a.click();
+      URL.revokeObjectURL(url);
+    }
+    window.exportChat = exportChat;
+
+    // ---------- Markdown (sanitized) ----------
+    function renderMarkdown(md) {
+      const html = marked.parse(md || "");
+      return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+    }
+
+    // ---------- Code blocks: highlight + copy ----------
+    function enhanceCodeBlocks(scope = document) {
+      scope.querySelectorAll('pre > code').forEach(code => {
+        try { hljs.highlightElement(code); } catch {}
+        const pre = code.parentElement;
+        if (pre.dataset.enhanced) return;
+        pre.dataset.enhanced = "1";
+        const btn = document.createElement('button');
+        btn.className = "absolute top-2 right-2 rounded-md bg-slate-800/80 text-slate-200 text-xs px-2 py-1 ring-1 ring-slate-700 hover:bg-slate-700";
+        btn.textContent = "Copy";
+        btn.onclick = async () => {
+          await navigator.clipboard.writeText(code.innerText);
+          btn.textContent = "Copied!";
+          setTimeout(()=> btn.textContent="Copy", 1200);
+        };
+        const wrapper = document.createElement('div');
+        wrapper.className = "relative";
+        pre.replaceWith(wrapper);
+        wrapper.appendChild(pre);
+        wrapper.appendChild(btn);
+      });
+    }
+
+    // ---------- Smart scroll + virtualize ----------
+    function isNearBottom(el){ return el.scrollHeight - el.scrollTop - el.clientHeight < 48; }
+    function trimChatDom(maxNodes = 200){
+      const nodes = [...chatbox.children].filter(n => n.id !== 'typing' && n.id !== 'previewTray');
+      while (nodes.length > maxNodes){
+        const n = nodes.shift();
+        n.remove();
+      }
+    }
+    function safeAppend(node){
+      const stick = isNearBottom(chatbox);
+      if (node.id === 'typing') {
+        // ensure typing lives at the end
+        chatbox.parentElement.insertBefore(node, chatbox.nextSibling);
+      } else {
+        chatbox.appendChild(node);
+        trimChatDom();
+      }
+      if (stick) chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function announce(text){ document.getElementById("srLive").textContent = text; }
+
+    function makeActions({ onCopy, onDelete, onRegen }){
+      const bar = document.createElement('div');
+      bar.className = "msg-actions opacity-0 transition-opacity absolute top-2 right-2 inline-flex gap-1";
+      const mk = (label, cb) => {
+        const b = document.createElement('button');
+        b.className = "rounded-md bg-slate-800/80 text-slate-200 text-xs px-2 py-1 ring-1 ring-slate-700 hover:bg-slate-700";
+        b.textContent = label; b.onclick = cb; return b;
+      };
+      if (onCopy) bar.appendChild(mk("Copy", onCopy));
+      if (onDelete) bar.appendChild(mk("Delete", onDelete));
+      if (onRegen) bar.appendChild(mk("Regenerate", onRegen));
+      return bar;
+    }
+
+    function appendMessage(sender, text) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "msg relative rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
+      wrapper.innerHTML = \`<div class="mb-1 text-emerald-400 font-semibold">\${sender}</div><div class="text-slate-200 whitespace-pre-wrap leading-relaxed">\${text}</div>\`;
+      const acts = makeActions({
+        onCopy: () => navigator.clipboard.writeText(text),
+        onDelete: () => wrapper.remove()
+      });
+      wrapper.appendChild(acts);
+      safeAppend(wrapper);
+    }
+
+    function appendMarkdown(sender, markdown) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "msg relative rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
+      const safe = renderMarkdown(markdown);
+      wrapper.innerHTML = \`<div class="mb-2 text-emerald-400 font-semibold">\${sender}</div><div class="prose prose-invert max-w-none">\${safe}</div>\`;
+      const acts = makeActions({
+        onCopy: () => navigator.clipboard.writeText(markdown),
+        onDelete: () => wrapper.remove(),
+        onRegen: () => send() // simple regenerate using last typed message; customize as needed
+      });
+      wrapper.appendChild(acts);
+      enhanceCodeBlocks(wrapper);
+      safeAppend(wrapper);
+      announce("Assistant replied.");
+    }
+
+    // ---------- Typing indicator ----------
+    function showTyping(){ typingEl.classList.remove('hidden'); }
+    function hideTyping(){ typingEl.classList.add('hidden'); }
+
+    // ---------- Composer behavior ----------
     function refreshSendState() {
       sendBtn.disabled = input.value.trim().length === 0;
     }
-
-    // smooth autoresize capped to max-h (224px)
     function autoresize() {
       input.style.height = "0px";
       const next = Math.min(input.scrollHeight, 224);
       input.style.height = next + "px";
     }
+    function saveDraft(){ localStorage.setItem(DRAFT_KEY, input.value); }
+    function clearDraft(){ localStorage.removeItem(DRAFT_KEY); }
+
+    let composing = false; // IME safety
+    input.addEventListener("compositionstart", () => composing = true);
+    input.addEventListener("compositionend",   () => composing = false);
 
     input.addEventListener("input", () => {
       autoresize();
       refreshSendState();
+      saveDraft();
     });
 
     input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
+      if (e.key === "Enter" && !e.shiftKey && !composing) {
         e.preventDefault();
         send();
       }
     });
 
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      const k = e.key.toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && k === "k") { e.preventDefault(); input.focus(); }
+      if ((e.metaKey || e.ctrlKey) && k === "s") { e.preventDefault(); saveChat(); }
+      if ((e.metaKey || e.ctrlKey) && k === "n") { e.preventDefault(); newChat(); }
+    });
+
+    // ---------- Networking with retry ----------
+    async function postJSON(url, body, tries=3){
+      for (let i=0; i<tries; i++){
+        try{
+          const res = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)});
+          if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
+          return await res.json();
+        }catch(err){
+          if (i === tries-1) throw err;
+          await new Promise(r => setTimeout(r, 400 * Math.pow(2, i))); // 400ms, 800ms
+        }
+      }
+    }
+
+    // ---------- Attachments (paste/drag-drop images) ----------
+    function showTray(){ tray.classList.remove('hidden'); }
+    function hideTray(){ tray.classList.add('hidden'); }
+    function renderTray(){
+      const wrap = tray.firstElementChild;
+      wrap.innerHTML = "";
+      pendingFiles.forEach((f, i) => {
+        const url = URL.createObjectURL(f);
+        const card = document.createElement('div');
+        card.className = "relative w-20 h-20 rounded-lg overflow-hidden ring-1 ring-slate-700";
+        card.innerHTML = \`<img src="\${url}" class="w-full h-full object-cover"><button class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-6 h-6 text-xs">×</button>\`;
+        card.querySelector('button').onclick = () => { pendingFiles.splice(i,1); renderTray(); if(!pendingFiles.length) hideTray(); };
+        wrap.appendChild(card);
+      });
+    }
+    function onFiles(files){
+      pendingFiles.push(...[...files].filter(f => f.type.startsWith('image/')).slice(0, 5));
+      if (pendingFiles.length) { showTray(); renderTray(); }
+    }
+    document.addEventListener('paste', (e) => {
+      const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
+      if (files.length) onFiles(files);
+    });
+    chatbox.addEventListener('dragover', e => e.preventDefault());
+    chatbox.addEventListener('drop', e => { e.preventDefault(); onFiles(e.dataTransfer?.files || []); });
+
+    async function uploadAll(){
+      if (!pendingFiles.length) return [];
+      const form = new FormData();
+      pendingFiles.forEach((f,i)=> form.append('files', f, f.name || \`image_\${i}.png\`));
+      const res = await fetch('/upload', { method:'POST', body: form });
+      if (!res.ok) throw new Error('Upload failed');
+      const urls = await res.json(); // expect array of URLs/ids
+      pendingFiles = []; hideTray();
+      return urls;
+    }
+
+    // ---------- Empty state ----------
+    function renderEmptyState(){
+      if (chatbox.children.length) return;
+      const box = document.createElement('div');
+      box.className = "grid gap-2 sm:grid-cols-2";
+      ["What can I cook with eggs, spinach, feta?",
+       "Make a 20-min vegan dinner plan.",
+       "Turn these leftovers into lunch: chicken, rice, broccoli.",
+       "Low-sodium pasta sauce ideas."].forEach(q => {
+        const b = document.createElement('button');
+        b.className = "text-left rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3 hover:bg-slate-800/60";
+        b.textContent = q;
+        b.onclick = ()=> { input.value = q; autoresize(); refreshSendState(); input.focus(); };
+        box.appendChild(b);
+      });
+      chatbox.appendChild(box);
+    }
+
+    // ---------- Chat actions ----------
     async function send() {
       const message = input.value.trim();
       if (!message) return;
 
       sendBtn.disabled = true;
 
+      // Light nudge if off-topic & too short
       const allowedKeywords = ["cook","recipe","food","ingredient","bake","grill","fry","boil","meal","dish","kitchen","dinner","lunch","breakfast","snack","dessert","spice","herb","nutrition","calorie","vegan","vegetarian","meat","fish","sauce","flavor","taste","garnish","chef","cuisine"];
       const lowerMsg = message.toLowerCase();
       const isCookingRelated = allowedKeywords.some(word => lowerMsg.includes(word));
@@ -221,7 +482,10 @@ export default `
 
       appendMessage("You", message);
       chatHistory.push({ role: "user", content: message });
+
+      // reset input/draft
       input.value = "";
+      clearDraft();
       autoresize();
       refreshSendState();
 
@@ -232,13 +496,17 @@ export default `
         return;
       }
 
+      // Attachments upload (if any)
+      let attachments = [];
       try {
-        const res = await fetch("/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message }),
-        });
-        const data = await res.json();
+        attachments = await uploadAll();
+      } catch (e) {
+        appendMessage("Error", "❌ Attachment upload failed: " + e.message);
+      }
+
+      showTyping();
+      try {
+        const data = await postJSON("/chat", { message, attachments });
         const md = data.markdown ?? data.reply;
         if (md) {
           appendMarkdown("Chef", md);
@@ -247,6 +515,7 @@ export default `
       } catch (err) {
         appendMessage("Error", "❌ " + err.message);
       } finally {
+        hideTyping();
         input.focus();
       }
     }
@@ -256,37 +525,16 @@ export default `
       chatbox.innerHTML = "";
       chatHistory = [];
       input.value = "";
+      clearDraft();
       autoresize();
       refreshSendState();
       input.focus();
-      await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "Let's start a new chat!", newChat: true }),
-      });
+      try { await postJSON("/chat", { message: "Let's start a new chat!", newChat: true }); } catch {}
+      renderEmptyState();
     }
     window.newChat = newChat;
 
-    function appendMessage(sender, text) {
-      const wrapper = document.createElement("div");
-      wrapper.className = "rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
-      wrapper.innerHTML = \`<div class="mb-1 text-emerald-400 font-semibold">\${sender}</div><div class="text-slate-200 whitespace-pre-wrap leading-relaxed">\${text}</div>\`;
-      chatbox.appendChild(wrapper);
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
-
-    function appendMarkdown(sender, markdown) {
-      const wrapper = document.createElement("div");
-      wrapper.className = "rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
-      const header = \`<div class="mb-2 text-emerald-400 font-semibold">\${sender}</div>\`;
-      const content = marked.parse(markdown);
-      const body = \`<div class="prose prose-invert max-w-none prose-headings:text-slate-100 prose-strong:text-slate-100 prose-a:text-emerald-300 hover:prose-a:text-emerald-200 prose-code:bg-slate-900/70 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-lg prose-pre:bg-slate-900/70">\${content}</div>\`;
-      wrapper.innerHTML = header + body;
-      chatbox.appendChild(wrapper);
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
-
-    // --- Mobile Saved Chats Modal ---
+    // ---------- Mobile Saved Chats Modal ----------
     function toggleMobileSavedChats() {
       const bg = document.getElementById('mobileSavedModalBg');
       const modal = document.getElementById('mobileSavedModal');
@@ -306,6 +554,7 @@ export default `
     function renderMobileSavedChats() {
       const savedChats = getSavedChats();
       const ul = document.getElementById("mobileSavedChats");
+      if (!ul) return;
       ul.innerHTML = "";
       savedChats.forEach((chat, idx) => {
         const li = document.createElement("li");
@@ -314,6 +563,7 @@ export default `
           '<span class="truncate max-w-[160px] text-slate-200">' + (chat.title ? chat.title : "Chat " + (idx + 1)) + '</span>' +
           '<span class="shrink-0 space-x-2">' +
             '<button onclick="loadChat(' + idx + ')" class="rounded px-2 py-1 text-emerald-300 hover:text-emerald-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50">Load</button>' +
+            '<button onclick="exportChat(' + idx + ')" class="rounded px-2 py-1 text-sky-300 hover:text-sky-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50">Export</button>' +
             '<button onclick="deleteChat(' + idx + ')" class="rounded px-2 py-1 text-rose-400 hover:text-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40">Delete</button>' +
           '</span>';
         ul.appendChild(li);
@@ -321,8 +571,10 @@ export default `
     }
     document.getElementById('mobileSavedModalBg').addEventListener('click', hideMobileSavedChats);
 
-    // Initial render + input sizing/state
+    // ---------- Init ----------
     renderSavedChats();
+    renderMobileSavedChats();
+    renderEmptyState();
     autoresize();
     refreshSendState();
   </script>

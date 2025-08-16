@@ -6,90 +6,116 @@ export default `
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yummy Tummy AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Heroicons for modern SVG icons -->
-  <script src="https://unpkg.com/heroicons@2.0.18/dist/heroicons.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white font-sans">
-  <div class="flex w-full max-w-6xl mx-auto">
-    <!-- Sidebar for saved chats -->
-    <aside class="hidden md:block w-64 bg-slate-900/70 rounded-xl shadow-xl border border-slate-800 p-4 mr-4 backdrop-blur-lg" id="desktopSidebar">
-      <h2 class="text-lg font-bold mb-4 text-emerald-400">Saved Chats</h2>
-      <ul id="savedChats" class="space-y-2"></ul>
-    </aside>
-    <!-- Mobile Saved Chats Button -->
-    <button id="mobileMenuBtn" class="fixed top-4 left-4 z-50 bg-slate-900/90 border border-slate-800 rounded-full p-3 text-emerald-400 shadow flex items-center justify-center md:hidden backdrop-blur-lg" onclick="toggleMobileSavedChats()" aria-label="Show saved chats">
-      <!-- Hamburger Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
-      </svg>
-    </button>
-    <div class="fixed inset-0 bg-black/60 z-40 hidden" id="mobileSavedModalBg"></div>
-    <div class="fixed left-0 top-0 z-50 bg-slate-900 rounded-r-xl shadow-lg p-6 w-[80vw] max-w-xs h-full overflow-y-auto hidden backdrop-blur-lg" id="mobileSavedModal">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-bold text-emerald-400">Saved Chats</h2>
-        <button onclick="hideMobileSavedChats()" class="text-white text-2xl leading-none px-2 py-1 rounded hover:bg-slate-800" aria-label="Close">&times;</button>
-      </div>
-      <ul id="mobileSavedChats" class="space-y-2"></ul>
-    </div>
-    <!-- Main chat area -->
-    <div class="flex-1 flex flex-col">
-      <div class="w-full max-w-3xl mx-auto bg-slate-900/80 rounded-xl shadow-xl border border-slate-800 p-6 sm:p-8 backdrop-blur-lg">
-        <h1 class="text-3xl sm:text-4xl font-bold mb-6 text-center tracking-tight text-white">
-          Yummy Tummy <span class="text-emerald-400">AI</span>
-        </h1>
-        <div id="chatbox" class="flex-1 min-h-[350px] max-h-[75vh] overflow-y-auto border border-slate-800 p-4 sm:p-6 bg-slate-800/60 rounded-lg space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
-        <div class="flex gap-3 mt-6 items-end">
-          <div class="flex-1 flex flex-row items-end gap-3 flex-wrap sm:flex-nowrap">
-            <div style="display: flex; flex-direction: column-reverse; width: 100%;">
-              <textarea
-                id="input"
-                rows="1"
-                class="flex-1 bg-slate-800 text-white placeholder-slate-400 rounded-xl border border-emerald-400 p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition resize-none shadow-lg"
-                placeholder="Type a recipe question..."
-                autocomplete="off"
-                style="min-height: 48px; max-height: 220px; overflow-y:auto; width:100%;"
-              ></textarea>
-              <div class="flex flex-row gap-2 sm:gap-3 items-end flex-wrap sm:flex-nowrap w-full sm:w-auto">
-                <button
-                  onclick="send()"
-                  class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
-                  title="Send"
-                >
-                  <!-- Paper Airplane Icon (Send) -->
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
-                  </svg>
-                </button>
-                <button
-                  onclick="newChat()"
-                  class="bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
-                  title="New Chat"
-                >
-                  <!-- Plus Icon (New Chat) -->
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                  </svg>
-                </button>
-                <button
-                  onclick="saveChat()"
-                  class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
-                  title="Save Chat"
-                >
-                  <!-- Floppy Disk Icon (Save) -->
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
-                  </svg>
-                </button>
-              
+
+<body class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex gap-4">
+      <!-- Sidebar (desktop) -->
+      <aside class="hidden md:flex md:w-72 shrink-0">
+        <div class="w-full rounded-2xl border border-slate-800/80 bg-slate-900/70 backdrop-blur-md shadow-xl p-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
+            <button onclick="renderSavedChats()" class="text-xs text-slate-400 hover:text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 rounded-md px-2 py-1">Refresh</button>
+          </div>
+          <ul id="savedChats" class="mt-3 space-y-2 text-sm"></ul>
+        </div>
+      </aside>
+
+      <!-- Main column -->
+      <main class="flex-1">
+        <div class="rounded-2xl border border-slate-800/80 bg-slate-900/70 backdrop-blur-md shadow-2xl">
+          <!-- Header -->
+          <header class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
+            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
+              Yummy Tummy <span class="text-emerald-400">AI</span>
+            </h1>
+          </header>
+
+          <!-- Chat body -->
+          <section class="flex flex-col h-[72vh] sm:h-[75vh]">
+            <!-- Messages -->
+            <div id="chatbox"
+                 class="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth">
+              <!-- messages injected here -->
+            </div>
+
+            <!-- Composer -->
+            <div class="px-5 sm:px-8 pb-6 pt-3 border-t border-slate-800/60">
+              <div class="flex w-full items-end gap-3">
+                <div class="flex-1">
+                  <label for="input" class="sr-only">Your message</label>
+                  <textarea
+                    id="input"
+                    rows="1"
+                    class="w-full rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-3 text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/40 transition resize-none"
+                    placeholder="Ask a recipe question or paste your ingredients..."
+                    autocomplete="off"
+                    style="min-height:48px;max-height:220px;overflow-y:auto"
+                  ></textarea>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    onclick="send()"
+                    class="inline-flex h-12 min-w-[48px] items-center justify-center rounded-xl bg-emerald-500 px-5 font-semibold text-white shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
+                    title="Send"
+                    aria-label="Send message">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
+                    </svg>
+                  </button>
+
+                  <button
+                    onclick="newChat()"
+                    class="inline-flex h-12 min-w-[48px] items-center justify-center rounded-xl bg-slate-800 px-5 font-semibold text-white shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
+                    title="New Chat"
+                    aria-label="Start new chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                  </button>
+
+                  <button
+                    onclick="saveChat()"
+                    class="inline-flex h-12 min-w-[48px] items-center justify-center rounded-xl bg-blue-500 px-5 font-semibold text-white shadow-md ring-1 ring-inset ring-blue-400/40 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+                    title="Save Chat"
+                    aria-label="Save chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
+                    </svg>
+                  </button>
+
+                  <!-- Mobile Saved Chats toggle -->
+                  <button id="mobileMenuBtn"
+                          onclick="toggleMobileSavedChats()"
+                          class="md:hidden inline-flex h-12 items-center justify-center rounded-xl bg-slate-800 px-4 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
+                          aria-label="Show saved chats">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
     </div>
   </div>
+
+  <!-- Mobile Saved Chats Modal -->
+  <div class="fixed inset-0 z-40 hidden bg-black/60" id="mobileSavedModalBg"></div>
+  <div class="fixed left-0 top-0 z-50 hidden h-full w-[82vw] max-w-xs overflow-y-auto rounded-r-2xl border border-slate-800 bg-slate-900/90 backdrop-blur-md p-6" id="mobileSavedModal">
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
+      <button onclick="hideMobileSavedChats()" class="rounded-md px-2 py-1 text-xl leading-none text-slate-300 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400/50" aria-label="Close">&times;</button>
+    </div>
+    <ul id="mobileSavedChats" class="space-y-2 text-sm"></ul>
+  </div>
+
   <script>
     const chatbox = document.getElementById('chatbox');
     const input = document.getElementById('input');
@@ -102,21 +128,22 @@ export default `
     function renderSavedChats() {
       const savedChats = getSavedChats();
       const ul = document.getElementById("savedChats");
+      if (!ul) return;
       ul.innerHTML = "";
       savedChats.forEach((chat, idx) => {
         const li = document.createElement("li");
-        li.className = "flex items-center justify-between bg-[#232323] rounded px-2 py-1";
+        li.className = "flex items-center justify-between rounded-lg border border-slate-800 bg-slate-800/60 px-3 py-2";
         li.innerHTML = \`
-          <span class="truncate max-w-[120px]">\${chat.title || "Chat " + (idx + 1)}</span>
-          <span>
-            <button onclick="loadChat(\${idx})" class="text-emerald-400 hover:underline mr-2">Load</button>
-            <button onclick="deleteChat(\${idx})" class="text-red-400 hover:underline">Delete</button>
+          <span class="truncate max-w-[140px] text-slate-200">\${chat.title || "Chat " + (idx + 1)}</span>
+          <span class="shrink-0 space-x-2">
+            <button onclick="loadChat(\${idx})" class="text-emerald-300 hover:text-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 rounded px-2 py-1">Load</button>
+            <button onclick="deleteChat(\${idx})" class="text-rose-400 hover:text-rose-300 focus:outline-none focus:ring-2 focus:ring-rose-400/40 rounded px-2 py-1">Delete</button>
           </span>
         \`;
         ul.appendChild(li);
       });
     }
-    window.renderSavedChats = renderSavedChats; // for inline onclick
+    window.renderSavedChats = renderSavedChats;
 
     function saveChat() {
       const title = prompt("Name this chat:", "Recipe Chat");
@@ -125,6 +152,7 @@ export default `
       savedChats.push({ title, history: chatHistory });
       localStorage.setItem("savedChats", JSON.stringify(savedChats));
       renderSavedChats();
+      renderMobileSavedChats();
     }
     window.saveChat = saveChat;
 
@@ -137,6 +165,7 @@ export default `
         if (msg.role === "user") appendMessage("You", msg.content);
         else if (msg.role === "assistant") appendMarkdown("Chef", msg.content);
       }
+      hideMobileSavedChats();
     }
     window.loadChat = loadChat;
 
@@ -145,6 +174,7 @@ export default `
       savedChats.splice(idx, 1);
       localStorage.setItem("savedChats", JSON.stringify(savedChats));
       renderSavedChats();
+      renderMobileSavedChats();
     }
     window.deleteChat = deleteChat;
 
@@ -153,13 +183,11 @@ export default `
       const message = input.value.trim();
       if (!message) return;
 
-      const allowedKeywords = [
-        "cook", "recipe", "food", "ingredient", "bake", "grill", "fry", "boil", "meal", "dish", "kitchen", "dinner", "lunch", "breakfast", "snack", "dessert", "spice", "herb", "nutrition", "calorie", "vegan", "vegetarian", "meat", "fish", "sauce", "flavor", "taste", "garnish", "chef", "cuisine"
-      ];
+      const allowedKeywords = ["cook","recipe","food","ingredient","bake","grill","fry","boil","meal","dish","kitchen","dinner","lunch","breakfast","snack","dessert","spice","herb","nutrition","calorie","vegan","vegetarian","meat","fish","sauce","flavor","taste","garnish","chef","cuisine"];
       const lowerMsg = message.toLowerCase();
       const isCookingRelated = allowedKeywords.some(word => lowerMsg.includes(word));
       if (!isCookingRelated && message.split(" ").length < 8) {
-        appendMessage("Chef", "💡 Tip: For best results, ask about food, cooking, or list your ingredients!");
+        appendMessage("Chef", "💡 Tip: Ask about food or list ingredients for best results.");
       }
 
       appendMessage("You", message);
@@ -168,9 +196,9 @@ export default `
       input.style.height = "48px";
       input.disabled = true;
 
-      const greetings = ["hi", "hello", "hey", "greetings"];
+      const greetings = ["hi","hello","hey","greetings"];
       if (greetings.includes(lowerMsg)) {
-        appendMessage("Chef", "👋 Hello! Please ask a recipe question or list your ingredients.");
+        appendMessage("Chef", "👋 Hello! Ask a recipe question or list your ingredients.");
         input.disabled = false;
         input.focus();
         return;
@@ -182,15 +210,12 @@ export default `
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message }),
         });
-
         const data = await res.json();
 
-        if (data.markdown) {
-          appendMarkdown("Chef", data.markdown);
-          chatHistory.push({ role: "assistant", content: data.markdown });
-        } else if (data.reply) {
-          appendMarkdown("Chef", data.reply);
-          chatHistory.push({ role: "assistant", content: data.reply });
+        const md = data.markdown ?? data.reply;
+        if (md) {
+          appendMarkdown("Chef", md);
+          chatHistory.push({ role: "assistant", content: md });
         }
       } catch (err) {
         appendMessage("Error", "❌ " + err.message);
@@ -199,6 +224,7 @@ export default `
         input.focus();
       }
     }
+    window.send = send;
 
     async function newChat() {
       chatbox.innerHTML = "";
@@ -212,51 +238,55 @@ export default `
         body: JSON.stringify({ message: "Let's start a new chat!", newChat: true }),
       });
     }
+    window.newChat = newChat;
 
     function appendMessage(sender, text) {
-      const div = document.createElement("div");
-      div.innerHTML = \`<strong class="text-emerald-400">\${sender}:</strong> \${text.replace(/\\n/g, "<br>")}\`;
-      chatbox.appendChild(div);
+      const wrapper = document.createElement("div");
+      wrapper.className = "rounded-xl border border-slate-800 bg-slate-800/60 p-4";
+      wrapper.innerHTML = \`<div class="mb-1 text-emerald-400 font-semibold">\${sender}</div><div class="text-slate-200 whitespace-pre-wrap leading-relaxed">\${text}</div>\`;
+      chatbox.appendChild(wrapper);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
 
     function appendMarkdown(sender, markdown) {
-      const div = document.createElement("div");
-      div.innerHTML = \`<strong class="text-emerald-400">\${sender}:</strong><br>\` + marked.parse(markdown);
-      div.classList.add("prose", "prose-invert", "max-w-none");
-      chatbox.appendChild(div);
+      const wrapper = document.createElement("div");
+      wrapper.className = "rounded-xl border border-slate-800 bg-slate-800/60 p-4";
+      const header = \`<div class="mb-2 text-emerald-400 font-semibold">\${sender}</div>\`;
+      const content = marked.parse(markdown);
+      const body = \`<div class="prose prose-invert max-w-none prose-headings:text-slate-100 prose-strong:text-slate-100 prose-a:text-emerald-300 hover:prose-a:text-emerald-200 prose-code:bg-slate-900/70 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-lg prose-pre:bg-slate-900/70">\${content}</div>\`;
+      wrapper.innerHTML = header + body;
+      chatbox.appendChild(wrapper);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
 
-    // --- Mobile Saved Chats Modal Logic ---
+    // Auto-grow textarea (no layout hacks)
+    input.addEventListener("input", () => {
+      input.style.height = "48px";
+      input.style.height = Math.min(input.scrollHeight, 220) + "px";
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    // --- Mobile Saved Chats Modal ---
     function toggleMobileSavedChats() {
-      const modalBg = document.getElementById('mobileSavedModalBg');
+      const bg = document.getElementById('mobileSavedModalBg');
       const modal = document.getElementById('mobileSavedModal');
-      const isOpen = modal.style.display === 'block';
+      const isOpen = !bg.classList.contains("hidden");
       if (isOpen) {
-        modalBg.classList.remove('active');
-        modal.classList.remove('active');
-        modalBg.style.display = 'none';
-        modal.style.display = 'none';
+        hideMobileSavedChats();
       } else {
-        modalBg.classList.add('active');
-        modal.classList.add('active');
-        modalBg.style.display = 'block';
-        modal.style.display = 'block';
         renderMobileSavedChats();
+        bg.classList.remove("hidden");
+        modal.classList.remove("hidden");
       }
     }
-    function showMobileSavedChats() {
-      // Deprecated, use toggleMobileSavedChats
-      toggleMobileSavedChats();
-    }
     function hideMobileSavedChats() {
-      const modalBg = document.getElementById('mobileSavedModalBg');
-      const modal = document.getElementById('mobileSavedModal');
-      modalBg.classList.remove('active');
-      modal.classList.remove('active');
-      modalBg.style.display = 'none';
-      modal.style.display = 'none';
+      document.getElementById('mobileSavedModalBg').classList.add("hidden");
+      document.getElementById('mobileSavedModal').classList.add("hidden");
     }
     function renderMobileSavedChats() {
       const savedChats = getSavedChats();
@@ -264,57 +294,19 @@ export default `
       ul.innerHTML = "";
       savedChats.forEach((chat, idx) => {
         const li = document.createElement("li");
-        li.className = "flex items-center justify-between bg-[#232323] rounded px-2 py-1";
+        li.className = "flex items-center justify-between rounded-lg border border-slate-800 bg-slate-800/60 px-3 py-2";
         li.innerHTML =
-          '<span class="truncate max-w-[120px]">' + (chat.title ? chat.title : "Chat " + (idx + 1)) + '</span>' +
-          '<span>' +
-            '<button onclick="loadChat(' + idx + ');hideMobileSavedChats()" class="text-emerald-400 hover:underline mr-2">Load</button>' +
-            '<button onclick="deleteChat(' + idx + ');renderMobileSavedChats()" class="text-red-400 hover:underline">Delete</button>' +
+          '<span class="truncate max-w-[140px] text-slate-200">' + (chat.title ? chat.title : "Chat " + (idx + 1)) + '</span>' +
+          '<span class="shrink-0 space-x-2">' +
+            '<button onclick="loadChat(' + idx + ')" class="rounded px-2 py-1 text-emerald-300 hover:text-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-400/50">Load</button>' +
+            '<button onclick="deleteChat(' + idx + ')" class="rounded px-2 py-1 text-rose-400 hover:text-rose-300 focus:outline-none focus:ring-2 focus:ring-rose-400/40">Delete</button>' +
           '</span>';
         ul.appendChild(li);
       });
     }
+    document.getElementById('mobileSavedModalBg').addEventListener('click', hideMobileSavedChats);
 
-    // Show hamburger button only on mobile
-    function handleMobileSavedToggle() {
-      const btn = document.getElementById('mobileMenuBtn');
-      if (window.innerWidth <= 640) {
-        btn.style.display = 'flex';
-      } else {
-        btn.style.display = 'none';
-        hideMobileSavedChats();
-      }
-      if (window.innerWidth > 640) {
-        document.getElementById('mobileSavedModalBg').style.display = 'none';
-        document.getElementById('mobileSavedModal').style.display = 'none';
-      }
-    }
-    window.addEventListener('resize', handleMobileSavedToggle);
-    window.addEventListener('DOMContentLoaded', handleMobileSavedToggle);
-
-    document.getElementById('mobileSavedModalBg').onclick = hideMobileSavedChats;
-
-    // Auto-grow textarea and shrink chatbox as input grows, moving textarea up
-    input.addEventListener("input", () => {
-      input.style.height = "48px";
-      input.style.height = Math.min(input.scrollHeight, 220) + "px";
-      // Shrink chatbox height as input grows
-      const chatboxDiv = document.getElementById("chatbox");
-      const baseChatboxHeight = 0.7 * window.innerHeight; // 70vh
-      const inputHeight = input.scrollHeight;
-      const maxInputHeight = 220;
-      const usedHeight = Math.min(inputHeight, maxInputHeight) - 48;
-      chatboxDiv.style.height = \`calc(\${baseChatboxHeight}px - \${usedHeight}px)\`;
-    });
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        send();
-      }
-      // Shift+Enter inserts newline by default, so no need to handle
-    });
-
-    // Render saved chats on load
+    // Initial render
     renderSavedChats();
   </script>
 </body>

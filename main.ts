@@ -1,17 +1,29 @@
 export default `
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Yummy Tummy AI</title>
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Sanitizer + Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Syntax highlight -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
+
   <style>
     @media (prefers-reduced-motion: reduce) {
       * { animation: none !important; transition: none !important; }
     }
+    /* Message action bar visibility */
+    .msg:hover .msg-actions { opacity: 1; }
+    @media (hover: none) { .msg-actions { opacity: 1; }
   </style>
 </head>
 
@@ -34,30 +46,48 @@ export default `
         <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden">
           <!-- Header -->
           <header class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
               <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
                 Yummy Tummy <span class="text-emerald-400">AI</span>
               </h1>
-              <!-- Mobile Saved Chats toggle -->
-              <button id="mobileMenuBtn"
-                      onclick="toggleMobileSavedChats()"
-                      class="md:hidden inline-flex h-10 items-center justify-center rounded-xl bg-slate-800/80 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
-                      aria-label="Show saved chats">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
-                </svg>
-              </button>
+              <div class="flex items-center gap-2">
+                <button id="themeBtn" class="hidden sm:inline-flex rounded-lg px-3 py-2 text-sm ring-1 ring-slate-700 bg-slate-800/70 hover:bg-slate-700">Toggle theme</button>
+                <!-- Mobile Saved Chats toggle -->
+                <button id="mobileMenuBtn"
+                        onclick="toggleMobileSavedChats()"
+                        class="md:hidden inline-flex h-10 items-center justify-center rounded-xl bg-slate-800/80 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+                        aria-label="Show saved chats">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </header>
 
           <!-- Chat body -->
           <section class="flex flex-col h-[72vh] sm:h-[75vh]">
             <!-- Messages -->
-            <div id="chatbox"
-                 class="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth">
+            <div id="chatbox" class="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth"></div>
+
+            <!-- Typing indicator (hidden by default) -->
+            <div id="typing" class="hidden px-5 sm:px-8">
+              <div class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-slate-300">
+                <span>Chef is typing</span>
+                <span class="inline-flex gap-1">
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                </span>
+              </div>
             </div>
 
-            <!-- Screen reader live region -->
+            <!-- Attachments preview tray -->
+            <div id="previewTray" class="px-5 sm:px-8 hidden">
+              <div class="flex gap-2 flex-wrap py-2"></div>
+            </div>
+
+            <!-- SR live region -->
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
             <!-- Composer -->
@@ -73,7 +103,7 @@ export default `
                   autocomplete="off"
                 ></textarea>
 
-                <!-- Buttons (outside the input) -->
+                <!-- Buttons -->
                 <div class="flex items-center justify-end gap-2 shrink-0">
                   <button
                     id="saveBtn"
@@ -132,11 +162,24 @@ export default `
     // ---------- Setup ----------
     marked.setOptions({ gfm: true, breaks: true });
 
-    const chatbox = document.getElementById('chatbox');
-    const input   = document.getElementById('input');
-    const sendBtn = document.getElementById('sendBtn');
+    const chatbox  = document.getElementById('chatbox');
+    const typingEl = document.getElementById('typing');
+    const tray     = document.getElementById('previewTray');
+    const input    = document.getElementById('input');
+    const sendBtn  = document.getElementById('sendBtn');
+    const root     = document.documentElement;
+
     let chatHistory = [];
+    let pendingFiles = [];
     const DRAFT_KEY = "yt_ai_draft";
+    const THEME_KEY = "yt_theme";
+
+    // ---------- Theme ----------
+    function applyTheme(t){ root.dataset.theme = t; localStorage.setItem(THEME_KEY, t); }
+    applyTheme(localStorage.getItem(THEME_KEY) || "dark");
+    document.getElementById('themeBtn')?.addEventListener('click', () => {
+      applyTheme(root.dataset.theme === "light" ? "dark" : "light");
+    });
 
     // Restore draft
     input.value = localStorage.getItem(DRAFT_KEY) || "";
@@ -224,46 +267,107 @@ export default `
       return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
     }
 
-    // ---------- Smart scroll ----------
+    // ---------- Code blocks: highlight + copy ----------
+    function enhanceCodeBlocks(scope = document) {
+      scope.querySelectorAll('pre > code').forEach(code => {
+        try { hljs.highlightElement(code); } catch {}
+        const pre = code.parentElement;
+        if (pre.dataset.enhanced) return;
+        pre.dataset.enhanced = "1";
+        const btn = document.createElement('button');
+        btn.className = "absolute top-2 right-2 rounded-md bg-slate-800/80 text-slate-200 text-xs px-2 py-1 ring-1 ring-slate-700 hover:bg-slate-700";
+        btn.textContent = "Copy";
+        btn.onclick = async () => {
+          await navigator.clipboard.writeText(code.innerText);
+          btn.textContent = "Copied!";
+          setTimeout(()=> btn.textContent="Copy", 1200);
+        };
+        const wrapper = document.createElement('div');
+        wrapper.className = "relative";
+        pre.replaceWith(wrapper);
+        wrapper.appendChild(pre);
+        wrapper.appendChild(btn);
+      });
+    }
+
+    // ---------- Smart scroll + virtualize ----------
     function isNearBottom(el){ return el.scrollHeight - el.scrollTop - el.clientHeight < 48; }
+    function trimChatDom(maxNodes = 200){
+      const nodes = [...chatbox.children].filter(n => n.id !== 'typing' && n.id !== 'previewTray');
+      while (nodes.length > maxNodes){
+        const n = nodes.shift();
+        n.remove();
+      }
+    }
     function safeAppend(node){
       const stick = isNearBottom(chatbox);
-      chatbox.appendChild(node);
+      if (node.id === 'typing') {
+        // ensure typing lives at the end
+        chatbox.parentElement.insertBefore(node, chatbox.nextSibling);
+      } else {
+        chatbox.appendChild(node);
+        trimChatDom();
+      }
       if (stick) chatbox.scrollTop = chatbox.scrollHeight;
     }
 
     function announce(text){ document.getElementById("srLive").textContent = text; }
 
+    function makeActions({ onCopy, onDelete, onRegen }){
+      const bar = document.createElement('div');
+      bar.className = "msg-actions opacity-0 transition-opacity absolute top-2 right-2 inline-flex gap-1";
+      const mk = (label, cb) => {
+        const b = document.createElement('button');
+        b.className = "rounded-md bg-slate-800/80 text-slate-200 text-xs px-2 py-1 ring-1 ring-slate-700 hover:bg-slate-700";
+        b.textContent = label; b.onclick = cb; return b;
+      };
+      if (onCopy) bar.appendChild(mk("Copy", onCopy));
+      if (onDelete) bar.appendChild(mk("Delete", onDelete));
+      if (onRegen) bar.appendChild(mk("Regenerate", onRegen));
+      return bar;
+    }
+
     function appendMessage(sender, text) {
       const wrapper = document.createElement("div");
-      wrapper.className = "rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
+      wrapper.className = "msg relative rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
       wrapper.innerHTML = \`<div class="mb-1 text-emerald-400 font-semibold">\${sender}</div><div class="text-slate-200 whitespace-pre-wrap leading-relaxed">\${text}</div>\`;
+      const acts = makeActions({
+        onCopy: () => navigator.clipboard.writeText(text),
+        onDelete: () => wrapper.remove()
+      });
+      wrapper.appendChild(acts);
       safeAppend(wrapper);
     }
 
     function appendMarkdown(sender, markdown) {
       const wrapper = document.createElement("div");
-      wrapper.className = "rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
-      const header = \`<div class="mb-2 text-emerald-400 font-semibold">\${sender}</div>\`;
+      wrapper.className = "msg relative rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
       const safe = renderMarkdown(markdown);
-      const body = \`<div class="prose prose-invert max-w-none prose-headings:text-slate-100 prose-strong:text-slate-100 prose-a:text-emerald-300 hover:prose-a:text-emerald-200 prose-code:bg-slate-900/70 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-lg prose-pre:bg-slate-900/70">\${safe}</div>\`;
-      wrapper.innerHTML = header + body;
+      wrapper.innerHTML = \`<div class="mb-2 text-emerald-400 font-semibold">\${sender}</div><div class="prose prose-invert max-w-none">\${safe}</div>\`;
+      const acts = makeActions({
+        onCopy: () => navigator.clipboard.writeText(markdown),
+        onDelete: () => wrapper.remove(),
+        onRegen: () => send() // simple regenerate using last typed message; customize as needed
+      });
+      wrapper.appendChild(acts);
+      enhanceCodeBlocks(wrapper);
       safeAppend(wrapper);
       announce("Assistant replied.");
     }
+
+    // ---------- Typing indicator ----------
+    function showTyping(){ typingEl.classList.remove('hidden'); }
+    function hideTyping(){ typingEl.classList.add('hidden'); }
 
     // ---------- Composer behavior ----------
     function refreshSendState() {
       sendBtn.disabled = input.value.trim().length === 0;
     }
-
     function autoresize() {
       input.style.height = "0px";
-      const next = Math.min(input.scrollHeight, 224); // matches max-h-56
+      const next = Math.min(input.scrollHeight, 224);
       input.style.height = next + "px";
     }
-
-    // Draft autosave
     function saveDraft(){ localStorage.setItem(DRAFT_KEY, input.value); }
     function clearDraft(){ localStorage.removeItem(DRAFT_KEY); }
 
@@ -306,10 +410,66 @@ export default `
       }
     }
 
+    // ---------- Attachments (paste/drag-drop images) ----------
+    function showTray(){ tray.classList.remove('hidden'); }
+    function hideTray(){ tray.classList.add('hidden'); }
+    function renderTray(){
+      const wrap = tray.firstElementChild;
+      wrap.innerHTML = "";
+      pendingFiles.forEach((f, i) => {
+        const url = URL.createObjectURL(f);
+        const card = document.createElement('div');
+        card.className = "relative w-20 h-20 rounded-lg overflow-hidden ring-1 ring-slate-700";
+        card.innerHTML = \`<img src="\${url}" class="w-full h-full object-cover"><button class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-6 h-6 text-xs">×</button>\`;
+        card.querySelector('button').onclick = () => { pendingFiles.splice(i,1); renderTray(); if(!pendingFiles.length) hideTray(); };
+        wrap.appendChild(card);
+      });
+    }
+    function onFiles(files){
+      pendingFiles.push(...[...files].filter(f => f.type.startsWith('image/')).slice(0, 5));
+      if (pendingFiles.length) { showTray(); renderTray(); }
+    }
+    document.addEventListener('paste', (e) => {
+      const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
+      if (files.length) onFiles(files);
+    });
+    chatbox.addEventListener('dragover', e => e.preventDefault());
+    chatbox.addEventListener('drop', e => { e.preventDefault(); onFiles(e.dataTransfer?.files || []); });
+
+    async function uploadAll(){
+      if (!pendingFiles.length) return [];
+      const form = new FormData();
+      pendingFiles.forEach((f,i)=> form.append('files', f, f.name || \`image_\${i}.png\`));
+      const res = await fetch('/upload', { method:'POST', body: form });
+      if (!res.ok) throw new Error('Upload failed');
+      const urls = await res.json(); // expect array of URLs/ids
+      pendingFiles = []; hideTray();
+      return urls;
+    }
+
+    // ---------- Empty state ----------
+    function renderEmptyState(){
+      if (chatbox.children.length) return;
+      const box = document.createElement('div');
+      box.className = "grid gap-2 sm:grid-cols-2";
+      ["What can I cook with eggs, spinach, feta?",
+       "Make a 20-min vegan dinner plan.",
+       "Turn these leftovers into lunch: chicken, rice, broccoli.",
+       "Low-sodium pasta sauce ideas."].forEach(q => {
+        const b = document.createElement('button');
+        b.className = "text-left rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3 hover:bg-slate-800/60";
+        b.textContent = q;
+        b.onclick = ()=> { input.value = q; autoresize(); refreshSendState(); input.focus(); };
+        box.appendChild(b);
+      });
+      chatbox.appendChild(box);
+    }
+
     // ---------- Chat actions ----------
     async function send() {
       const message = input.value.trim();
       if (!message) return;
+
       sendBtn.disabled = true;
 
       // Light nudge if off-topic & too short
@@ -336,8 +496,17 @@ export default `
         return;
       }
 
+      // Attachments upload (if any)
+      let attachments = [];
       try {
-        const data = await postJSON("/chat", { message });
+        attachments = await uploadAll();
+      } catch (e) {
+        appendMessage("Error", "❌ Attachment upload failed: " + e.message);
+      }
+
+      showTyping();
+      try {
+        const data = await postJSON("/chat", { message, attachments });
         const md = data.markdown ?? data.reply;
         if (md) {
           appendMarkdown("Chef", md);
@@ -346,6 +515,7 @@ export default `
       } catch (err) {
         appendMessage("Error", "❌ " + err.message);
       } finally {
+        hideTyping();
         input.focus();
       }
     }
@@ -359,7 +529,8 @@ export default `
       autoresize();
       refreshSendState();
       input.focus();
-      await postJSON("/chat", { message: "Let's start a new chat!", newChat: true }).catch(()=>{});
+      try { await postJSON("/chat", { message: "Let's start a new chat!", newChat: true }); } catch {}
+      renderEmptyState();
     }
     window.newChat = newChat;
 
@@ -383,6 +554,7 @@ export default `
     function renderMobileSavedChats() {
       const savedChats = getSavedChats();
       const ul = document.getElementById("mobileSavedChats");
+      if (!ul) return;
       ul.innerHTML = "";
       savedChats.forEach((chat, idx) => {
         const li = document.createElement("li");
@@ -399,9 +571,10 @@ export default `
     }
     document.getElementById('mobileSavedModalBg').addEventListener('click', hideMobileSavedChats);
 
-    // ---------- Initial render ----------
+    // ---------- Init ----------
     renderSavedChats();
-    renderMobileSavedChats?.();
+    renderMobileSavedChats();
+    renderEmptyState();
     autoresize();
     refreshSendState();
   </script>

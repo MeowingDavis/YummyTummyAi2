@@ -25,7 +25,7 @@ export default `
 
       <!-- Main column -->
       <main class="flex-1">
-        <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl">
+        <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden">
           <!-- Header -->
           <header class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
             <div class="flex items-center justify-between">
@@ -52,28 +52,25 @@ export default `
               <!-- messages injected here -->
             </div>
 
-            <!-- Composer (sleek) -->
-            <div class="px-5 sm:px-8 pb-6 pt-3 border-t border-slate-800/60">
-              <div class="relative">
+            <!-- Composer (ChatGPT-like; border ONLY on textarea) -->
+            <div class="sticky bottom-0 px-5 sm:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
+              <div class="flex items-end gap-2">
+                <!-- Textarea (rounded-2xl so it scales vertically without weird ovals) -->
                 <label for="input" class="sr-only">Your message</label>
-
-                <!-- Pill textarea -->
                 <textarea
                   id="input"
                   rows="1"
-                  class="w-full rounded-full border border-slate-700/70 bg-slate-900/60 backdrop-blur-xl px-4 pr-40 sm:pr-52 py-3 text-slate-100 placeholder-slate-400 shadow-inner outline-none ring-1 ring-slate-800 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/40 transition resize-none"
-                  placeholder="Ask a recipe question or paste your ingredients..."
+                  class="flex-1 rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur-xl px-4 py-3 text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition resize-none leading-6 sm:leading-7 min-h-[48px] max-h-56"
+                  placeholder="Ask a recipe question or paste your ingredients... (Shift+Enter for newline)"
                   autocomplete="off"
-                  style="min-height:56px;max-height:220px;overflow-y:auto"
                 ></textarea>
 
-                <!-- Floating button cluster -->
-                <div class="absolute right-2 bottom-2 flex items-center gap-2">
-                  <!-- Ghost: Save -->
+                <!-- Buttons (sit outside the textbox; no wrapping border) -->
+                <div class="flex items-center gap-2 shrink-0">
                   <button
                     id="saveBtn"
                     onclick="saveChat()"
-                    class="h-11 w-11 sm:h-12 sm:w-12 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
+                    class="h-10 w-10 sm:h-11 sm:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
                     title="Save chat"
                     aria-label="Save chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,11 +79,10 @@ export default `
                     </svg>
                   </button>
 
-                  <!-- Ghost: New chat -->
                   <button
                     id="newBtn"
                     onclick="newChat()"
-                    class="h-11 w-11 sm:h-12 sm:w-12 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98] transition"
+                    class="h-10 w-10 sm:h-11 sm:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98] transition"
                     title="New chat"
                     aria-label="New chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,22 +90,15 @@ export default `
                     </svg>
                   </button>
 
-                  <!-- Primary: Send -->
                   <button
                     id="sendBtn"
                     onclick="send()"
-                    class="group relative h-11 sm:h-12 px-4 sm:px-5 inline-flex items-center justify-center rounded-full bg-gradient-to-b from-emerald-500 to-emerald-600 text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:from-emerald-500 hover:to-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 sm:px-5 h-10 sm:h-11 text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Send"
                     aria-label="Send message">
-                    <span class="sr-only sm:not-sr-only sm:mr-2 sm:text-sm">Send</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 group-active:translate-x-[1px] group-active:-translate-y-[1px] transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <span class="hidden sm:inline">Send</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
-                    </svg>
-
-                    <!-- Loading spinner -->
-                    <svg id="sendSpinner" class="hidden absolute right-3 h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4" fill="none"></circle>
-                      <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                     </svg>
                   </button>
                 </div>
@@ -140,7 +129,6 @@ export default `
     const chatbox = document.getElementById('chatbox');
     const input = document.getElementById('input');
     const sendBtn = document.getElementById('sendBtn');
-    const sendSpinner = document.getElementById('sendSpinner');
     let chatHistory = [];
 
     // --- Saved Chats Sidebar Logic ---
@@ -201,24 +189,34 @@ export default `
     window.deleteChat = deleteChat;
 
     // --- Chat Logic ---
-    // Disable send when empty; show spinner during send
     function refreshSendState() {
-      const hasText = input.value.trim().length > 0;
-      sendBtn.disabled = !hasText;
+      sendBtn.disabled = input.value.trim().length === 0;
     }
+
+    // ChatGPT-like autoresize (no layout jump; no absolute buttons)
+    function autoresize() {
+      input.style.height = "0px";                      // reset
+      const next = Math.min(input.scrollHeight, 224);  // cap ~ max-h-56
+      input.style.height = next + "px";
+    }
+
     input.addEventListener("input", () => {
-      input.style.height = "56px";
-      input.style.height = Math.min(input.scrollHeight, 220) + "px";
+      autoresize();
       refreshSendState();
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
     });
 
     async function send() {
       const message = input.value.trim();
       if (!message) return;
 
-      // UI: sending state
       sendBtn.disabled = true;
-      sendSpinner.classList.remove("hidden");
 
       const allowedKeywords = ["cook","recipe","food","ingredient","bake","grill","fry","boil","meal","dish","kitchen","dinner","lunch","breakfast","snack","dessert","spice","herb","nutrition","calorie","vegan","vegetarian","meat","fish","sauce","flavor","taste","garnish","chef","cuisine"];
       const lowerMsg = message.toLowerCase();
@@ -230,14 +228,12 @@ export default `
       appendMessage("You", message);
       chatHistory.push({ role: "user", content: message });
       input.value = "";
-      input.style.height = "56px";
+      autoresize();
+      refreshSendState();
 
       const greetings = ["hi","hello","hey","greetings"];
       if (greetings.includes(lowerMsg)) {
         appendMessage("Chef", "👋 Hello! Ask a recipe question or list your ingredients.");
-        // reset UI sending state
-        sendSpinner.classList.add("hidden");
-        refreshSendState();
         input.focus();
         return;
       }
@@ -249,7 +245,6 @@ export default `
           body: JSON.stringify({ message }),
         });
         const data = await res.json();
-
         const md = data.markdown ?? data.reply;
         if (md) {
           appendMarkdown("Chef", md);
@@ -258,9 +253,6 @@ export default `
       } catch (err) {
         appendMessage("Error", "❌ " + err.message);
       } finally {
-        // reset UI sending state
-        sendSpinner.classList.add("hidden");
-        refreshSendState();
         input.focus();
       }
     }
@@ -270,7 +262,7 @@ export default `
       chatbox.innerHTML = "";
       chatHistory = [];
       input.value = "";
-      input.style.height = "56px";
+      autoresize();
       refreshSendState();
       input.focus();
       await fetch("/chat", {
@@ -299,14 +291,6 @@ export default `
       chatbox.appendChild(wrapper);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
-
-    // Keyboard handling
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        send();
-      }
-    });
 
     // --- Mobile Saved Chats Modal ---
     function toggleMobileSavedChats() {
@@ -343,9 +327,9 @@ export default `
     }
     document.getElementById('mobileSavedModalBg').addEventListener('click', hideMobileSavedChats);
 
-    // Initial render + initial send state
+    // Initial render + input sizing/state
     renderSavedChats();
-    input.style.height = "56px";
+    autoresize();
     refreshSendState();
   </script>
 </body>

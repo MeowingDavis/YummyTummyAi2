@@ -52,54 +52,61 @@ export default `
               <!-- messages injected here -->
             </div>
 
-            <!-- Composer -->
+            <!-- Composer (ChatGPT-style) -->
             <div class="px-5 sm:px-8 pb-6 pt-3 border-t border-slate-800/60">
-              <div class="flex flex-col sm:flex-row w-full gap-3">
-                <div class="flex-1">
-                  <label for="input" class="sr-only">Your message</label>
-                  <textarea
-                    id="input"
-                    rows="1"
-                    class="w-full rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-3 text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/40 transition resize-none"
-                    placeholder="Ask a recipe question or paste your ingredients..."
-                    autocomplete="off"
-                    style="min-height:56px;max-height:220px;overflow-y:auto"
-                  ></textarea>
-                </div>
+              <div class="relative">
+                <label for="input" class="sr-only">Your message</label>
+                <textarea
+                  id="input"
+                  rows="1"
+                  class="w-full rounded-2xl border border-slate-700 bg-slate-800/70 px-4 pr-36 sm:pr-44 py-3 text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/40 transition resize-none"
+                  placeholder="Ask a recipe question or paste your ingredients... (Shift+Enter for newline)"
+                  autocomplete="off"
+                  style="min-height:56px;max-height:220px;overflow-y:auto"
+                ></textarea>
 
-                <div class="flex flex-row sm:flex-col gap-2 sm:gap-3">
-                  <button
-                    onclick="send()"
-                    class="flex-1 sm:flex-none h-12 rounded-xl bg-emerald-500 px-5 font-semibold text-white shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
-                    title="Send"
-                    aria-label="Send message">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
-                    </svg>
-                  </button>
-
-                  <button
-                    onclick="newChat()"
-                    class="flex-1 sm:flex-none h-12 rounded-xl bg-slate-800 px-5 font-semibold text-white shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
-                    title="New Chat"
-                    aria-label="Start new chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                  </button>
-
+                <!-- Floating buttons cluster -->
+                <div class="absolute right-2 bottom-2 flex items-center gap-2">
+                  <!-- Save -->
                   <button
                     onclick="saveChat()"
-                    class="flex-1 sm:flex-none h-12 rounded-xl bg-blue-500 px-5 font-semibold text-white shadow-md ring-1 ring-inset ring-blue-400/40 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-                    title="Save Chat"
+                    class="h-11 w-11 sm:h-12 sm:w-12 inline-flex items-center justify-center rounded-xl bg-slate-800/90 ring-1 ring-inset ring-slate-700 text-slate-200 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+                    title="Save chat"
                     aria-label="Save chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
                     </svg>
                   </button>
+
+                  <!-- New Chat -->
+                  <button
+                    onclick="newChat()"
+                    class="h-11 w-11 sm:h-12 sm:w-12 inline-flex items-center justify-center rounded-xl bg-slate-800/90 ring-1 ring-inset ring-slate-700 text-slate-200 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
+                    title="New chat"
+                    aria-label="New chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                  </button>
+
+                  <!-- Send (primary) -->
+                  <button
+                    onclick="send()"
+                    class="h-11 w-11 sm:h-12 sm:w-12 inline-flex items-center justify-center rounded-xl bg-emerald-500 text-white shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
+                    title="Send"
+                    aria-label="Send message">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
+                    </svg>
+                  </button>
                 </div>
               </div>
+
+              <!-- Tiny helper text -->
+              <p class="mt-2 text-xs text-slate-400">
+                Press <span class="font-semibold text-slate-300">Enter</span> to send • <span class="font-semibold text-slate-300">Shift+Enter</span> for a new line
+              </p>
             </div>
           </section>
         </div>

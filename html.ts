@@ -28,9 +28,20 @@ export default `
         <div class="rounded-2xl border border-slate-800/80 bg-slate-900/70 backdrop-blur-md shadow-2xl">
           <!-- Header -->
           <header class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
-            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
-              Yummy Tummy <span class="text-emerald-400">AI</span>
-            </h1>
+            <div class="flex items-center justify-between">
+              <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
+                Yummy Tummy <span class="text-emerald-400">AI</span>
+              </h1>
+              <!-- Mobile Saved Chats toggle -->
+              <button id="mobileMenuBtn"
+                      onclick="toggleMobileSavedChats()"
+                      class="md:hidden inline-flex h-10 items-center justify-center rounded-xl bg-slate-800 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
+                      aria-label="Show saved chats">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                </svg>
+              </button>
+            </div>
           </header>
 
           <!-- Chat body -->
@@ -43,7 +54,7 @@ export default `
 
             <!-- Composer -->
             <div class="px-5 sm:px-8 pb-6 pt-3 border-t border-slate-800/60">
-              <div class="flex w-full items-end gap-3">
+              <div class="flex flex-col sm:flex-row w-full gap-3">
                 <div class="flex-1">
                   <label for="input" class="sr-only">Your message</label>
                   <textarea
@@ -52,49 +63,39 @@ export default `
                     class="w-full rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-3 text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/40 transition resize-none"
                     placeholder="Ask a recipe question or paste your ingredients..."
                     autocomplete="off"
-                    style="min-height:48px;max-height:220px;overflow-y:auto"
+                    style="min-height:56px;max-height:220px;overflow-y:auto"
                   ></textarea>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex flex-row sm:flex-col gap-2 sm:gap-3">
                   <button
                     onclick="send()"
-                    class="inline-flex h-12 min-w-[48px] items-center justify-center rounded-xl bg-emerald-500 px-5 font-semibold text-white shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
+                    class="flex-1 sm:flex-none h-12 rounded-xl bg-emerald-500 px-5 font-semibold text-white shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
                     title="Send"
                     aria-label="Send message">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
                     </svg>
                   </button>
 
                   <button
                     onclick="newChat()"
-                    class="inline-flex h-12 min-w-[48px] items-center justify-center rounded-xl bg-slate-800 px-5 font-semibold text-white shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
+                    class="flex-1 sm:flex-none h-12 rounded-xl bg-slate-800 px-5 font-semibold text-white shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
                     title="New Chat"
                     aria-label="Start new chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                   </button>
 
                   <button
                     onclick="saveChat()"
-                    class="inline-flex h-12 min-w-[48px] items-center justify-center rounded-xl bg-blue-500 px-5 font-semibold text-white shadow-md ring-1 ring-inset ring-blue-400/40 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+                    class="flex-1 sm:flex-none h-12 rounded-xl bg-blue-500 px-5 font-semibold text-white shadow-md ring-1 ring-inset ring-blue-400/40 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                     title="Save Chat"
                     aria-label="Save chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
-                    </svg>
-                  </button>
-
-                  <!-- Mobile Saved Chats toggle -->
-                  <button id="mobileMenuBtn"
-                          onclick="toggleMobileSavedChats()"
-                          class="md:hidden inline-flex h-12 items-center justify-center rounded-xl bg-slate-800 px-4 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition"
-                          aria-label="Show saved chats">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
                     </svg>
                   </button>
                 </div>
@@ -193,7 +194,7 @@ export default `
       appendMessage("You", message);
       chatHistory.push({ role: "user", content: message });
       input.value = "";
-      input.style.height = "48px";
+      input.style.height = "56px";
       input.disabled = true;
 
       const greetings = ["hi","hello","hey","greetings"];
@@ -261,7 +262,7 @@ export default `
 
     // Auto-grow textarea (no layout hacks)
     input.addEventListener("input", () => {
-      input.style.height = "48px";
+      input.style.height = "56px";
       input.style.height = Math.min(input.scrollHeight, 220) + "px";
     });
     input.addEventListener("keydown", (e) => {

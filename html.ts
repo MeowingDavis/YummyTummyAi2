@@ -48,23 +48,29 @@ export default `
           <!-- Header -->
           <header class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
             <div class="flex items-center justify-between gap-2">
-              <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
-                Yummy Tummy <span class="text-emerald-400">AI</span>
-              </h1>
               <div class="flex items-center gap-2">
-                <button id="newChatBtn" class="inline-flex rounded-lg px-3 py-2 text-sm ring-1 ring-slate-700 bg-slate-800/70 hover:bg-slate-700">
-                  New Chat
-                </button>
                 <!-- Mobile Saved Chats toggle -->
                 <button id="mobileMenuBtn"
                         onclick="toggleMobileSavedChats()"
-                        class="md:hidden inline-flex h-10 items-center justify-center rounded-xl bg-slate-800/80 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+                        class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800/80 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
                         aria-label="Show saved chats">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
                   </svg>
                 </button>
+                <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
+                  Yummy Tummy <span class="text-emerald-400">AI</span>
+                </h1>
               </div>
+
+              <!-- New Chat (plus icon) -->
+              <button id="newChatBtn"
+                class="rounded-full h-10 w-10 inline-flex items-center justify-center ring-1 ring-slate-700/80 bg-slate-900/70 hover:bg-slate-800/70"
+                title="New Chat" aria-label="New Chat">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+              </button>
             </div>
           </header>
 
@@ -220,14 +226,14 @@ export default `
       savedChats.forEach((chat, idx) => {
         const li = document.createElement("li");
         li.className = "flex items-center justify-between rounded-xl border border-slate-800 bg-slate-800/50 px-3 py-2";
-        li.innerHTML = \`
-          <span class="truncate max-w-[160px] text-slate-200">\${chat.title || "Chat " + (idx + 1)}</span>
+        li.innerHTML = `
+          <span class="truncate max-w-[160px] text-slate-200">${chat.title || "Chat " + (idx + 1)}</span>
           <span class="shrink-0 space-x-2">
-            <button onclick="loadChat(\${idx})" class="text-emerald-300 hover:text-emerald-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded px-2 py-1">Load</button>
-            <button onclick="exportChat(\${idx})" class="text-sky-300 hover:text-sky-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 rounded px-2 py-1">Export</button>
-            <button onclick="deleteChat(\${idx})" class="text-rose-400 hover:text-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 rounded px-2 py-1">Delete</button>
+            <button onclick="loadChat(${idx})" class="text-emerald-300 hover:text-emerald-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded px-2 py-1">Load</button>
+            <button onclick="exportChat(${idx})" class="text-sky-300 hover:text-sky-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 rounded px-2 py-1">Export</button>
+            <button onclick="deleteChat(${idx})" class="text-rose-400 hover:text-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 rounded px-2 py-1">Delete</button>
           </span>
-        \`;
+        `;
         ul.appendChild(li);
       });
     }
@@ -339,7 +345,7 @@ export default `
     function appendMessage(sender, text) {
       const wrapper = document.createElement("div");
       wrapper.className = "msg relative rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
-      wrapper.innerHTML = \`<div class="mb-1 text-emerald-400 font-semibold">\${sender}</div><div class="text-slate-200 whitespace-pre-wrap leading-relaxed">\${text}</div>\`;
+      wrapper.innerHTML = `<div class="mb-1 text-emerald-400 font-semibold">${sender}</div><div class="text-slate-200 whitespace-pre-wrap leading-relaxed">${text}</div>`;
       const acts = makeActions({
         onCopy: () => navigator.clipboard.writeText(text),
         onDelete: () => wrapper.remove()
@@ -352,7 +358,7 @@ export default `
       const wrapper = document.createElement("div");
       wrapper.className = "msg relative rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
       const safe = renderMarkdown(markdown);
-      wrapper.innerHTML = \`<div class="mb-2 text-emerald-400 font-semibold">\${sender}</div><div class="prose prose-invert max-w-none">\${safe}</div>\`;
+      wrapper.innerHTML = `<div class="mb-2 text-emerald-400 font-semibold">${sender}</div><div class="prose prose-invert max-w-none">${safe}</div>`;
       const acts = makeActions({
         onCopy: () => navigator.clipboard.writeText(markdown),
         onDelete: () => wrapper.remove(),
@@ -412,7 +418,7 @@ export default `
       for (let i=0; i<tries; i++){
         try{
           const res = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)});
-          if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return await res.json();
         }catch(err){
           if (i === tries-1) throw err;
@@ -431,7 +437,7 @@ export default `
         const url = URL.createObjectURL(f);
         const card = document.createElement('div');
         card.className = "relative w-20 h-20 rounded-lg overflow-hidden ring-1 ring-slate-700";
-        card.innerHTML = \`<img src="\${url}" class="w-full h-full object-cover"><button class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-6 h-6 text-xs">×</button>\`;
+        card.innerHTML = `<img src="${url}" class="w-full h-full object-cover"><button class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-6 h-6 text-xs">×</button>`;
         card.querySelector('button').onclick = () => { pendingFiles.splice(i,1); renderTray(); if(!pendingFiles.length) hideTray(); };
         wrap.appendChild(card);
       });
@@ -450,7 +456,7 @@ export default `
     async function uploadAll(){
       if (!pendingFiles.length) return [];
       const form = new FormData();
-      pendingFiles.forEach((f,i)=> form.append('files', f, f.name || \`image_\${i}.png\`));
+      pendingFiles.forEach((f,i)=> form.append('files', f, f.name || `image_${i}.png`));
       const res = await fetch('/upload', { method:'POST', body: form });
       if (!res.ok) throw new Error('Upload failed');
       const urls = await res.json(); // expect array of URLs/ids
@@ -592,4 +598,3 @@ export default `
   </script>
 </body>
 </html>
-`

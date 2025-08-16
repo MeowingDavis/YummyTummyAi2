@@ -23,7 +23,7 @@ export default `
     }
     /* Message action bar visibility */
     .msg:hover .msg-actions { opacity: 1; }
-    @media (hover: none) { .msg-actions { opacity: 1; }
+    @media (hover: none) { .msg-actions { opacity: 1; } }
   </style>
 </head>
 
@@ -174,6 +174,38 @@ export default `
     const DRAFT_KEY = "yt_ai_draft";
     const THEME_KEY = "yt_theme";
 
+    // ---- Suggestion pool (randomized each refresh) ----
+    const SUGGESTIONS = [
+      "What can I cook with eggs, spinach, and feta?",
+      "Make a 20-minute vegan dinner plan.",
+      "Turn these leftovers into lunch: chicken, rice, broccoli.",
+      "Low-sodium pasta sauce ideas.",
+      "Gluten-free dessert with 5 ingredients.",
+      "Meal prep for 3 days under 1500 kcal/day.",
+      "High-protein breakfast without protein powder.",
+      "One-pot dinner with quinoa and veggies.",
+      "Kid-friendly vegetarian dinner this week.",
+      "Dairy-free creamy pasta alternatives.",
+      "Quick sauces to level up grilled chicken.",
+      "How to use up wilting herbs (parsley, cilantro).",
+      "Pantry-only dinner: canned beans, tomatoes, pasta.",
+      "Budget dinner for 4 under $15.",
+      "Air-fryer ideas for salmon & potatoes.",
+      "Make a spice blend for roasted veggies.",
+      "Weeknight curry with coconut milk and tofu.",
+      "Indian-inspired lentil meal in 25 minutes.",
+      "Low-waste tips to store cut onions and herbs.",
+      "Pairing ideas for roast pumpkin (sides & sauces)."
+    ];
+    function sample(array, k = 4) {
+      const a = array.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a.slice(0, k);
+    }
+
     // ---------- Theme ----------
     function applyTheme(t){ root.dataset.theme = t; localStorage.setItem(THEME_KEY, t); }
     applyTheme(localStorage.getItem(THEME_KEY) || "dark");
@@ -301,13 +333,8 @@ export default `
     }
     function safeAppend(node){
       const stick = isNearBottom(chatbox);
-      if (node.id === 'typing') {
-        // ensure typing lives at the end
-        chatbox.parentElement.insertBefore(node, chatbox.nextSibling);
-      } else {
-        chatbox.appendChild(node);
-        trimChatDom();
-      }
+      chatbox.appendChild(node);
+      trimChatDom();
       if (stick) chatbox.scrollTop = chatbox.scrollHeight;
     }
 
@@ -347,7 +374,7 @@ export default `
       const acts = makeActions({
         onCopy: () => navigator.clipboard.writeText(markdown),
         onDelete: () => wrapper.remove(),
-        onRegen: () => send() // simple regenerate using last typed message; customize as needed
+        onRegen: () => send()
       });
       wrapper.appendChild(acts);
       enhanceCodeBlocks(wrapper);
@@ -447,15 +474,13 @@ export default `
       return urls;
     }
 
-    // ---------- Empty state ----------
+    // ---------- Empty state (randomized suggestions) ----------
     function renderEmptyState(){
       if (chatbox.children.length) return;
+      const picks = sample(SUGGESTIONS, 4);
       const box = document.createElement('div');
       box.className = "grid gap-2 sm:grid-cols-2";
-      ["What can I cook with eggs, spinach, feta?",
-       "Make a 20-min vegan dinner plan.",
-       "Turn these leftovers into lunch: chicken, rice, broccoli.",
-       "Low-sodium pasta sauce ideas."].forEach(q => {
+      picks.forEach(q => {
         const b = document.createElement('button');
         b.className = "text-left rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3 hover:bg-slate-800/60";
         b.textContent = q;
@@ -530,7 +555,7 @@ export default `
       refreshSendState();
       input.focus();
       try { await postJSON("/chat", { message: "Let's start a new chat!", newChat: true }); } catch {}
-      renderEmptyState();
+      renderEmptyState(); // randomized suggestions on new chat
     }
     window.newChat = newChat;
 
@@ -574,7 +599,7 @@ export default `
     // ---------- Init ----------
     renderSavedChats();
     renderMobileSavedChats();
-    renderEmptyState();
+    renderEmptyState(); // randomized on first load
     autoresize();
     refreshSendState();
   </script>

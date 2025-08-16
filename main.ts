@@ -24,18 +24,6 @@ function setSessionCookie(headers: Headers, sessionId: string) {
 Deno.serve(async (req) => {
   const url = new URL(req.url);
 
-  // Serve static files
-  if (url.pathname === "/styles.css") {
-    try {
-      const cssContent = await Deno.readTextFile("./styles.css");
-      return new Response(cssContent, {
-        headers: { "Content-Type": "text/css; charset=utf-8" },
-      });
-    } catch (error) {
-      return new Response("CSS file not found", { status: 404 });
-    }
-  }
-
   if (req.method === "POST" && url.pathname === "/chat") {
     try {
       const { message, newChat } = await req.json();
@@ -85,7 +73,7 @@ Your main task:
 - Help users make meals based on the **exact ingredients they provide**.
 - Never invent or add ingredients unless they ask for a named recipe (e.g., "Give me a shortbread recipe").
 
-If the user asks for a specific meal (e.g., “I want banana bread”), you may return a full recipe.
+If the user asks for a specific meal (e.g., "I want banana bread"), you may return a full recipe.
 
 Format every response in **Markdown** using:
 - **Bold** for section titles like Ingredients and Instructions

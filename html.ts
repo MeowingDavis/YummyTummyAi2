@@ -5,39 +5,38 @@ export default `
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yummy Tummy AI</title>
-  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Heroicons for modern SVG icons -->
+  <script src="https://unpkg.com/heroicons@2.0.18/dist/heroicons.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body>
-  <div class="container">
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white font-sans">
+  <div class="flex w-full max-w-6xl mx-auto">
     <!-- Sidebar for saved chats -->
-    <aside class="sidebar" id="desktopSidebar">
-      <h2>Saved Chats</h2>
-      <ul class="saved-chats-list" id="savedChats"></ul>
+    <aside class="hidden md:block w-64 bg-slate-900/70 rounded-xl shadow-xl border border-slate-800 p-4 mr-4 backdrop-blur-lg" id="desktopSidebar">
+      <h2 class="text-lg font-bold mb-4 text-emerald-400">Saved Chats</h2>
+      <ul id="savedChats" class="space-y-2"></ul>
     </aside>
-    
     <!-- Mobile Saved Chats Button -->
-    <button id="mobileMenuBtn" class="mobile-menu-btn" onclick="toggleMobileSavedChats()" aria-label="Show saved chats">
+    <button id="mobileMenuBtn" class="fixed top-4 left-4 z-50 bg-slate-900/90 border border-slate-800 rounded-full p-3 text-emerald-400 shadow flex items-center justify-center md:hidden backdrop-blur-lg" onclick="toggleMobileSavedChats()" aria-label="Show saved chats">
       <!-- Hamburger Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
       </svg>
     </button>
-    
-    <div class="mobile-modal-bg" id="mobileSavedModalBg"></div>
-    <div class="mobile-modal" id="mobileSavedModal">
-      <div class="mobile-modal-header">
-        <h2>Saved Chats</h2>
-        <button onclick="hideMobileSavedChats()" class="mobile-modal-close" aria-label="Close">&times;</button>
+    <div class="fixed inset-0 bg-black/60 z-40 hidden" id="mobileSavedModalBg"></div>
+    <div class="fixed left-0 top-0 z-50 bg-slate-900 rounded-r-xl shadow-lg p-6 w-[80vw] max-w-xs h-full overflow-y-auto hidden backdrop-blur-lg" id="mobileSavedModal">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-bold text-emerald-400">Saved Chats</h2>
+        <button onclick="hideMobileSavedChats()" class="text-white text-2xl leading-none px-2 py-1 rounded hover:bg-slate-800" aria-label="Close">&times;</button>
       </div>
-      <ul class="saved-chats-list" id="mobileSavedChats"></ul>
+      <ul id="mobileSavedChats" class="space-y-2"></ul>
     </div>
-    
     <!-- Main chat area -->
-    <div class="main-chat">
-      <div class="chat-container">
-        <h1 class="chat-title">
-          Yummy Tummy <span class="highlight">AI</span>
+    <div class="flex-1 flex flex-col">
+      <div class="w-full max-w-3xl mx-auto bg-slate-900/80 rounded-xl shadow-xl border border-slate-800 p-6 sm:p-8 backdrop-blur-lg">
+        <h1 class="text-3xl sm:text-4xl font-bold mb-6 text-center tracking-tight text-white">
+          Yummy Tummy <span class="text-emerald-400">AI</span>
         </h1>
         <div id="chatbox" class="flex-1 min-h-[350px] max-h-[75vh] overflow-y-auto border border-slate-800 p-4 sm:p-6 bg-slate-800/60 rounded-lg space-y-4 text-base text-white/90 prose prose-invert prose-p:leading-relaxed"></div>
         <div class="flex gap-3 mt-6 items-end">
@@ -45,43 +44,45 @@ export default `
             <div style="display: flex; flex-direction: column-reverse; width: 100%;">
               <textarea
                 id="input"
-                class="input-field"
                 rows="1"
+                class="flex-1 bg-slate-800 text-white placeholder-slate-400 rounded-xl border border-emerald-400 p-3 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition resize-none shadow-lg"
                 placeholder="Type a recipe question..."
                 autocomplete="off"
+                style="min-height: 48px; max-height: 220px; overflow-y:auto; width:100%;"
               ></textarea>
-              <div class="button-group">
+              <div class="flex flex-row gap-2 sm:gap-3 items-end flex-wrap sm:flex-nowrap w-full sm:w-auto">
                 <button
                   onclick="send()"
-                  class="btn btn-send"
+                  class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
                   title="Send"
                 >
                   <!-- Paper Airplane Icon (Send) -->
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
                   </svg>
                 </button>
                 <button
                   onclick="newChat()"
-                  class="btn btn-new"
+                  class="bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
                   title="New Chat"
                 >
                   <!-- Plus Icon (New Chat) -->
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                   </svg>
                 </button>
                 <button
                   onclick="saveChat()"
-                  class="btn btn-save"
+                  class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl px-5 py-3 shadow-lg transition h-12 min-w-[48px] flex items-center justify-center"
                   title="Save Chat"
                 >
                   <!-- Floppy Disk Icon (Save) -->
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
                   </svg>
                 </button>
+              
               </div>
             </div>
           </div>
@@ -104,12 +105,12 @@ export default `
       ul.innerHTML = "";
       savedChats.forEach((chat, idx) => {
         const li = document.createElement("li");
-        li.className = "saved-chat-item";
+        li.className = "flex items-center justify-between bg-[#232323] rounded px-2 py-1";
         li.innerHTML = \`
-          <span class="saved-chat-title">\${chat.title || "Chat " + (idx + 1)}</span>
-          <span class="saved-chat-actions">
-            <button onclick="loadChat(\${idx})" class="load-btn">Load</button>
-            <button onclick="deleteChat(\${idx})" class="delete-btn">Delete</button>
+          <span class="truncate max-w-[120px]">\${chat.title || "Chat " + (idx + 1)}</span>
+          <span>
+            <button onclick="loadChat(\${idx})" class="text-emerald-400 hover:underline mr-2">Load</button>
+            <button onclick="deleteChat(\${idx})" class="text-red-400 hover:underline">Delete</button>
           </span>
         \`;
         ul.appendChild(li);
@@ -214,17 +215,15 @@ export default `
 
     function appendMessage(sender, text) {
       const div = document.createElement("div");
-      div.className = "message";
-      div.innerHTML = \`<strong>\${sender}:</strong> \${text.replace(/\\n/g, "<br>")}\`;
+      div.innerHTML = \`<strong class="text-emerald-400">\${sender}:</strong> \${text.replace(/\\n/g, "<br>")}\`;
       chatbox.appendChild(div);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
 
     function appendMarkdown(sender, markdown) {
       const div = document.createElement("div");
-      div.className = "message";
-      div.innerHTML = \`<strong>\${sender}:</strong><br>\` + marked.parse(markdown);
-      div.classList.add("prose", "prose-invert");
+      div.innerHTML = \`<strong class="text-emerald-400">\${sender}:</strong><br>\` + marked.parse(markdown);
+      div.classList.add("prose", "prose-invert", "max-w-none");
       chatbox.appendChild(div);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
@@ -265,12 +264,12 @@ export default `
       ul.innerHTML = "";
       savedChats.forEach((chat, idx) => {
         const li = document.createElement("li");
-        li.className = "saved-chat-item";
+        li.className = "flex items-center justify-between bg-[#232323] rounded px-2 py-1";
         li.innerHTML =
-          '<span class="saved-chat-title">' + (chat.title ? chat.title : "Chat " + (idx + 1)) + '</span>' +
-          '<span class="saved-chat-actions">' +
-            '<button onclick="loadChat(' + idx + ');hideMobileSavedChats()" class="load-btn">Load</button>' +
-            '<button onclick="deleteChat(' + idx + ');renderMobileSavedChats()" class="delete-btn">Delete</button>' +
+          '<span class="truncate max-w-[120px]">' + (chat.title ? chat.title : "Chat " + (idx + 1)) + '</span>' +
+          '<span>' +
+            '<button onclick="loadChat(' + idx + ');hideMobileSavedChats()" class="text-emerald-400 hover:underline mr-2">Load</button>' +
+            '<button onclick="deleteChat(' + idx + ');renderMobileSavedChats()" class="text-red-400 hover:underline">Delete</button>' +
           '</span>';
         ul.appendChild(li);
       });
@@ -295,7 +294,6 @@ export default `
 
     document.getElementById('mobileSavedModalBg').onclick = hideMobileSavedChats;
 
-<<<<<<< HEAD
     // Auto-grow textarea and shrink chatbox as input grows, moving textarea up
     input.addEventListener("input", () => {
       input.style.height = "48px";
@@ -306,7 +304,7 @@ export default `
       const inputHeight = input.scrollHeight;
       const maxInputHeight = 220;
       const usedHeight = Math.min(inputHeight, maxInputHeight) - 48;
-      chatboxDiv.style.height = `calc(${baseChatboxHeight}px - ${usedHeight}px)`;
+      chatboxDiv.style.height = \`calc(\${baseChatboxHeight}px - \${usedHeight}px)\`;
     });
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {

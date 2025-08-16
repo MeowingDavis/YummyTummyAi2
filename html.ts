@@ -52,28 +52,28 @@ export default `
               <!-- messages injected here -->
             </div>
 
-            <!-- Composer (ChatGPT-like; border ONLY on textarea) -->
+            <!-- Composer: mobile stacks, desktop in one row. Border only on textarea -->
             <div class="sticky bottom-0 px-5 sm:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
-              <div class="flex items-end gap-2">
-                <!-- Textarea (rounded-2xl so it scales vertically without weird ovals) -->
+              <div class="flex flex-col sm:flex-row sm:items-end gap-2">
+                <!-- Textarea -->
                 <label for="input" class="sr-only">Your message</label>
                 <textarea
                   id="input"
                   rows="1"
-                  class="flex-1 rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur-xl px-4 py-3 text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition resize-none leading-6 sm:leading-7 min-h-[48px] max-h-56"
+                  class="w-full sm:flex-1 rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur-xl px-4 py-3 text-base sm:text-[15px] text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition resize-none leading-6 sm:leading-7 min-h-[56px] sm:min-h-[48px] max-h-56"
                   placeholder="Ask a recipe question or paste your ingredients... (Shift+Enter for newline)"
                   autocomplete="off"
                 ></textarea>
 
-                <!-- Buttons (sit outside the textbox; no wrapping border) -->
-                <div class="flex items-center gap-2 shrink-0">
+                <!-- Buttons -->
+                <div class="flex items-center justify-end gap-2 shrink-0">
                   <button
                     id="saveBtn"
                     onclick="saveChat()"
-                    class="h-10 w-10 sm:h-11 sm:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
+                    class="h-11 w-11 sm:h-11 sm:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
                     title="Save chat"
                     aria-label="Save chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
                     </svg>
@@ -82,10 +82,10 @@ export default `
                   <button
                     id="newBtn"
                     onclick="newChat()"
-                    class="h-10 w-10 sm:h-11 sm:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98] transition"
+                    class="h-11 w-11 sm:h-11 sm:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98] transition"
                     title="New chat"
                     aria-label="New chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                   </button>
@@ -93,18 +93,17 @@ export default `
                   <button
                     id="sendBtn"
                     onclick="send()"
-                    class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 sm:px-5 h-10 sm:h-11 text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 sm:px-5 h-11 text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Send"
                     aria-label="Send message">
                     <span class="hidden sm:inline">Send</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
                     </svg>
                   </button>
                 </div>
               </div>
 
-              <!-- Helper -->
               <p class="mt-2 text-xs text-slate-400">
                 Press <span class="font-semibold text-slate-300">Enter</span> to send • <span class="font-semibold text-slate-300">Shift+Enter</span> for a new line
               </p>
@@ -193,10 +192,9 @@ export default `
       sendBtn.disabled = input.value.trim().length === 0;
     }
 
-    // ChatGPT-like autoresize (no layout jump; no absolute buttons)
     function autoresize() {
-      input.style.height = "0px";                      // reset
-      const next = Math.min(input.scrollHeight, 224);  // cap ~ max-h-56
+      input.style.height = "0px";
+      const next = Math.min(input.scrollHeight, 224); // cap to max-h-56
       input.style.height = next + "px";
     }
 

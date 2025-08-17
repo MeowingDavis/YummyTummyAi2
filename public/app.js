@@ -1,11 +1,8 @@
-// app.js (stable drawer + fixed bindings)
-
 // ---------- Setup ----------
 marked.setOptions({ gfm: true, breaks: true });
 
-// Core refs (assigned after DOM is ready)
+// Core refs (set in init)
 let chatbox, typingEl, tray, input, sendBtn, newChatBtn;
-
 // Drawer refs
 let mobileBtn, mobileBg, mobileModal, mobileClose;
 
@@ -13,7 +10,7 @@ let chatHistory = [];
 let pendingFiles = [];
 const DRAFT_KEY = "yt_ai_draft";
 
-// ---- Suggestion pool ----
+// ---- Suggestions ----
 const SUGGESTIONS = [
   "What can I cook with eggs, spinach, and feta?",
   "What are some simple meals I can cook on a budget",
@@ -336,7 +333,7 @@ function newChat(){
 }
 window.newChat = newChat;
 
-// ===== Drawer (simple & reliable with Pointer Events) =====
+// ===== Drawer (plain click, desktop-safe) =====
 function renderMobileSavedChats(){
   const savedChats = getSavedChats();
   const ul = document.getElementById("mobileSavedChats");
@@ -357,29 +354,34 @@ function renderMobileSavedChats(){
 }
 window.renderMobileSavedChats = renderMobileSavedChats;
 
+function isDrawerOpen() {
+  return document.body.classList.contains('drawer-open');
+}
 function openMobileSavedChats(){
   renderMobileSavedChats();
+  document.body.classList.add('drawer-open');
   mobileBg?.classList.remove("hidden");
   mobileModal?.classList.remove("hidden");
   mobileBtn?.setAttribute("aria-expanded", "true");
   document.body.style.overflow = 'hidden';
 }
 function hideMobileSavedChats(){
+  document.body.classList.remove('drawer-open');
   mobileBg?.classList.add("hidden");
   mobileModal?.classList.add("hidden");
   mobileBtn?.setAttribute("aria-expanded", "false");
   document.body.style.overflow = '';
 }
 function toggleMobileSavedChats(){
-  const isOpen = !mobileBg?.classList.contains("hidden");
-  if (isOpen) hideMobileSavedChats(); else openMobileSavedChats();
+  if (isDrawerOpen()) hideMobileSavedChats(); else openMobileSavedChats();
 }
 window.openMobileSavedChats   = openMobileSavedChats;
 window.hideMobileSavedChats   = hideMobileSavedChats;
 window.toggleMobileSavedChats = toggleMobileSavedChats;
 
-// One unified handler: works with mouse, touch, pen
+let drawerWired = false;
 function wireDrawer() {
+  if (drawerWired) return;
   mobileBtn   = document.getElementById('mobileMenuBtn');
   mobileBg    = document.getElementById('mobileSavedModalBg');
   mobileModal = document.getElementById('mobileSavedModal');
@@ -387,38 +389,25 @@ function wireDrawer() {
 
   if (!mobileBtn || !mobileBg || !mobileModal) return;
 
-  // Remove any existing pointer handlers (safe for hot reload)
-  const fresh = mobileBtn.cloneNode(true);
-  mobileBtn.parentNode.replaceChild(fresh, mobileBtn);
-  mobileBtn = document.getElementById('mobileMenuBtn');
+  const onToggle = () => toggleMobileSavedChats();
+  const onClose  = (e) => { e && e.preventDefault(); hideMobileSavedChats(); };
 
-  let guard = false;
-  const onToggle = (ev) => {
-    // prevent iOS synthetic clicks and double fires
-    ev.preventDefault();
-    ev.stopPropagation();
-    if (guard) return;
-    guard = true;
-    toggleMobileSavedChats();
-    setTimeout(()=> guard = false, 220);
-  };
-
-  mobileBtn.addEventListener('pointerup', onToggle, { passive: false });
-
-  const close = (ev) => { ev?.preventDefault?.(); hideMobileSavedChats(); };
-  mobileBg?.addEventListener('pointerup', close, { passive: false });
-  mobileClose?.addEventListener('pointerup', close, { passive: false });
+  mobileBtn.addEventListener('click', onToggle);
+  mobileBg.addEventListener('click', onClose);
+  mobileClose?.addEventListener('click', onClose);
 
   // Close when clicking any link inside the drawer
   mobileModal.addEventListener('click', (e) => {
-    const link = e.target instanceof Element ? e.target.closest('a') : null;
+    const link = e.target instanceof Element ? e.target.closest('a,button[type="submit"]') : null;
     if (link) hideMobileSavedChats();
   });
 
-  // Esc support
+  // Esc to close
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !mobileBg.classList.contains('hidden')) hideMobileSavedChats();
+    if (e.key === 'Escape' && isDrawerOpen()) hideMobileSavedChats();
   });
+
+  drawerWired = true;
 }
 
 // ---------- Init & Privacy ----------
@@ -432,10 +421,8 @@ function wireDrawer() {
       sendBtn    = document.getElementById('sendBtn');
       newChatBtn = document.getElementById('newChatBtn');
 
-      // Wire "New Chat" (this was missing before)
       newChatBtn?.addEventListener('click', newChat);
 
-      // Input state & listeners
       input.value = localStorage.getItem(DRAFT_KEY) || "";
       let composing = false;
       input.addEventListener("compositionstart", () => composing = true);
@@ -452,14 +439,12 @@ function wireDrawer() {
         }
       });
 
-      // Shortcuts
       document.addEventListener("keydown", (e) => {
         const k = e.key.toLowerCase();
         if ((e.metaKey || e.ctrlKey) && k === "s") { e.preventDefault(); saveChat(); }
         if ((e.metaKey || e.ctrlKey) && k === "n") { e.preventDefault(); newChat(); }
       });
 
-      // Paste/drag images
       document.addEventListener('paste', (e) => {
         const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
         if (files.length) onFiles(files);
@@ -489,7 +474,7 @@ function wireDrawer() {
       const seen = localStorage.getItem(PRIVACY_DISMISSED_KEY) === "1";
       if (!seen) notice.classList.remove("hidden");
 
-      dismissBtn?.addEventListener("pointerup", (e) => {
+      dismissBtn?.addEventListener("click", (e) => {
         e.preventDefault();
         try {
           localStorage.setItem(PRIVACY_DISMISSED_KEY, "1");
@@ -497,7 +482,7 @@ function wireDrawer() {
         } catch (e) { console.warn("[privacy] dismiss failed:", e); }
       });
 
-      learnBtn?.addEventListener("pointerup", (e) => {
+      learnBtn?.addEventListener("click", (e) => {
         e.preventDefault();
         try {
           alert(

@@ -616,6 +616,39 @@ export default `
     renderEmptyState(); // randomized on first load
     autoresize();
     refreshSendState();
+
+    // ---------- Privacy Notice ----------
+const PRIVACY_DISMISSED_KEY = "yt_privacy_notice_dismissed_v1";
+
+function showPrivacyNoticeIfNeeded() {
+  const seen = localStorage.getItem(PRIVACY_DISMISSED_KEY) === "1";
+  const el = document.getElementById("privacyNotice");
+  if (!el) return;
+  if (!seen) el.classList.remove("hidden");
+}
+
+function dismissPrivacyNotice() {
+  localStorage.setItem(PRIVACY_DISMISSED_KEY, "1");
+  const el = document.getElementById("privacyNotice");
+  if (el) el.classList.add("hidden");
+}
+
+function openPrivacyModal() {
+  alert(
+    "Where are chats stored?\n\n" +
+    "• Chats are saved in your browser’s local storage on this device only.\n" +
+    "• They are not uploaded to a server by the app.\n" +
+    "• Clearing site data or using a different browser/device will remove them.\n" +
+    "• You can export a chat from the Saved Chats panel at any time."
+  );
+}
+
+document.getElementById("privacyDismiss")?.addEventListener("click", dismissPrivacyNotice);
+document.getElementById("privacyLearnMore")?.addEventListener("click", openPrivacyModal);
+
+// Show on first load if not dismissed
+showPrivacyNoticeIfNeeded();
+
   </script>
 </body>
 </html>

@@ -177,6 +177,7 @@ export default `
     // ---- Suggestion pool (randomized each refresh/new chat) ----
     const SUGGESTIONS = [
       "What can I cook with eggs, spinach, and feta?",
+      "What are some simple meals I can cook on a budget",
       "Make a 20-minute vegan dinner plan.",
       "Turn these leftovers into lunch: chicken, rice, broccoli.",
       "Low-sodium pasta sauce ideas.",

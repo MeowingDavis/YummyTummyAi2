@@ -13,8 +13,8 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <!-- Syntax highlight -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
 
   <style>
     @media (prefers-reduced-motion: reduce) { *{animation:none!important;transition:none!important;} }
@@ -26,158 +26,26 @@
     .prose :where(p,li){ font-size:15px; line-height:1.6; }
     @media (min-width:640px){ .prose :where(p,li){ font-size:1rem; line-height:1.75; } }
 
-    /* Chat scrolling behavior on phones */
+    /* Keep newest message visible above sticky composer on phones */
     @media (max-width: 767px){
       #chatbox{
-        scroll-padding-bottom: 96px;   /* overwritten by JS to composer height */
-        overscroll-behavior-y: contain;
+        scroll-padding-bottom: 96px;
+        overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
       }
-    }
-
-    /* Prevent browser's scroll anchoring from fighting our "stick to bottom" */
-    #chatbox { overflow-anchor: none; }
-
-    /* iOS momentum scroll smoothing */
-    .touch-scrolling { -webkit-overflow-scrolling: touch; }
-
-    /* Mobile-specific improvements */
-    @media (max-width: 767px) {
-      /* Improved mobile header with better spacing */
-      .mobile-header {
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-      }
-      
-      /* Better mobile button sizing and touch targets */
-      .mobile-button {
-        min-height: 48px;
-        min-width: 48px;
-      }
-      
-      /* Enhanced mobile composer with better visual hierarchy */
-      .mobile-composer {
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        box-shadow: 0 -8px 32px -4px rgba(0, 0, 0, 0.4);
-      }
-      
-      /* Improved mobile input styling */
-      .mobile-input {
-        font-size: 16px; /* Prevents iOS zoom */
-        box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(52, 211, 153, 0.1);
-      }
-      
-      /* Better mobile drawer animation */
-      .mobile-drawer {
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      
-      .mobile-drawer.open {
-        transform: translateX(0);
-      }
-      
-      /* Enhanced mobile privacy notice */
-      .mobile-privacy {
-        margin: 8px;
-        border-radius: 12px;
-      }
-    }
-
-    /* Enhanced mobile animations */
-    @media (max-width: 767px) {
-      .mobile-scale-press:active {
-        transform: scale(0.96);
-        transition: transform 0.1s ease-out;
-      }
-      
-      .mobile-bounce-in {
-        animation: mobile-bounce 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      }
-      
-      @keyframes mobile-bounce {
-        0% { opacity: 0; transform: scale(0.8) translateY(20px); }
-        100% { opacity: 1; transform: scale(1) translateY(0); }
-      }
-    }
-
-    /* Highlight.js dark theme inline styles */
-    .hljs {
-      display: block;
-      overflow-x: auto;
-      padding: 0.5em;
-      background: #0d1117;
-      color: #e6edf3;
-    }
-    .hljs-comment,
-    .hljs-quote {
-      color: #7d8590;
-      font-style: italic;
-    }
-    .hljs-keyword,
-    .hljs-selector-tag,
-    .hljs-subst {
-      color: #ff7b72;
-    }
-    .hljs-number,
-    .hljs-literal,
-    .hljs-variable,
-    .hljs-template-variable {
-      color: #79c0ff;
-    }
-    .hljs-string,
-    .hljs-doctag {
-      color: #a5d6ff;
-    }
-    .hljs-title,
-    .hljs-section,
-    .hljs-selector-id {
-      color: #d2a8ff;
-      font-weight: bold;
-    }
-    .hljs-type,
-    .hljs-class .hljs-title {
-      color: #ffa657;
-    }
-    .hljs-tag,
-    .hljs-name,
-    .hljs-attribute {
-      color: #7ee787;
-    }
-    .hljs-regexp,
-    .hljs-link {
-      color: #a5d6ff;
-    }
-    .hljs-symbol,
-    .hljs-bullet {
-      color: #f85149;
-    }
-    .hljs-built_in,
-    .hljs-builtin-name {
-      color: #ffa657;
-    }
-    .hljs-meta {
-      color: #79c0ff;
-    }
-    .hljs-deletion {
-      background: #ffeef0;
-    }
-    .hljs-addition {
-      background: #e6ffed;
     }
   </style>
 </head>
 
 <body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
-  <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-0 md:py-4 sm:py-6">
+  <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
     <div class="flex gap-4">
       <!-- Sidebar (desktop only; unchanged) -->
       <aside class="hidden md:flex md:w-72 shrink-0">
         <div class="w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-            <button onclick="renderSavedChats?.()"
+            <button onclick="renderSavedChats()"
               class="text-xs text-slate-400 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded-md px-2 py-1">
               Refresh
             </button>
@@ -191,26 +59,25 @@
       <!-- Main column -->
       <main class="flex-1">
         <!-- CARD: grid rows (header / content). Mobile fills screen; desktop unchanged -->
-        <div class="md:rounded-2xl border-0 md:border border-slate-800/70 bg-transparent md:bg-slate-900/60 md:backdrop-blur-xl md:shadow-2xl overflow-hidden
-                    grid grid-rows-[auto,1fr] min-h-[100svh] md:min-h-0">
+        <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden
+                    grid grid-rows-[auto,1fr] min-h-[calc(100svh-2rem)] md:min-h-0">
           <!-- Header -->
           <header
-            class="mobile-header sticky md:static top-0 z-30 px-4 sm:px-8 py-4 md:pt-6 md:pb-4 border-b border-slate-800/40 md:border-slate-800/60
-                   bg-slate-900/80 md:bg-transparent backdrop-blur supports-[backdrop-filter]:bg-slate-900/70 md:supports-[backdrop-filter]:bg-transparent">
-            <div class="flex items-center justify-between gap-3">
-              <h1 class="text-xl sm:text-2xl md:text-4xl font-bold tracking-tight flex items-center gap-2">
-                <span class="text-2xl sm:text-3xl md:text-4xl">🍳</span>
+            class="sticky md:static top-0 z-30 px-4 sm:px-8 py-3 md:pt-6 md:pb-4 border-b border-slate-800/60
+                   bg-slate-900/70 md:bg-transparent backdrop-blur supports-[backdrop-filter]:bg-slate-900/50 md:supports-[backdrop-filter]:bg-transparent">
+            <div class="flex items-center justify-between gap-2">
+              <h1 class="text-2xl sm:text-4xl md:text-4xl font-bold tracking-tight">
                 Yummy Tummy <span class="text-emerald-400">AI</span>
               </h1>
 
-              <!-- Mobile hamburger with improved styling -->
+              <!-- Mobile hamburger (desktop hidden) -->
               <button id="mobileMenuBtn" aria-controls="mobileSavedModal" aria-expanded="false"
-                class="mobile-button mobile-scale-press md:hidden inline-flex items-center justify-center rounded-xl bg-slate-800/90
-                       text-emerald-400 shadow-lg ring-1 ring-inset ring-slate-700/80 hover:bg-slate-700/90
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition-all duration-200"
+                class="md:hidden inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800/80
+                       px-0 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
                 aria-label="Show saved chats">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
                 </svg>
               </button>
             </div>
@@ -218,9 +85,9 @@
 
           <!-- CONTENT ROW (fills remaining height) -->
           <section class="relative flex flex-col min-h-0 md:h-[75vh]">
-            <!-- Local-only storage notice with improved mobile styling -->
-            <div id="privacyNotice" class="hidden mobile-privacy mx-auto max-w-7xl px-0 md:px-4 sm:px-6 lg:px-8">
-              <div class="mt-2 md:mt-3 mx-3 md:mx-0 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
+            <!-- Local-only storage notice -->
+            <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
                 <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                 </svg>
@@ -240,94 +107,81 @@
               </div>
             </div>
 
-            <!-- Messages with improved mobile spacing -->
+            <!-- Messages (NOTE: removed scroll-smooth to avoid fight with JS pinning) -->
             <div id="chatbox"
-                 class="flex-1 min-h-0 overflow-y-auto px-4 md:px-5 lg:px-8 py-3 md:py-5 space-y-4 md:space-y-4 touch-scrolling"
-                 role="log" aria-live="polite" aria-relevant="additions text">
-              <!-- sentinel keeps pinning logic robust -->
-              <div id="bottomSentinel" class="h-px"></div>
+                 class="flex-1 min-h-0 overflow-y-auto px-3 md:px-5 lg:px-8 py-4 md:py-5 space-y-3 md:space-y-4">
             </div>
 
-            <!-- Jump-to-latest with improved mobile styling -->
+            <!-- Jump-to-latest (appears only when user scrolled up) -->
             <button id="jumpLatest"
-              class="hidden absolute right-4 bottom-28 md:bottom-24 rounded-full bg-slate-800/95 text-emerald-300
-                     ring-1 ring-slate-700 shadow-lg px-4 py-2 text-sm font-medium mobile-bounce-in transition-all">
-              <span class="flex items-center gap-2">
-                Jump to latest 
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-                </svg>
-              </span>
+              class="hidden md:hidden absolute right-4 bottom-24 rounded-full bg-slate-800/95 text-emerald-300
+                     ring-1 ring-slate-700 shadow px-3 py-1.5 text-sm">
+              Jump to latest ↓
             </button>
 
-            <!-- Typing indicator with improved mobile styling -->
-            <div id="typing" class="hidden px-4 md:px-8">
-              <div class="inline-flex items-center gap-2 rounded-xl border border-slate-800/60 bg-slate-900/60 px-4 py-3 text-slate-300 backdrop-blur">
-                <span class="text-sm font-medium">Chef is typing</span>
+            <!-- Typing indicator -->
+            <div id="typing" class="hidden px-3 md:px-8">
+              <div class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-slate-300">
+                <span>Chef is typing</span>
                 <span class="inline-flex gap-1">
-                  <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                  <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-                  <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce"></span>
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
                 </span>
               </div>
             </div>
 
             <!-- Attachments preview tray -->
-            <div id="previewTray" class="px-4 md:px-8 hidden">
+            <div id="previewTray" class="px-3 md:px-8 hidden">
               <div class="flex gap-2 flex-wrap py-2"></div>
             </div>
 
             <!-- SR live region -->
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
-            <!-- Enhanced Mobile Composer -->
-            <div id="composer" class="mobile-composer composer-safe sticky bottom-0 px-4 md:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 md:pt-3
-                        bg-slate-900/85 md:bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/50 md:border-slate-800/60">
-              <div class="flex flex-col gap-3 md:flex-row md:items-end md:gap-2">
-                <div class="relative flex-1">
-                  <label for="input" class="sr-only">Your message</label>
-                  <textarea id="input" rows="1" enterkeyhint="send" inputmode="text" autocomplete="off" autocapitalize="sentences"
-                    class="mobile-input w-full rounded-2xl border border-slate-700/60 bg-slate-900/80 md:bg-slate-900/60
-                           px-4 md:px-4 py-4 md:py-3 text-base md:text-[15px] text-slate-100 placeholder-slate-400
-                           shadow-inner outline-none focus:border-emerald-400/80 focus:ring-2 focus:ring-emerald-400/30
-                           transition-all duration-200 resize-none leading-6 md:leading-7 min-h-[56px] md:min-h-[48px] max-h-56"
-                    placeholder="Ask a recipe question or paste your ingredients..."></textarea>
-                </div>
+            <!-- Composer -->
+            <div class="composer-safe sticky bottom-0 px-3 md:px-8 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2 md:pt-3
+                        bg-slate-900/70 md:bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
+              <div class="flex flex-col md:flex-row md:items-end gap-2">
+                <label for="input" class="sr-only">Your message</label>
+                <textarea id="input" rows="1" enterkeyhint="send" inputmode="text" autocomplete="off" autocapitalize="sentences"
+                  class="w-full md:flex-1 rounded-xl md:rounded-2xl border border-slate-700/70 bg-slate-900/70 md:bg-slate-900/60
+                         px-3 md:px-4 py-3 text-[15px] md:text-[15px] text-slate-100 placeholder-slate-400
+                         shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30
+                         transition resize-none leading-6 md:leading-7 min-h-[52px] md:min-h-[48px] max-h-56"
+                  placeholder="Ask a recipe question or paste your ingredients..."></textarea>
 
-                <!-- Mobile action buttons with improved layout -->
-                <div class="flex items-center justify-between md:justify-end gap-3 md:gap-2 shrink-0">
-                  <div class="flex items-center gap-3">
-                    <button id="saveBtn" onclick="saveChat?.()"
-                      class="mobile-button mobile-scale-press h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-800/90 md:bg-slate-900/70
-                             ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-700/90 md:hover:bg-slate-800/70
-                             focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.96] transition-all duration-150"
-                      title="Save chat" aria-label="Save chat">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 0V6a2 2 0 00-2-2H9a2 2 0 00-2 2v1m1 0h4m-4 0a1 1 0 011-1h2a1 1 0 011 1m-6 0v4h6V7" />
-                      </svg>
-                    </button>
+                <div class="flex items-center justify-end gap-2 shrink-0">
+                  <button id="saveBtn" onclick="saveChat()"
+                    class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
+                           ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
+                    title="Save chat" aria-label="Save chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3" />
+                    </svg>
+                  </button>
 
-                    <button id="newChatBtn" onclick="newChat?.()"
-                      class="mobile-button mobile-scale-press h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-800/90 md:bg-slate-900/70
-                             ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-700/90 md:hover:bg-slate-800/70
-                             transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.96]"
-                      title="New Chat" aria-label="New Chat">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
-                  </div>
+                  <button id="newChatBtn"
+                    class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
+                           ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
+                           transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98]"
+                    title="New Chat" aria-label="New Chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
 
-                  <!-- Enhanced send button for mobile -->
-                  <button id="sendBtn" onclick="send?.()"
-                    class="mobile-scale-press inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 md:px-5 h-12 md:h-11
+                  <button id="sendBtn" onclick="send()"
+                    class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 md:px-5 h-12 md:h-11
                            text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.97]
-                           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99]
+                           transition disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Send" aria-label="Send message" disabled>
-                    <span class="text-sm md:text-base font-medium">Send</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l14-7-7 14-2-5-5-2z" />
+                    <span class="hidden md:inline">Send</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z" />
                     </svg>
                   </button>
                 </div>
@@ -339,114 +193,45 @@
     </div>
   </div>
 
-  <!-- Enhanced Mobile Saved Chats Modal -->
-  <div class="fixed inset-0 z-40 hidden bg-black/60 backdrop-blur-sm transition-opacity duration-300" id="mobileSavedModalBg"></div>
-  <div class="mobile-drawer fixed left-0 top-0 z-50 hidden h-[100dvh] w-[85vw] max-w-sm overflow-y-auto
-              rounded-r-3xl border border-slate-800/60 bg-slate-900/95 backdrop-blur-xl shadow-2xl p-6"
+  <!-- Mobile Saved Chats Modal -->
+  <div class="fixed inset-0 z-40 hidden bg-black/70 sm:bg-black/60" id="mobileSavedModalBg"></div>
+  <div class="fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] sm:w-[82vw] max-w-xs overflow-y-auto
+              rounded-r-2xl border border-slate-800 bg-slate-900/95 sm:bg-slate-900/90 backdrop-blur-md p-5"
        id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
-    <div class="mb-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-lg">💬</span>
-        <h2 id="mobileSavedHeading" class="text-lg font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-      </div>
-      <button class="mobile-scale-press rounded-full w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800/60
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 transition-all duration-200"
-              aria-label="Close" id="mobileCloseBtn">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
+    <div class="mb-3 flex items-center justify-between">
+      <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
+      <button class="rounded-full w-10 h-10 flex items-center justify-center text-slate-300 hover:bg-slate-800
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
+              aria-label="Close" id="mobileCloseBtn">✕</button>
     </div>
-    <ul id="mobileSavedChats" class="space-y-3 text-sm"></ul>
-    <hr class="my-6 border-slate-800/60">
-    <a href="/public/about.html" class="flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      About
-    </a>
+    <ul id="mobileSavedChats" class="space-y-2 text-sm"></ul>
+    <hr class="my-4 border-slate-800">
+    <a href="/public/about.html" class="block text-sm text-emerald-400 hover:underline">About</a>
   </div>
 
   <!-- Your client app (unchanged) -->
   <script type="module" src="/app.js"></script>
 
-  <!-- Mobile-first chat UX -->
+  <!-- Stick-to-bottom like ChatGPT/FB Messenger -->
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      const chatbox   = document.getElementById('chatbox');
-      const input     = document.getElementById('input');
-      const sendBtn   = document.getElementById('sendBtn');
-      const jumpBtn   = document.getElementById('jumpLatest');
-      const composer  = document.getElementById('composer');
-      const sentinel  = document.getElementById('bottomSentinel');
+      const chatbox = document.getElementById('chatbox');
+      const input   = document.getElementById('input');
+      const jumpBtn = document.getElementById('jumpLatest');
 
-      // --- Enable/disable Send on content
-      const hasText = () => (input.value || '').trim().length > 0;
-      const updateSendEnabled = () => { 
-        sendBtn.disabled = !hasText();
-        // Add visual feedback for mobile
-        if (window.innerWidth <= 767) {
-          if (hasText()) {
-            sendBtn.classList.remove('opacity-50');
-            sendBtn.classList.add('shadow-lg');
-          } else {
-            sendBtn.classList.add('opacity-50');
-            sendBtn.classList.remove('shadow-lg');
-          }
-        }
-      };
-      input.addEventListener('input', updateSendEnabled);
-      updateSendEnabled();
-
-      // --- Autosize textarea (like iMessage/WhatsApp)
-      const autoSize = () => {
-        const prevH = input.offsetHeight;
-        input.style.height = 'auto';
-        const maxPx = parseInt(getComputedStyle(input).maxHeight || 224, 10);
-        input.style.height = Math.min(input.scrollHeight, maxPx) + 'px';
-        if (input.offsetHeight !== prevH) {
-          // Keep the latest messages visible if we were pinned
-          if (stickToLatest) nudgeLatest(2, 60);
-          setScrollPadding(); // composer changed height
-        }
-      };
-      input.addEventListener('input', autoSize);
-      // Run once to set initial height and padding
-      requestAnimationFrame(() => { autoSize(); setScrollPadding(); });
-
-      // --- Compute scroll padding to keep last messages unobscured by composer
-      function setScrollPadding() {
-        const pad = (composer?.offsetHeight || 80) + 16; // extra breathing room
-        chatbox.style.scrollPaddingBottom = pad + 'px';
-      }
-
-      // Recompute on viewport or composer size changes
-      if ('ResizeObserver' in window) {
-        const ro = new ResizeObserver(() => setScrollPadding());
-        ro.observe(composer);
-      }
-      if (window.visualViewport) {
-        const rebottom = () => { setScrollPadding(); if (stickToLatest) nudgeLatest(2, 60); };
-        visualViewport.addEventListener('resize', rebottom);
-        visualViewport.addEventListener('scroll', rebottom);
-      }
-
-      // --- Stick-to-bottom logic
+      // --- Stick logic
       const THRESHOLD = 64;
       let stickToLatest = true; // start pinned
 
       const atBottom = () =>
         (chatbox.scrollHeight - chatbox.scrollTop - chatbox.clientHeight) <= THRESHOLD;
 
-      function showJump(show) { 
+      function showJump(show) {
         jumpBtn.classList.toggle('hidden', !show);
-        if (show && window.innerWidth <= 767) {
-          jumpBtn.classList.add('mobile-bounce-in');
-          setTimeout(() => jumpBtn.classList.remove('mobile-bounce-in'), 400);
-        }
       }
 
-      function scrollToLatest() {
+      function scrollToLatest(immediate = true) {
+        // Disable smooth behavior to avoid fighting animations
         const prev = chatbox.style.scrollBehavior;
         chatbox.style.scrollBehavior = 'auto';
         chatbox.scrollTop = chatbox.scrollHeight;
@@ -454,55 +239,41 @@
       }
 
       function nudgeLatest(frames = 3, spreadMs = 120) {
+        // Pin across a few frames to beat IME/layout reflows
         let i = 0;
         const tick = () => {
-          scrollToLatest();
+          scrollToLatest(true);
           if (++i < frames) requestAnimationFrame(tick);
-          else setTimeout(scrollToLatest, spreadMs);
+          else setTimeout(() => scrollToLatest(true), spreadMs);
         };
         requestAnimationFrame(tick);
       }
 
-      // IntersectionObserver sentinel to robustly detect bottom visibility
-      if ('IntersectionObserver' in window && sentinel) {
-        const io = new IntersectionObserver((entries) => {
-          const vis = entries[0].isIntersecting;
-          stickToLatest = vis;
-          showJump(!vis);
-        }, { root: chatbox, threshold: 1.0 });
-        io.observe(sentinel);
-      }
-
-      // Scroll watcher (fallback + jump visibility)
-      let scrollRAF = null;
+      // Track manual scroll to toggle stick mode
+      let scrollTimeout = null;
       chatbox.addEventListener('scroll', () => {
-        if (scrollRAF) cancelAnimationFrame(scrollRAF);
-        scrollRAF = requestAnimationFrame(() => {
-          const bottom = atBottom();
-          stickToLatest = bottom;
-          showJump(!bottom);
+        if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
+        scrollTimeout = requestAnimationFrame(() => {
+          stickToLatest = atBottom();
+          showJump(!stickToLatest);
         });
       }, { passive: true });
 
-      // Jump button with haptic feedback on mobile
+      // Jump button
       jumpBtn.addEventListener('click', () => {
         stickToLatest = true;
         nudgeLatest(4, 120);
         showJump(false);
-        // Add haptic feedback if available
-        if ('vibrate' in navigator && window.innerWidth <= 767) {
-          navigator.vibrate(50);
-        }
       });
 
-      // New children added -> stay pinned like real chats
+      // Observe new message nodes (direct children) and stay pinned if we were pinned
       const mo = new MutationObserver((muts) => {
         const added = muts.some(m => m.addedNodes && m.addedNodes.length);
         if (!added) return;
         if (stickToLatest) nudgeLatest(2, 80);
         else showJump(true);
       });
-      mo.observe(chatbox, { childList: true, subtree: false });
+      mo.observe(chatbox, { childList: true });
 
       // Images/markdown late layout
       document.addEventListener('load', (e) => {
@@ -511,59 +282,100 @@
         }
       }, true);
 
-      // --- Enhanced keyboard behavior for mobile
-      const blurKeyboard = () => { try { input.blur(); } catch {} };
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          if (!hasText()) return;
-          stickToLatest = true;
-          blurKeyboard();
-          nudgeLatest(4, 120);
-          // Add haptic feedback on send
-          if ('vibrate' in navigator && window.innerWidth <= 767) {
-            navigator.vibrate(30);
-          }
-          // Prefer global send() if provided
-          if (typeof window.send === 'function') {
-            Promise.resolve(window.send()).finally(() => {
-              setTimeout(blurKeyboard, 10);
-              setTimeout(blurKeyboard, 150);
-              nudgeLatest(6, 220);
-              updateSendEnabled();
-              autoSize();
-            });
-          }
-        }
-      });
+      // Keyboard (IME) show/hide and viewport shifts
+      if (window.visualViewport) {
+        const pin = () => { if (stickToLatest) nudgeLatest(2, 80); };
+        visualViewport.addEventListener('resize', pin);
+        visualViewport.addEventListener('scroll',  pin);
+      }
 
-      // Tap chat area to dismiss keyboard (common in messengers)
-      chatbox.addEventListener('pointerdown', () => {
-        if (document.activeElement === input) blurKeyboard();
-      });
-
-      // Enhanced send button behavior for mobile
+      // Wrap send(): close keyboard and keep pinned like real chats
       if (typeof window.send === 'function') {
         const originalSend = window.send;
         window.send = async function patchedSend() {
-          if (!hasText()) return;
+          const msg = (input.value || '').trim();
+          if (!msg) return;
+
           stickToLatest = true;
-          blurKeyboard();
-          nudgeLatest(4, 120);
-          // Add haptic feedback
-          if ('vibrate' in navigator && window.innerWidth <= 767) {
-            navigator.vibrate(30);
-          }
+          try { input.blur(); } catch {}
+          nudgeLatest(4, 120); // make sure your outgoing message area is visible
+
           try {
             await originalSend();
           } finally {
-            setTimeout(blurKeyboard, 10);
-            setTimeout(blurKeyboard, 150);
-            nudgeLatest(6, 220);
-            updateSendEnabled();
-            autoSize();
+            // In case app.js refocuses input, re-blur and pin a beat later
+            setTimeout(() => { try { input.blur(); } catch {} }, 10);
+            setTimeout(() => { try { input.blur(); } catch {} }, 150);
+            nudgeLatest(6, 220); // assistant reply lands -> stay pinned
           }
         };
       }
 
-      // --- Enhanced Mobile Saved Chats Drawer
+      // Also handle Return (Enter) without Shift
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          stickToLatest = true;
+          try { input.blur(); } catch {}
+          nudgeLatest(4, 120);
+        }
+      });
+    });
+  </script>
+
+  <!-- Drawer wiring (no styling changes) -->
+  <script>
+    // Ensures the drawer panel becomes visible (even if another script only shows the overlay)
+    window.addEventListener('DOMContentLoaded', () => {
+      const btn    = document.getElementById('mobileMenuBtn');
+      const bg     = document.getElementById('mobileSavedModalBg');
+      const panel  = document.getElementById('mobileSavedModal');
+      const close  = document.getElementById('mobileCloseBtn');
+
+      if (!btn || !bg || !panel) return;
+
+      function openDrawer() {
+        try {
+          bg.classList.remove('hidden');
+          panel.classList.remove('hidden');
+          panel.style.display = 'block'; // force visible if any CSS/display race
+          panel.setAttribute('aria-hidden', 'false');
+          panel.setAttribute('tabindex', '-1');
+          document.body.classList.add('overflow-hidden');
+          btn.setAttribute('aria-expanded', 'true');
+
+          // Mirror saved chats if present
+          try {
+            if (typeof renderSavedChats === 'function') renderSavedChats();
+            const src = document.getElementById('savedChats');
+            const dst = document.getElementById('mobileSavedChats');
+            if (src && dst) dst.innerHTML = src.innerHTML;
+          } catch {}
+
+          // Focus panel to ensure iOS paints it reliably
+          requestAnimationFrame(() => {
+            try { panel.focus({ preventScroll: true }); } catch {}
+          });
+        } catch (err) {
+          // If anything fails, hide overlay so you don't get "blur only"
+          bg.classList.add('hidden');
+          console.warn('Drawer open failed:', err);
+        }
+      }
+
+      function closeDrawer() {
+        panel.classList.add('hidden');
+        panel.style.removeProperty('display');
+        panel.setAttribute('aria-hidden', 'true');
+        bg.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+
+      btn.addEventListener('click', openDrawer);
+      close?.addEventListener('click', closeDrawer);
+      bg.addEventListener('click', closeDrawer);
+      window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+    });
+  </script>
+</body>
+</html>

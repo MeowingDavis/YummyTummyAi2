@@ -25,17 +25,6 @@ export default `
     .msg:hover .msg-actions { opacity: 1; }
     @media (hover: none) { .msg-actions { opacity: 1; } }
     @supports(padding: max(0px)) { .composer-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); } }
-
-    /* ——— Mobile-only improvements ——— */
-    :root { --kb-safe: 0px; }
-    @media (max-width: 640px) {
-      html, body { height: 100%; }
-      body { overscroll-behavior-y: contain; }
-      .chat-mobile-h {
-        height: calc(100svh - var(--header-h, 64px) - var(--composer-h, 86px) - var(--kb-safe));
-      }
-      .no-scroll { overflow: hidden; }
-    }
   </style>
 </head>
 
@@ -57,7 +46,7 @@ export default `
       <main class="flex-1">
         <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden">
           <!-- Header -->
-          <header id="appHeader" class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
+          <header class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
             <div class="flex items-center justify-between gap-2">
               <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
                 Yummy Tummy <span class="text-emerald-400">AI</span>
@@ -77,34 +66,34 @@ export default `
           </header>
 
           <!-- Local-only storage notice (one-time, dismissible) -->
-          <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
-              <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
-              </svg>
-              <div class="text-sm leading-6">
-                <strong class="font-semibold">Privacy:</strong>
-                Your chats are saved <span class="font-semibold">locally on this device only</span>.
-                Clearing your browser data (or using a different device/browser) will remove them.
-                <button id="privacyLearnMore"
-                  class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
-              </div>
-              <button id="privacyDismiss"
-                class="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm ring-1 ring-inset ring-emerald-500 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
-                aria-label="Dismiss privacy notice">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                Got it
-              </button>
-            </div>
-          </div>
+<div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
+    <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+    </svg>
+    <div class="text-sm leading-6">
+      <strong class="font-semibold">Privacy:</strong>
+      Your chats are saved <span class="font-semibold">locally on this device only</span>.
+      Clearing your browser data (or using a different device/browser) will remove them.
+      <button id="privacyLearnMore"
+        class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
+    </div>
+    <button id="privacyDismiss"
+      class="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm ring-1 ring-inset ring-emerald-500 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+      aria-label="Dismiss privacy notice">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+    </button>
+  </div>
+</div>
+
 
           <!-- Chat body -->
           <section class="flex flex-col h-[72vh] sm:h-[75vh]">
             <!-- Messages -->
-            <div id="chatbox" class="chat-mobile-h overscroll-contain overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth"></div>
+            <div id="chatbox" class="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth"></div>
 
             <!-- Typing indicator (hidden by default) -->
             <div id="typing" class="hidden px-5 sm:px-8">
@@ -126,18 +115,8 @@ export default `
             <!-- SR live region -->
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
-            <!-- Mobile “jump to latest” button -->
-            <button id="jumpToBottom"
-              class="md:hidden hidden fixed right-4 bottom-[92px] z-30 rounded-full bg-slate-900/80 ring-1 ring-slate-700/70 shadow-lg px-3 h-9 text-slate-200 backdrop-blur flex items-center gap-1.5"
-              aria-label="Jump to latest">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-              New messages
-            </button>
-
             <!-- Composer -->
-            <div id="composerBar" class="composer-safe sticky bottom-0 px-5 sm:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
+            <div class="composer-safe sticky bottom-0 px-5 sm:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
               <div class="flex flex-col sm:flex-row sm:items-end gap-2">
                 <!-- Textarea (border ONLY here) -->
                 <label for="input" class="sr-only">Your message</label>
@@ -184,9 +163,6 @@ export default `
                   </button>
                 </div>
               </div>
-
-              <!-- Single concise hint -->
-              <p class="mt-2 text-xs text-slate-400">Press <span class="font-semibold text-slate-300">Enter</span> to send</p>
             </div>
           </section>
         </div>
@@ -373,7 +349,6 @@ export default `
       trimChatDom();
       if (stick) chatbox.scrollTop = chatbox.scrollHeight;
     }
-    window.safeAppend = safeAppend;
 
     function announce(text){ document.getElementById("srLive").textContent = text; }
 
@@ -694,102 +669,6 @@ export default `
       } else {
         initCore();
         initPrivacy();
-      }
-    })();
-  </script>
-
-  <!-- Mobile upgrade pack (keyboard-safe, measured heights, scroll-to-bottom, modal lock) -->
-  <script>
-    (function mobileOnly() {
-      const chatbox = document.getElementById('chatbox');
-      const header  = document.getElementById('appHeader');
-      const bar     = document.getElementById('composerBar');
-      const jump    = document.getElementById('jumpToBottom');
-      const modalBg = document.getElementById('mobileSavedModalBg');
-
-      // ——— Measure header/composer heights for mobile layout ———
-      function measureChrome() {
-        const headerH = header ? header.offsetHeight : 64;
-        const barH    = bar ? bar.offsetHeight : 86;
-        document.documentElement.style.setProperty('--header-h', headerH + 'px');
-        document.documentElement.style.setProperty('--composer-h', barH + 'px');
-      }
-
-      // ——— Keyboard-safe inset using visualViewport ———
-      function attachViewport() {
-        const vv = window.visualViewport;
-        if (!vv) return;
-        function updateKBInset() {
-          const kb = vv.height < window.innerHeight ? (window.innerHeight - vv.height - vv.offsetTop) : 0;
-          document.documentElement.style.setProperty('--kb-safe', Math.max(0, kb) + 'px');
-        }
-        vv.addEventListener('resize', updateKBInset);
-        vv.addEventListener('scroll', updateKBInset);
-        updateKBInset();
-      }
-
-      // ——— “Jump to bottom” visibility ———
-      function nearBottom(el) {
-        return (el.scrollHeight - el.scrollTop - el.clientHeight) < 56;
-      }
-      function refreshJump() {
-        if (!jump) return;
-        if (nearBottom(chatbox)) jump.classList.add('hidden');
-        else jump.classList.remove('hidden');
-      }
-      jump?.addEventListener('click', () => {
-        chatbox.scrollTo({ top: chatbox.scrollHeight, behavior: 'smooth' });
-        jump.classList.add('hidden');
-      });
-      chatbox.addEventListener('scroll', refreshJump, { passive: true });
-
-      // ——— Lock body scroll when mobile sheet is open ———
-      const origToggle = window.toggleMobileSavedChats;
-      const origHide   = window.hideMobileSavedChats;
-      if (typeof origToggle === 'function') {
-        window.toggleMobileSavedChats = function() {
-          const wasOpen = !modalBg.classList.contains('hidden');
-          origToggle();
-          const nowOpen = !modalBg.classList.contains('hidden');
-          document.body.classList.toggle('no-scroll', nowOpen);
-        };
-      }
-      if (typeof origHide === 'function') {
-        window.hideMobileSavedChats = function() {
-          origHide();
-          document.body.classList.remove('no-scroll');
-        };
-      }
-
-      // ——— Recompute on load/resize/content changes ———
-      const ro = new ResizeObserver(() => { measureChrome(); });
-      if (header) ro.observe(header);
-      if (bar)    ro.observe(bar);
-
-      window.addEventListener('resize', measureChrome);
-      window.addEventListener('orientationchange', () => { setTimeout(measureChrome, 150); });
-
-      function bootMobile() {
-        measureChrome();
-        attachViewport();
-        setTimeout(measureChrome, 0);
-        setTimeout(measureChrome, 250);
-        refreshJump();
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', bootMobile, { once: true });
-      } else {
-        bootMobile();
-      }
-
-      // Hook safeAppend to keep pill state accurate after new messages
-      const _safeAppend = window.safeAppend;
-      if (typeof _safeAppend === 'function') {
-        window.safeAppend = function(node) {
-          _safeAppend(node);
-          refreshJump();
-        };
       }
     })();
   </script>

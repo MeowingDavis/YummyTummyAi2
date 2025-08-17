@@ -1,17 +1,18 @@
 // ---------- Setup ----------
 marked.setOptions({ gfm: true, breaks: true });
 
-const chatbox   = document.getElementById('chatbox');
-const typingEl  = document.getElementById('typing');
-const tray      = document.getElementById('previewTray');
-const input     = document.getElementById('input');
-const sendBtn   = document.getElementById('sendBtn');
-const newChatBtn= document.getElementById('newChatBtn');
+const chatbox    = document.getElementById('chatbox');
+const typingEl   = document.getElementById('typing');
+const tray       = document.getElementById('previewTray');
+const input      = document.getElementById('input');
+const sendBtn    = document.getElementById('sendBtn');
+const newChatBtn = document.getElementById('newChatBtn');
 
-// Mobile drawer refs
+// Drawer refs
 const mobileBtn   = document.getElementById('mobileMenuBtn');
 const mobileBg    = document.getElementById('mobileSavedModalBg');
 const mobileModal = document.getElementById('mobileSavedModal');
+const mobileClose = document.getElementById('mobileCloseBtn');
 
 let chatHistory = [];
 let pendingFiles = [];
@@ -384,7 +385,7 @@ function newChat(){
 }
 newChatBtn?.addEventListener("click", newChat);
 
-// ---------- Mobile Saved Chats Modal ----------
+// ===== Mobile Saved Chats Drawer (touch + click safe) =====
 function renderMobileSavedChats(){
   const savedChats = getSavedChats();
   const ul = document.getElementById("mobileSavedChats");
@@ -409,23 +410,54 @@ function openMobileSavedChats(){
   mobileBg?.classList.remove("hidden");
   mobileModal?.classList.remove("hidden");
   mobileBtn?.setAttribute("aria-expanded", "true");
+  document.body.style.overflow = 'hidden'; // prevent background scroll while open
 }
 function hideMobileSavedChats(){
   mobileBg?.classList.add("hidden");
   mobileModal?.classList.add("hidden");
   mobileBtn?.setAttribute("aria-expanded", "false");
+  document.body.style.overflow = ''; // restore scroll
 }
 function toggleMobileSavedChats(){
   const isOpen = !mobileBg?.classList.contains("hidden");
   if (isOpen) hideMobileSavedChats(); else openMobileSavedChats();
 }
-// Bind clicks (don’t rely on inline onclick)
-mobileBtn?.addEventListener("click", toggleMobileSavedChats);
-mobileBg?.addEventListener("click", hideMobileSavedChats);
 
-// Expose in case the HTML still has inline handlers
+// Expose for inline onclick to keep working
 window.toggleMobileSavedChats = toggleMobileSavedChats;
 window.hideMobileSavedChats   = hideMobileSavedChats;
+
+// Touch + Click binding with de-dupe (avoid touchend->click double fire)
+let lastPointerToggle = 0;
+function safeToggle() {
+  const now = performance.now();
+  if (now - lastPointerToggle < 250) return;
+  lastPointerToggle = now;
+  toggleMobileSavedChats();
+}
+if (window.PointerEvent) {
+  mobileBtn?.addEventListener('pointerup', safeToggle, { passive: true });
+} else {
+  mobileBtn?.addEventListener('touchend', safeToggle, { passive: true });
+  mobileBtn?.addEventListener('click', safeToggle);
+}
+
+// Backdrop & close button
+mobileBg?.addEventListener('pointerup', hideMobileSavedChats, { passive: true });
+mobileClose?.addEventListener('pointerup', hideMobileSavedChats, { passive: true });
+
+// Esc key closes
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !mobileBg?.classList.contains('hidden')) {
+    hideMobileSavedChats();
+  }
+});
+
+// Close when tapping a link inside the drawer (e.g., About)
+mobileModal?.addEventListener('click', (e) => {
+  const t = e.target;
+  if (t instanceof HTMLAnchorElement) hideMobileSavedChats();
+});
 
 // ---------- Init & Privacy (safe) ----------
 (function boot() {

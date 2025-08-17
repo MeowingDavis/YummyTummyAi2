@@ -64,26 +64,26 @@ export default `
               </div>
             </div>
           </header>
-          <!-- Local-only storage notice (one-time, dismissible) -->
-<div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-  <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
-    <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
-    </svg>
-    <div class="text-sm leading-6">
-      <strong class="font-semibold">Privacy:</strong>
-      Your chats are saved <span class="font-semibold">locally on this device only</span>.
-      Clearing your browser data (or using a different device/browser) will remove them.
-      <button id="privacyLearnMore"
-        class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
-    </div>
-    <button id="privacyDismiss"
-      class="ml-auto rounded-md px-2 py-1 text-emerald-100/90 hover:bg-emerald-800/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
-      aria-label="Dismiss privacy notice">Got it</button>
-  </div>
-</div>
 
+          <!-- Local-only storage notice (one-time, dismissible) -->
+          <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
+              <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+              </svg>
+              <div class="text-sm leading-6">
+                <strong class="font-semibold">Privacy:</strong>
+                Your chats are saved <span class="font-semibold">locally on this device only</span>.
+                Clearing your browser data (or using a different device/browser) will remove them.
+                <button id="privacyLearnMore"
+                  class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
+              </div>
+              <button id="privacyDismiss"
+                class="ml-auto rounded-md px-2 py-1 text-emerald-100/90 hover:bg-emerald-800/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                aria-label="Dismiss privacy notice">Got it</button>
+            </div>
+          </div>
 
           <!-- Chat body -->
           <section class="flex flex-col h-[72vh] sm:h-[75vh]">
@@ -610,45 +610,65 @@ export default `
     }
     document.getElementById('mobileSavedModalBg').addEventListener('click', hideMobileSavedChats);
 
-    // ---------- Init ----------
-    renderSavedChats();
-    renderMobileSavedChats();
-    renderEmptyState(); // randomized on first load
-    autoresize();
-    refreshSendState();
+    // ---------- Init & Privacy (safe) ----------
+    (function boot() {
+      function initCore() {
+        try {
+          renderSavedChats();
+          renderMobileSavedChats();
+          renderEmptyState(); // randomized on first load
+          autoresize();
+          refreshSendState();
+        } catch (e) {
+          console.error("[initCore] failed:", e);
+        }
+      }
 
-    // ---------- Privacy Notice ----------
-const PRIVACY_DISMISSED_KEY = "yt_privacy_notice_dismissed_v1";
+      function initPrivacy() {
+        try {
+          const PRIVACY_DISMISSED_KEY = "yt_privacy_notice_dismissed_v1";
+          const notice = document.getElementById("privacyNotice");
+          const dismissBtn = document.getElementById("privacyDismiss");
+          const learnBtn = document.getElementById("privacyLearnMore");
 
-function showPrivacyNoticeIfNeeded() {
-  const seen = localStorage.getItem(PRIVACY_DISMISSED_KEY) === "1";
-  const el = document.getElementById("privacyNotice");
-  if (!el) return;
-  if (!seen) el.classList.remove("hidden");
-}
+          if (!notice) return; // banner not present
 
-function dismissPrivacyNotice() {
-  localStorage.setItem(PRIVACY_DISMISSED_KEY, "1");
-  const el = document.getElementById("privacyNotice");
-  if (el) el.classList.add("hidden");
-}
+          const seen = localStorage.getItem(PRIVACY_DISMISSED_KEY) === "1";
+          if (!seen) notice.classList.remove("hidden");
 
-function openPrivacyModal() {
-  alert(
-    "Where are chats stored?\n\n" +
-    "• Chats are saved in your browser’s local storage on this device only.\n" +
-    "• They are not uploaded to a server by the app.\n" +
-    "• Clearing site data or using a different browser/device will remove them.\n" +
-    "• You can export a chat from the Saved Chats panel at any time."
-  );
-}
+          dismissBtn?.addEventListener("click", () => {
+            try {
+              localStorage.setItem(PRIVACY_DISMISSED_KEY, "1");
+              notice.classList.add("hidden");
+            } catch (e) { console.warn("[privacy] dismiss failed:", e); }
+          });
 
-document.getElementById("privacyDismiss")?.addEventListener("click", dismissPrivacyNotice);
-document.getElementById("privacyLearnMore")?.addEventListener("click", openPrivacyModal);
+          learnBtn?.addEventListener("click", () => {
+            try {
+              alert(
+                "Where are chats stored?\\n\\n" +
+                "• Chats are saved in your browser’s local storage on this device only.\\n" +
+                "• They are not uploaded to a server by the app.\\n" +
+                "• Clearing site data or using a different browser/device will remove them.\\n" +
+                "• You can export a chat from the Saved Chats panel at any time."
+              );
+            } catch (e) { console.warn("[privacy] learn more failed:", e); }
+          });
+        } catch (e) {
+          console.error("[initPrivacy] failed:", e);
+        }
+      }
 
-// Show on first load if not dismissed
-showPrivacyNoticeIfNeeded();
-
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+          initCore();
+          initPrivacy();
+        }, { once: true });
+      } else {
+        initCore();
+        initPrivacy();
+      }
+    })();
   </script>
 </body>
 </html>

@@ -52,7 +52,6 @@ export default `
                 Yummy Tummy <span class="text-emerald-400">AI</span>
               </h1>
               <div class="flex items-center gap-2">
-               
                 <!-- Mobile Saved Chats toggle -->
                 <button id="mobileMenuBtn"
                         onclick="toggleMobileSavedChats()"
@@ -115,17 +114,17 @@ export default `
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
                     </svg>
-                 <!-- Plus icon new chat button -->
-<button id="newChatBtn"
-  class="rounded-full w-9 h-9 flex items-center justify-center 
-         text-slate-300 hover:text-white hover:bg-slate-800 
-         transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
-  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" 
-       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-  </svg>
-</button>
+                  </button>
 
+                  <!-- Plus icon new chat button -->
+                  <button id="newChatBtn"
+                    class="h-11 w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98]"
+                    title="New Chat" aria-label="New Chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
 
                   <button
                     id="sendBtn"
@@ -331,7 +330,8 @@ export default `
 
     function announce(text){ document.getElementById("srLive").textContent = text; }
 
-    function makeActions({ onCopy, onDelete, onRegen }){
+    // NOTE: Regenerate removed for simplicity
+    function makeActions({ onCopy, onDelete }){
       const bar = document.createElement('div');
       bar.className = "msg-actions opacity-0 transition-opacity absolute top-2 right-2 inline-flex gap-1";
       const mk = (label, cb) => {
@@ -339,9 +339,8 @@ export default `
         b.className = "rounded-md bg-slate-800/80 text-slate-200 text-xs px-2 py-1 ring-1 ring-slate-700 hover:bg-slate-700";
         b.textContent = label; b.onclick = cb; return b;
       };
-      if (onCopy) bar.appendChild(mk("Copy", onCopy));
+      if (onCopy)   bar.appendChild(mk("Copy", onCopy));
       if (onDelete) bar.appendChild(mk("Delete", onDelete));
-      if (onRegen) bar.appendChild(mk("Regenerate", onRegen));
       return bar;
     }
 
@@ -364,8 +363,7 @@ export default `
       wrapper.innerHTML = \`<div class="mb-2 text-emerald-400 font-semibold">\${sender}</div><div class="prose prose-invert max-w-none">\${safe}</div>\`;
       const acts = makeActions({
         onCopy: () => navigator.clipboard.writeText(markdown),
-        onDelete: () => wrapper.remove(),
-        onRegen: () => send()
+        onDelete: () => wrapper.remove()
       });
       wrapper.appendChild(acts);
       enhanceCodeBlocks(wrapper);
@@ -425,7 +423,7 @@ export default `
           return await res.json();
         }catch(err){
           if (i === tries-1) throw err;
-          await new Promise(r => setTimeout(r, 400 * Math.pow(2, i))); // 400ms, 800ms
+          await new Promise(r => setTimeout(r, 400 * Math.pow(2, i)));
         }
       }
     }
@@ -462,7 +460,7 @@ export default `
       pendingFiles.forEach((f,i)=> form.append('files', f, f.name || \`image_\${i}.png\`));
       const res = await fetch('/upload', { method:'POST', body: form });
       if (!res.ok) throw new Error('Upload failed');
-      const urls = await res.json(); // expect array of URLs/ids
+      const urls = await res.json();
       pendingFiles = []; hideTray();
       return urls;
     }

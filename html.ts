@@ -163,9 +163,6 @@ export default `
                   </button>
                 </div>
               </div>
-
-              <!-- Single concise hint -->
-              <p class="mt-2 text-xs text-slate-400">Press <span class="font-semibold text-slate-300">Enter</span> to send</p>
             </div>
           </section>
         </div>

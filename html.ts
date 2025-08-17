@@ -52,9 +52,7 @@ export default `
                 Yummy Tummy <span class="text-emerald-400">AI</span>
               </h1>
               <div class="flex items-center gap-2">
-                <button id="newChatBtn" class="inline-flex rounded-lg px-3 py-2 text-sm ring-1 ring-slate-700 bg-slate-800/70 hover:bg-slate-700">
-                  New Chat
-                </button>
+               
                 <!-- Mobile Saved Chats toggle -->
                 <button id="mobileMenuBtn"
                         onclick="toggleMobileSavedChats()"
@@ -118,6 +116,9 @@ export default `
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
                     </svg>
                   </button>
+                   <button id="newChatBtn" class="inline-flex rounded-lg px-3 py-2 text-sm ring-1 ring-slate-700 bg-slate-800/70 hover:bg-slate-700">
+                  New Chat
+                </button>
 
                   <button
                     id="sendBtn"

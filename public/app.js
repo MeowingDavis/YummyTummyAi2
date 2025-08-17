@@ -410,47 +410,45 @@ function openMobileSavedChats(){
   mobileBg?.classList.remove("hidden");
   mobileModal?.classList.remove("hidden");
   mobileBtn?.setAttribute("aria-expanded", "true");
-  document.body.style.overflow = 'hidden'; // prevent background scroll while open
+  document.body.style.overflow = 'hidden'; // lock scroll
 }
 function hideMobileSavedChats(){
   mobileBg?.classList.add("hidden");
   mobileModal?.classList.add("hidden");
   mobileBtn?.setAttribute("aria-expanded", "false");
-  document.body.style.overflow = ''; // restore scroll
+  document.body.style.overflow = ''; // unlock scroll
 }
 function toggleMobileSavedChats(){
   const isOpen = !mobileBg?.classList.contains("hidden");
   if (isOpen) hideMobileSavedChats(); else openMobileSavedChats();
 }
 
-// Expose for inline onclick to keep working
-window.toggleMobileSavedChats = toggleMobileSavedChats;
-window.hideMobileSavedChats   = hideMobileSavedChats;
+// Expose only the hide function if external code wants it
+window.hideMobileSavedChats = hideMobileSavedChats;
 
-// Touch + Click binding with de-dupe (avoid touchend->click double fire)
-let lastPointerToggle = 0;
-function safeToggle() {
+// ---- Bindings (handle both touch & click without double-fire) ----
+let lastToggleAt = 0;
+function safeToggle(ev){
+  if (ev.type === 'touchend') ev.preventDefault(); // prevent ghost click on mobile
   const now = performance.now();
-  if (now - lastPointerToggle < 250) return;
-  lastPointerToggle = now;
+  if (now - lastToggleAt < 250) return; // de-dupe
+  lastToggleAt = now;
   toggleMobileSavedChats();
 }
-if (window.PointerEvent) {
-  mobileBtn?.addEventListener('pointerup', safeToggle, { passive: true });
-} else {
-  mobileBtn?.addEventListener('touchend', safeToggle, { passive: true });
-  mobileBtn?.addEventListener('click', safeToggle);
+
+mobileBtn?.addEventListener('touchend', safeToggle, { passive: false });
+mobileBtn?.addEventListener('click', safeToggle, { passive: true });
+
+// Close interactions
+function bindClose(el){
+  el?.addEventListener('touchend', (e)=>{ e.preventDefault(); hideMobileSavedChats(); }, { passive: false });
+  el?.addEventListener('click', hideMobileSavedChats, { passive: true });
 }
+bindClose(mobileBg);    // tap backdrop
+bindClose(mobileClose); // tap ✕
 
-// Backdrop & close button
-mobileBg?.addEventListener('pointerup', hideMobileSavedChats, { passive: true });
-mobileClose?.addEventListener('pointerup', hideMobileSavedChats, { passive: true });
-
-// Esc key closes
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !mobileBg?.classList.contains('hidden')) {
-    hideMobileSavedChats();
-  }
+  if (e.key === 'Escape' && !mobileBg?.classList.contains('hidden')) hideMobileSavedChats();
 });
 
 // Close when tapping a link inside the drawer (e.g., About)

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -13,7 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <!-- Syntax highlight -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
 
   <style>
@@ -25,13 +27,19 @@
     @supports(padding: max(0px)) {
       .composer-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
     }
+    /* Slightly larger prose on phones for readability */
+    .prose :where(p,li){ font-size: 15px; line-height: 1.6; }
+    @media (min-width: 640px){
+      .prose :where(p,li){ font-size: 1rem; line-height: 1.75; }
+    }
   </style>
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Mobile: tighter gutters & padding; Desktop unchanged -->
+  <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
     <div class="flex gap-4">
-      <!-- Sidebar (desktop) -->
+      <!-- Sidebar (desktop only; unchanged) -->
       <aside class="hidden md:flex md:w-72 shrink-0">
         <div class="w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
           <div class="flex items-center justify-between">
@@ -51,36 +59,42 @@
       <!-- Main column -->
       <main class="flex-1">
         <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden">
-          <!-- Header -->
-          <header class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
+          <!-- Header: mobile sticky & larger tap target; desktop unchanged -->
+          <header
+            class="sticky md:static top-0 z-30 px-4 sm:px-8 py-3 md:pt-6 md:pb-4 border-b border-slate-800/60
+                   bg-slate-900/70 md:bg-transparent backdrop-blur supports-[backdrop-filter]:bg-slate-900/50 md:supports-[backdrop-filter]:bg-transparent">
             <div class="flex items-center justify-between gap-2">
-              <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
+              <h1 class="text-2xl sm:text-4xl md:text-4xl font-bold tracking-tight">
                 Yummy Tummy <span class="text-emerald-400">AI</span>
               </h1>
 
-              <!-- Mobile hamburger: only shows < md -->
+              <!-- Mobile hamburger: bigger hitbox; desktop unchanged (md:hidden) -->
               <button id="mobileMenuBtn" aria-controls="mobileSavedModal" aria-expanded="false"
-                class="md:hidden pointer-events-auto inline-flex h-10 items-center justify-center rounded-xl bg-slate-800/80 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+                class="md:hidden inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800/80
+                       px-0 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
                 aria-label="Show saved chats">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
                 </svg>
               </button>
             </div>
           </header>
 
-          <!-- Local-only storage notice -->
+          <!-- Local-only storage notice (unchanged) -->
           <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
+            <div
+              class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
               <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                      d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
               </svg>
               <div class="text-sm leading-6">
                 <strong class="font-semibold">Privacy:</strong>
                 Your chats are saved <span class="font-semibold">locally on this device only</span>.
                 Clearing your browser data (or using a different device/browser) will remove them.
-                <button id="privacyLearnMore" class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
+                <button id="privacyLearnMore"
+                        class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
               </div>
               <button id="privacyDismiss"
                 class="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm ring-1 ring-inset ring-emerald-500 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
@@ -94,12 +108,15 @@
 
           <!-- Chat body -->
           <section class="flex flex-col h-[72vh] sm:h-[75vh]">
-            <!-- Messages -->
-            <div id="chatbox" class="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth"></div>
+            <!-- Messages: tighter on mobile; desktop unchanged -->
+            <div id="chatbox"
+                 class="flex-1 overflow-y-auto px-3 md:px-5 lg:px-8 py-4 md:py-5 space-y-3 md:space-y-4 scroll-smooth">
+            </div>
 
-            <!-- Typing indicator -->
-            <div id="typing" class="hidden px-5 sm:px-8">
-              <div class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-slate-300">
+            <!-- Typing indicator (unchanged) -->
+            <div id="typing" class="hidden px-3 md:px-8">
+              <div
+                class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-slate-300">
                 <span>Chef is typing</span>
                 <span class="inline-flex gap-1">
                   <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
@@ -109,46 +126,63 @@
               </div>
             </div>
 
-            <!-- Attachments preview tray -->
-            <div id="previewTray" class="px-5 sm:px-8 hidden">
+            <!-- Attachments preview tray (unchanged) -->
+            <div id="previewTray" class="px-3 md:px-8 hidden">
               <div class="flex gap-2 flex-wrap py-2"></div>
             </div>
 
-            <!-- SR live region -->
+            <!-- SR live region (unchanged) -->
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
-            <!-- Composer -->
-            <div class="composer-safe sticky bottom-0 px-5 sm:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
-              <div class="flex flex-col sm:flex-row sm:items-end gap-2">
+            <!-- Composer: mobile-friendly; desktop unchanged -->
+            <div
+              class="composer-safe sticky bottom-0 px-3 md:px-8 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2 md:pt-3
+                     bg-slate-900/70 md:bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
+              <div class="flex flex-col md:flex-row md:items-end gap-2">
                 <label for="input" class="sr-only">Your message</label>
                 <textarea id="input" rows="1"
-                  class="w-full sm:flex-1 rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur-xl px-4 py-3 text-base sm:text-[15px] text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition resize-none leading-6 sm:leading-7 min-h-[56px] sm:min-h-[48px] max-h-56"
+                  class="w-full md:flex-1 rounded-xl md:rounded-2xl border border-slate-700/70 bg-slate-900/70 md:bg-slate-900/60
+                         px-3 md:px-4 py-3 text-[15px] md:text-[15px] text-slate-100 placeholder-slate-400
+                         shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30
+                         transition resize-none leading-6 md:leading-7 min-h-[52px] md:min-h-[48px] max-h-56"
                   placeholder="Ask a recipe question or paste your ingredients..." autocomplete="off"></textarea>
 
+                <!-- Buttons: larger on mobile; desktop unchanged -->
                 <div class="flex items-center justify-end gap-2 shrink-0">
                   <button id="saveBtn" onclick="saveChat()"
-                    class="h-11 w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
+                    class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
+                           ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
                     title="Save chat" aria-label="Save chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z" />
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3" />
                     </svg>
                   </button>
 
                   <button id="newChatBtn"
-                    class="h-11 w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98]"
+                    class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
+                           ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
+                           transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98]"
                     title="New Chat" aria-label="New Chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
                   </button>
 
                   <button id="sendBtn" onclick="send()"
-                    class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 sm:px-5 h-11 text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 md:px-5 h-12 md:h-11
+                           text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99]
+                           transition disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Send" aria-label="Send message" disabled>
-                    <span class="hidden sm:inline">Send</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z" />
+                    <span class="hidden md:inline">Send</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 12l14-7-7 14-2-5-5-2z" />
                     </svg>
                   </button>
                 </div>
@@ -161,20 +195,32 @@
   </div>
 
   <!-- Mobile Saved Chats Modal -->
-  <div class="fixed inset-0 z-40 hidden bg-black/60" id="mobileSavedModalBg"></div>
-  <div class="fixed left-0 top-0 z-50 hidden h-full w-[82vw] max-w-xs overflow-y-auto rounded-r-2xl border border-slate-800 bg-slate-900/90 backdrop-blur-md p-6"
-    id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
-    <div class="mb-4 flex items-center justify-between">
+  <!-- Backdrop: slightly darker on phones; desktop unchanged -->
+  <div class="fixed inset-0 z-40 hidden bg-black/70 sm:bg-black/60" id="mobileSavedModalBg"></div>
+
+  <!-- Panel: taller & wider on phones; desktop unchanged -->
+  <div class="fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] sm:w-[82vw] max-w-xs overflow-y-auto
+              rounded-r-2xl border border-slate-800 bg-slate-900/95 sm:bg-slate-900/90 backdrop-blur-md p-5"
+       id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
+    <div class="mb-3 flex items-center justify-between">
       <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-      <button class="rounded-md px-2 py-1 text-xl leading-none text-slate-300 hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
-        aria-label="Close" id="mobileCloseBtn">&times;</button>
+      <button
+        class="rounded-full w-10 h-10 flex items-center justify-center text-slate-300 hover:bg-slate-800
+               focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
+        aria-label="Close" id="mobileCloseBtn">✕</button>
     </div>
     <ul id="mobileSavedChats" class="space-y-2 text-sm"></ul>
+
     <hr class="my-4 border-slate-800">
     <a href="/public/about.html" class="block text-sm text-emerald-400 hover:underline">About</a>
   </div>
 
   <!-- Your client app -->
   <script type="module" src="/app.js"></script>
+
+  <!-- Message template note:
+       Your JS renders .msg elements; mobile card tweaks are applied via classes in JS-rendered HTML:
+       - Use rounded-xl md:rounded-2xl, p-3 md:p-4, and text sizes via prose overrides above.
+  -->
 </body>
 </html>

@@ -115,10 +115,17 @@ export default `
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
                     </svg>
-                  </button>
-                   <button id="newChatBtn" class="inline-flex rounded-lg px-3 py-2 text-sm ring-1 ring-slate-700 bg-slate-800/70 hover:bg-slate-700">
-                  New Chat
-                </button>
+                 <!-- Plus icon new chat button -->
+<button id="newChatBtn"
+  class="rounded-full w-9 h-9 flex items-center justify-center 
+         text-slate-300 hover:text-white hover:bg-slate-800 
+         transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" 
+       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+  </svg>
+</button>
+
 
                   <button
                     id="sendBtn"

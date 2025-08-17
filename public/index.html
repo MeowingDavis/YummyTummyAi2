@@ -26,14 +26,20 @@
     .prose :where(p,li){ font-size:15px; line-height:1.6; }
     @media (min-width:640px){ .prose :where(p,li){ font-size:1rem; line-height:1.75; } }
 
-    /* Keep newest message visible above sticky composer on phones */
+    /* Chat scrolling behavior on phones */
     @media (max-width: 767px){
       #chatbox{
-        scroll-padding-bottom: 96px;
-        overscroll-behavior: contain;
+        scroll-padding-bottom: 96px;   /* overwritten by JS to composer height */
+        overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
       }
     }
+
+    /* Prevent browser’s scroll anchoring from fighting our “stick to bottom” */
+    #chatbox { overflow-anchor: none; }
+
+    /* iOS momentum scroll smoothing */
+    .touch-scrolling { -webkit-overflow-scrolling: touch; }
   </style>
 </head>
 
@@ -45,7 +51,7 @@
         <div class="w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-            <button onclick="renderSavedChats()"
+            <button onclick="renderSavedChats?.()"
               class="text-xs text-slate-400 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded-md px-2 py-1">
               Refresh
             </button>
@@ -107,9 +113,12 @@
               </div>
             </div>
 
-            <!-- Messages (NOTE: removed scroll-smooth to avoid fight with JS pinning) -->
+            <!-- Messages -->
             <div id="chatbox"
-                 class="flex-1 min-h-0 overflow-y-auto px-3 md:px-5 lg:px-8 py-4 md:py-5 space-y-3 md:space-y-4">
+                 class="flex-1 min-h-0 overflow-y-auto px-3 md:px-5 lg:px-8 py-4 md:py-5 space-y-3 md:space-y-4 touch-scrolling"
+                 role="log" aria-live="polite" aria-relevant="additions text">
+              <!-- sentinel keeps pinning logic robust -->
+              <div id="bottomSentinel" class="h-px"></div>
             </div>
 
             <!-- Jump-to-latest (appears only when user scrolled up) -->
@@ -140,7 +149,7 @@
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
             <!-- Composer -->
-            <div class="composer-safe sticky bottom-0 px-3 md:px-8 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2 md:pt-3
+            <div id="composer" class="composer-safe sticky bottom-0 px-3 md:px-8 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2 md:pt-3
                         bg-slate-900/70 md:bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
               <div class="flex flex-col md:flex-row md:items-end gap-2">
                 <label for="input" class="sr-only">Your message</label>
@@ -152,7 +161,7 @@
                   placeholder="Ask a recipe question or paste your ingredients..."></textarea>
 
                 <div class="flex items-center justify-end gap-2 shrink-0">
-                  <button id="saveBtn" onclick="saveChat()"
+                  <button id="saveBtn" onclick="saveChat?.()"
                     class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
                            ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
                            focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
@@ -163,7 +172,7 @@
                     </svg>
                   </button>
 
-                  <button id="newChatBtn"
+                  <button id="newChatBtn" onclick="newChat?.()"
                     class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
                            ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
                            transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98]"
@@ -173,7 +182,7 @@
                     </svg>
                   </button>
 
-                  <button id="sendBtn" onclick="send()"
+                  <button id="sendBtn" onclick="send?.()"
                     class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 md:px-5 h-12 md:h-11
                            text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600
                            focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99]
@@ -212,26 +221,65 @@
   <!-- Your client app (unchanged) -->
   <script type="module" src="/app.js"></script>
 
-  <!-- Stick-to-bottom like ChatGPT/FB Messenger -->
+  <!-- Mobile-first chat UX -->
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      const chatbox = document.getElementById('chatbox');
-      const input   = document.getElementById('input');
-      const jumpBtn = document.getElementById('jumpLatest');
+      const chatbox   = document.getElementById('chatbox');
+      const input     = document.getElementById('input');
+      const sendBtn   = document.getElementById('sendBtn');
+      const jumpBtn   = document.getElementById('jumpLatest');
+      const composer  = document.getElementById('composer');
+      const sentinel  = document.getElementById('bottomSentinel');
 
-      // --- Stick logic
+      // --- Enable/disable Send on content
+      const hasText = () => (input.value || '').trim().length > 0;
+      const updateSendEnabled = () => { sendBtn.disabled = !hasText(); };
+      input.addEventListener('input', updateSendEnabled);
+      updateSendEnabled();
+
+      // --- Autosize textarea (like iMessage/WhatsApp)
+      const autoSize = () => {
+        const prevH = input.offsetHeight;
+        input.style.height = 'auto';
+        const maxPx = parseInt(getComputedStyle(input).maxHeight || 224, 10);
+        input.style.height = Math.min(input.scrollHeight, maxPx) + 'px';
+        if (input.offsetHeight !== prevH) {
+          // Keep the latest messages visible if we were pinned
+          if (stickToLatest) nudgeLatest(2, 60);
+          setScrollPadding(); // composer changed height
+        }
+      };
+      input.addEventListener('input', autoSize);
+      // Run once to set initial height and padding
+      requestAnimationFrame(() => { autoSize(); setScrollPadding(); });
+
+      // --- Compute scroll padding to keep last messages unobscured by composer
+      function setScrollPadding() {
+        const pad = (composer?.offsetHeight || 80) + 16; // extra breathing room
+        chatbox.style.scrollPaddingBottom = pad + 'px';
+      }
+
+      // Recompute on viewport or composer size changes
+      if ('ResizeObserver' in window) {
+        const ro = new ResizeObserver(() => setScrollPadding());
+        ro.observe(composer);
+      }
+      if (window.visualViewport) {
+        const rebottom = () => { setScrollPadding(); if (stickToLatest) nudgeLatest(2, 60); };
+        visualViewport.addEventListener('resize', rebottom);
+        visualViewport.addEventListener('scroll', rebottom);
+      }
+
+      // --- Stick-to-bottom logic
       const THRESHOLD = 64;
       let stickToLatest = true; // start pinned
 
       const atBottom = () =>
         (chatbox.scrollHeight - chatbox.scrollTop - chatbox.clientHeight) <= THRESHOLD;
 
-      function showJump(show) {
-        jumpBtn.classList.toggle('hidden', !show);
-      }
+      function showJump(show) { jumpBtn.classList.toggle('hidden', !show); }
 
-      function scrollToLatest(immediate = true) {
-        // Disable smooth behavior to avoid fighting animations
+      function scrollToLatest() {
         const prev = chatbox.style.scrollBehavior;
         chatbox.style.scrollBehavior = 'auto';
         chatbox.scrollTop = chatbox.scrollHeight;
@@ -239,23 +287,33 @@
       }
 
       function nudgeLatest(frames = 3, spreadMs = 120) {
-        // Pin across a few frames to beat IME/layout reflows
         let i = 0;
         const tick = () => {
-          scrollToLatest(true);
+          scrollToLatest();
           if (++i < frames) requestAnimationFrame(tick);
-          else setTimeout(() => scrollToLatest(true), spreadMs);
+          else setTimeout(scrollToLatest, spreadMs);
         };
         requestAnimationFrame(tick);
       }
 
-      // Track manual scroll to toggle stick mode
-      let scrollTimeout = null;
+      // IntersectionObserver sentinel to robustly detect bottom visibility
+      if ('IntersectionObserver' in window && sentinel) {
+        const io = new IntersectionObserver((entries) => {
+          const vis = entries[0].isIntersecting;
+          stickToLatest = vis;
+          showJump(!vis);
+        }, { root: chatbox, threshold: 1.0 });
+        io.observe(sentinel);
+      }
+
+      // Scroll watcher (fallback + jump visibility)
+      let scrollRAF = null;
       chatbox.addEventListener('scroll', () => {
-        if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
-        scrollTimeout = requestAnimationFrame(() => {
-          stickToLatest = atBottom();
-          showJump(!stickToLatest);
+        if (scrollRAF) cancelAnimationFrame(scrollRAF);
+        scrollRAF = requestAnimationFrame(() => {
+          const bottom = atBottom();
+          stickToLatest = bottom;
+          showJump(!bottom);
         });
       }, { passive: true });
 
@@ -266,14 +324,14 @@
         showJump(false);
       });
 
-      // Observe new message nodes (direct children) and stay pinned if we were pinned
+      // New children added -> stay pinned like real chats
       const mo = new MutationObserver((muts) => {
         const added = muts.some(m => m.addedNodes && m.addedNodes.length);
         if (!added) return;
         if (stickToLatest) nudgeLatest(2, 80);
         else showJump(true);
       });
-      mo.observe(chatbox, { childList: true });
+      mo.observe(chatbox, { childList: true, subtree: false });
 
       // Images/markdown late layout
       document.addEventListener('load', (e) => {
@@ -282,43 +340,95 @@
         }
       }, true);
 
-      // Keyboard (IME) show/hide and viewport shifts
-      if (window.visualViewport) {
-        const pin = () => { if (stickToLatest) nudgeLatest(2, 80); };
-        visualViewport.addEventListener('resize', pin);
-        visualViewport.addEventListener('scroll',  pin);
-      }
+      // --- Keyboard behavior: send closes keyboard, keeps pinned, Enter=send (Shift+Enter = newline)
+      const blurKeyboard = () => { try { input.blur(); } catch {} };
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (!hasText()) return;
+          stickToLatest = true;
+          blurKeyboard();
+          nudgeLatest(4, 120);
+          // Prefer global send() if provided
+          if (typeof window.send === 'function') {
+            Promise.resolve(window.send()).finally(() => {
+              setTimeout(blurKeyboard, 10);
+              setTimeout(blurKeyboard, 150);
+              nudgeLatest(6, 220);
+              updateSendEnabled();
+              autoSize();
+            });
+          }
+        }
+      });
 
-      // Wrap send(): close keyboard and keep pinned like real chats
+      // Tap chat area to dismiss keyboard (common in messengers)
+      chatbox.addEventListener('pointerdown', () => {
+        if (document.activeElement === input) blurKeyboard();
+      });
+
+      // If a send button click occurs (e.g., from tap), mirror the behavior
       if (typeof window.send === 'function') {
         const originalSend = window.send;
         window.send = async function patchedSend() {
-          const msg = (input.value || '').trim();
-          if (!msg) return;
-
+          if (!hasText()) return;
           stickToLatest = true;
-          try { input.blur(); } catch {}
-          nudgeLatest(4, 120); // make sure your outgoing message area is visible
-
+          blurKeyboard();
+          nudgeLatest(4, 120);
           try {
             await originalSend();
           } finally {
-            // In case app.js refocuses input, re-blur and pin a beat later
-            setTimeout(() => { try { input.blur(); } catch {} }, 10);
-            setTimeout(() => { try { input.blur(); } catch {} }, 150);
-            nudgeLatest(6, 220); // assistant reply lands -> stay pinned
+            setTimeout(blurKeyboard, 10);
+            setTimeout(blurKeyboard, 150);
+            nudgeLatest(6, 220);
+            updateSendEnabled();
+            autoSize();
           }
         };
       }
 
-      // Also handle Return (Enter) without Shift
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          stickToLatest = true;
-          try { input.blur(); } catch {}
-          nudgeLatest(4, 120);
+      // --- Mobile Saved Chats Drawer wiring
+      const mobileBtn   = document.getElementById('mobileMenuBtn');
+      const mobileBg    = document.getElementById('mobileSavedModalBg');
+      const mobileModal = document.getElementById('mobileSavedModal');
+      const mobileClose = document.getElementById('mobileCloseBtn');
+
+      const openDrawer = () => {
+        mobileBg.classList.remove('hidden');
+        mobileModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        mobileBtn?.setAttribute('aria-expanded', 'true');
+        // populate list if available
+        if (typeof renderSavedChats === 'function') {
+          renderSavedChats();
+          // also mirror into mobile if your app populates #savedChats only:
+          const src = document.getElementById('savedChats');
+          const dst = document.getElementById('mobileSavedChats');
+          if (src && dst) dst.innerHTML = src.innerHTML;
         }
+      };
+      const closeDrawer = () => {
+        mobileBg.classList.add('hidden');
+        mobileModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        mobileBtn?.setAttribute('aria-expanded', 'false');
+      };
+
+      mobileBtn?.addEventListener('click', openDrawer);
+      mobileClose?.addEventListener('click', closeDrawer);
+      mobileBg?.addEventListener('click', closeDrawer);
+      window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+
+      // --- Optional: privacy notice demo handlers
+      document.getElementById('privacyDismiss')?.addEventListener('click', () => {
+        document.getElementById('privacyNotice')?.classList.add('hidden');
       });
+      document.getElementById('privacyLearnMore')?.addEventListener('click', () => {
+        alert('Your chats are stored in localStorage on this device only.');
+      });
+
+      // First mount: pin to bottom
+      nudgeLatest(2, 80);
     });
   </script>
 </body>

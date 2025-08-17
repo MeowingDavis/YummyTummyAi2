@@ -64,6 +64,26 @@ export default `
               </div>
             </div>
           </header>
+          <!-- Local-only storage notice (one-time, dismissible) -->
+<div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
+    <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+    </svg>
+    <div class="text-sm leading-6">
+      <strong class="font-semibold">Privacy:</strong>
+      Your chats are saved <span class="font-semibold">locally on this device only</span>.
+      Clearing your browser data (or using a different device/browser) will remove them.
+      <button id="privacyLearnMore"
+        class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
+    </div>
+    <button id="privacyDismiss"
+      class="ml-auto rounded-md px-2 py-1 text-emerald-100/90 hover:bg-emerald-800/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+      aria-label="Dismiss privacy notice">Got it</button>
+  </div>
+</div>
+
 
           <!-- Chat body -->
           <section class="flex flex-col h-[72vh] sm:h-[75vh]">

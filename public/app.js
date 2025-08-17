@@ -1,24 +1,13 @@
+// app.js (stable drawer + fixed bindings)
+
 // ---------- Setup ----------
 marked.setOptions({ gfm: true, breaks: true });
 
-const chatbox    = document.getElementById('chatbox');
-const typingEl   = document.getElementById('typing');
-const tray       = document.getElementById('previewTray');
-const input      = document.getElementById('input');
-const sendBtn    = document.getElementById('sendBtn');
-const newChatBtn = document.getElementById('newChatBtn');
+// Core refs (assigned after DOM is ready)
+let chatbox, typingEl, tray, input, sendBtn, newChatBtn;
 
 // Drawer refs
-const mobileBtn   = document.getElementById('mobileMenuBtn');
-const mobileBg    = document.getElementById('mobileSavedModalBg');
-const mobileModal = document.getElementById('mobileSavedModal');
-const mobileClose = document.getElementById('mobileCloseBtn');
-
-// 🚫 Remove inline onclick to avoid double toggles on desktop
-if (mobileBtn) {
-  mobileBtn.onclick = null;
-  mobileBtn.removeAttribute('onclick');
-}
+let mobileBtn, mobileBg, mobileModal, mobileClose;
 
 let chatHistory = [];
 let pendingFiles = [];
@@ -231,31 +220,6 @@ function autoresize() {
 // Draft autosave
 function saveDraft(){ localStorage.setItem(DRAFT_KEY, input.value); }
 function clearDraft(){ localStorage.removeItem(DRAFT_KEY); }
-input.value = localStorage.getItem(DRAFT_KEY) || "";
-
-let composing = false; // IME safety
-input.addEventListener("compositionstart", () => composing = true);
-input.addEventListener("compositionend",   () => composing = false);
-
-input.addEventListener("input", () => {
-  autoresize();
-  refreshSendState();
-  saveDraft();
-});
-
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey && !composing) {
-    e.preventDefault();
-    send();
-  }
-});
-
-// Keyboard shortcuts
-document.addEventListener("keydown", (e) => {
-  const k = e.key.toLowerCase();
-  if ((e.metaKey || e.ctrlKey) && k === "s") { e.preventDefault(); saveChat(); }
-  if ((e.metaKey || e.ctrlKey) && k === "n") { e.preventDefault(); newChat(); }
-});
 
 // ---------- Networking with retry ----------
 async function postJSON(url, body, tries=3){
@@ -289,23 +253,6 @@ function renderTray(){
 function onFiles(files){
   pendingFiles.push(...[...files].filter(f => f.type.startsWith('image/')).slice(0, 5));
   if (pendingFiles.length) { showTray(); renderTray(); }
-}
-document.addEventListener('paste', (e) => {
-  const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
-  if (files.length) onFiles(files);
-});
-chatbox.addEventListener('dragover', e => e.preventDefault());
-chatbox.addEventListener('drop', e => { e.preventDefault(); onFiles(e.dataTransfer?.files || []); });
-
-async function uploadAll(){
-  if (!pendingFiles.length) return [];
-  const form = new FormData();
-  pendingFiles.forEach((f,i)=> form.append('files', f, f.name || `image_${i}.png`));
-  const res = await fetch('/upload', { method:'POST', body: form });
-  if (!res.ok) throw new Error('Upload failed');
-  const urls = await res.json();
-  pendingFiles = []; hideTray();
-  return urls;
 }
 
 // ---------- Empty state ----------
@@ -387,9 +334,9 @@ function newChat(){
   input.focus();
   postJSON("/chat", { message: "Let's start a new chat!", newChat: true }).catch(()=>{});
 }
-newChatBtn?.addEventListener("click", newChat);
+window.newChat = newChat;
 
-// ===== Drawer (touch + mouse; single source of truth) =====
+// ===== Drawer (simple & reliable with Pointer Events) =====
 function renderMobileSavedChats(){
   const savedChats = getSavedChats();
   const ul = document.getElementById("mobileSavedChats");
@@ -408,6 +355,7 @@ function renderMobileSavedChats(){
     ul.appendChild(li);
   });
 }
+window.renderMobileSavedChats = renderMobileSavedChats;
 
 function openMobileSavedChats(){
   renderMobileSavedChats();
@@ -430,43 +378,95 @@ window.openMobileSavedChats   = openMobileSavedChats;
 window.hideMobileSavedChats   = hideMobileSavedChats;
 window.toggleMobileSavedChats = toggleMobileSavedChats;
 
-// Single guarded handler to avoid double-fire
-let drawerGuard = false;
-function guardedToggle(ev){
-  if (ev && ev.type === 'touchend') ev.preventDefault(); // absorb synthetic click on iOS
-  if (drawerGuard) return;
-  drawerGuard = true;
-  try { toggleMobileSavedChats(); }
-  finally { setTimeout(()=> { drawerGuard = false; }, 250); }
+// One unified handler: works with mouse, touch, pen
+function wireDrawer() {
+  mobileBtn   = document.getElementById('mobileMenuBtn');
+  mobileBg    = document.getElementById('mobileSavedModalBg');
+  mobileModal = document.getElementById('mobileSavedModal');
+  mobileClose = document.getElementById('mobileCloseBtn');
+
+  if (!mobileBtn || !mobileBg || !mobileModal) return;
+
+  // Remove any existing pointer handlers (safe for hot reload)
+  const fresh = mobileBtn.cloneNode(true);
+  mobileBtn.parentNode.replaceChild(fresh, mobileBtn);
+  mobileBtn = document.getElementById('mobileMenuBtn');
+
+  let guard = false;
+  const onToggle = (ev) => {
+    // prevent iOS synthetic clicks and double fires
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (guard) return;
+    guard = true;
+    toggleMobileSavedChats();
+    setTimeout(()=> guard = false, 220);
+  };
+
+  mobileBtn.addEventListener('pointerup', onToggle, { passive: false });
+
+  const close = (ev) => { ev?.preventDefault?.(); hideMobileSavedChats(); };
+  mobileBg?.addEventListener('pointerup', close, { passive: false });
+  mobileClose?.addEventListener('pointerup', close, { passive: false });
+
+  // Close when clicking any link inside the drawer
+  mobileModal.addEventListener('click', (e) => {
+    const link = e.target instanceof Element ? e.target.closest('a') : null;
+    if (link) hideMobileSavedChats();
+  });
+
+  // Esc support
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !mobileBg.classList.contains('hidden')) hideMobileSavedChats();
+  });
 }
-
-// Bind both mouse and touch
-mobileBtn?.addEventListener('click', guardedToggle,   { passive: true });
-mobileBtn?.addEventListener('touchend', guardedToggle, { passive: false });
-
-// Backdrop & close button
-function bindClose(el){
-  el?.addEventListener('click', hideMobileSavedChats, { passive: true });
-  el?.addEventListener('touchend', (e)=>{ e.preventDefault(); hideMobileSavedChats(); }, { passive: false });
-}
-bindClose(mobileBg);
-bindClose(mobileClose);
-
-// Esc key closes
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !mobileBg?.classList.contains('hidden')) hideMobileSavedChats();
-});
-
-// Close when clicking any link inside the drawer
-mobileModal?.addEventListener('click', (e) => {
-  const link = e.target instanceof Element ? e.target.closest('a') : null;
-  if (link) hideMobileSavedChats();
-});
 
 // ---------- Init & Privacy ----------
 (function boot() {
   function initCore() {
     try {
+      chatbox    = document.getElementById('chatbox');
+      typingEl   = document.getElementById('typing');
+      tray       = document.getElementById('previewTray');
+      input      = document.getElementById('input');
+      sendBtn    = document.getElementById('sendBtn');
+      newChatBtn = document.getElementById('newChatBtn');
+
+      // Wire "New Chat" (this was missing before)
+      newChatBtn?.addEventListener('click', newChat);
+
+      // Input state & listeners
+      input.value = localStorage.getItem(DRAFT_KEY) || "";
+      let composing = false;
+      input.addEventListener("compositionstart", () => composing = true);
+      input.addEventListener("compositionend",   () => composing = false);
+      input.addEventListener("input", () => {
+        autoresize();
+        refreshSendState();
+        saveDraft();
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey && !composing) {
+          e.preventDefault();
+          send();
+        }
+      });
+
+      // Shortcuts
+      document.addEventListener("keydown", (e) => {
+        const k = e.key.toLowerCase();
+        if ((e.metaKey || e.ctrlKey) && k === "s") { e.preventDefault(); saveChat(); }
+        if ((e.metaKey || e.ctrlKey) && k === "n") { e.preventDefault(); newChat(); }
+      });
+
+      // Paste/drag images
+      document.addEventListener('paste', (e) => {
+        const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
+        if (files.length) onFiles(files);
+      });
+      chatbox.addEventListener('dragover', e => e.preventDefault());
+      chatbox.addEventListener('drop', e => { e.preventDefault(); onFiles(e.dataTransfer?.files || []); });
+
       renderSavedChats();
       renderMobileSavedChats();
       renderEmptyState();
@@ -489,14 +489,16 @@ mobileModal?.addEventListener('click', (e) => {
       const seen = localStorage.getItem(PRIVACY_DISMISSED_KEY) === "1";
       if (!seen) notice.classList.remove("hidden");
 
-      dismissBtn?.addEventListener("click", () => {
+      dismissBtn?.addEventListener("pointerup", (e) => {
+        e.preventDefault();
         try {
           localStorage.setItem(PRIVACY_DISMISSED_KEY, "1");
           notice.classList.add("hidden");
         } catch (e) { console.warn("[privacy] dismiss failed:", e); }
       });
 
-      learnBtn?.addEventListener("click", () => {
+      learnBtn?.addEventListener("pointerup", (e) => {
+        e.preventDefault();
         try {
           alert(
             "Where are chats stored?\n\n" +
@@ -516,10 +518,23 @@ mobileModal?.addEventListener('click', (e) => {
     document.addEventListener("DOMContentLoaded", () => {
       initCore();
       initPrivacy();
+      wireDrawer();
     }, { once: true });
   } else {
     initCore();
     initPrivacy();
+    wireDrawer();
   }
 })();
 
+// ---------- Upload helper ----------
+async function uploadAll(){
+  if (!pendingFiles.length) return [];
+  const form = new FormData();
+  pendingFiles.forEach((f,i)=> form.append('files', f, f.name || `image_${i}.png`));
+  const res = await fetch('/upload', { method:'POST', body: form });
+  if (!res.ok) throw new Error('Upload failed');
+  const urls = await res.json();
+  pendingFiles = []; hideTray();
+  return urls;
+}

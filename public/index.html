@@ -3,378 +3,217 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-  <title>Yummy Tummy AI</title>
+  <title>Yummy Tummy AI — Smart recipe chat</title>
+
+  <!-- SEO / Social -->
+  <meta name="description" content="Yummy Tummy AI turns the ingredients you type or paste into delicious meals. Private by default, no account required." />
+  <meta property="og:title" content="Yummy Tummy AI" />
+  <meta property="og:description" content="Turn what you’ve got into dinner. Private by default." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/og-image.png" />
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Sanitizer + Markdown -->
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-  <!-- Syntax highlight -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
-
   <style>
-    @media (prefers-reduced-motion: reduce) { *{animation:none!important;transition:none!important;} }
-    .msg:hover .msg-actions { opacity: 1; }
-    @media (hover: none) { .msg-actions { opacity: 1; } }
-    @supports(padding: max(0px)) { .composer-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); } }
-
-    /* Mobile typography bump (desktop unchanged) */
-    .prose :where(p,li){ font-size:15px; line-height:1.6; }
-    @media (min-width:640px){ .prose :where(p,li){ font-size:1rem; line-height:1.75; } }
-
-    /* Keep newest message visible above sticky composer on phones */
-    @media (max-width: 767px){
-      #chatbox{
-        scroll-padding-bottom: 96px;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
-      }
-    }
+    @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important;} }
+    .glass { background: rgba(15,23,42,.55); backdrop-filter: blur(10px); }
   </style>
 </head>
-
 <body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
-  <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-    <div class="flex gap-4">
-      <!-- Sidebar (desktop only; unchanged) -->
-      <aside class="hidden md:flex md:w-72 shrink-0">
-        <div class="w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-            <button onclick="renderSavedChats()"
-              class="text-xs text-slate-400 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded-md px-2 py-1">
-              Refresh
-            </button>
+
+  <!-- Header -->
+  <header class="px-4 sm:px-6 lg:px-8 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      <a href="/" class="inline-flex items-center gap-2">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
+        <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
+      </a>
+      <nav class="hidden sm:flex items-center gap-2">
+        <a href="/public/about.html" class="text-sm text-slate-300 hover:text-emerald-300">About</a>
+        <a href="/public/chat.html" class="text-sm text-slate-300 hover:text-emerald-300">Open Chat</a>
+      </nav>
+      <a href="/public/chat.html" class="sm:hidden inline-flex items-center rounded-full bg-emerald-500 px-4 h-10 text-white font-medium shadow ring-1 ring-emerald-400/40">Open Chat</a>
+    </div>
+  </header>
+
+  <!-- Notice: responsive design in progress -->
+  <div id="notice" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="glass mt-3 rounded-2xl border border-slate-800/70 p-3 sm:p-4 flex items-start gap-3">
+      <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+      </svg>
+      <div class="text-sm leading-6 text-slate-200">
+        <strong class="font-semibold">Heads up:</strong>
+        It works on phones and desktop, and we’re still optimizing the responsive layout.
+      </div>
+      <button id="noticeDismiss"
+              class="ml-auto inline-flex items-center justify-center rounded-full w-8 h-8 text-slate-300 hover:bg-slate-800/70 ring-1 ring-slate-700/60"
+              aria-label="Dismiss notice">✕</button>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-6 md:gap-10 items-center">
+      <div class="order-2 md:order-1">
+        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
+          Turn your <span class="text-emerald-400">ingredients</span> into dinner.
+        </h1>
+        <p class="mt-4 text-slate-300 text-lg leading-relaxed">
+          Paste your pantry list or ask a cooking question.
+          Yummy Tummy AI chats back with recipes, swaps, and step-by-step help.
+        </p>
+
+        <div class="mt-6 flex flex-col sm:flex-row gap-3">
+          <a id="cta" href="/chat.html"
+             class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 h-12 text-white font-semibold shadow-lg ring-1 ring-emerald-400/40 hover:bg-emerald-600">
+            Start chatting
+          </a>
+          <a href="#how" class="inline-flex items-center justify-center rounded-full px-5 h-12 ring-1 ring-slate-700 bg-slate-900/60 hover:bg-slate-800/60">
+            How it works
+          </a>
+        </div>
+
+        <div class="mt-4 text-sm text-emerald-300/90">
+          Private by default — your chats are stored locally on this device.
+        </div>
+      </div>
+
+      <!-- Glass mock “phone” preview -->
+      <div class="order-1 md:order-2">
+        <div class="mx-auto max-w-sm glass rounded-3xl border border-slate-800/70 shadow-2xl p-4">
+          <div class="h-8 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-center text-xs text-slate-300">
+            Yummy Tummy AI
           </div>
-          <ul id="savedChats" class="mt-3 space-y-2 text-sm"></ul>
-          <div class="flex-1"></div>
-          <a href="/about.html" class="block mt-4 text-sm text-emerald-400 hover:underline">About</a>
+
+          <!-- Chat preview: assistant LEFT, user RIGHT -->
+          <div class="mt-4 flex flex-col gap-3 text-[15px] leading-6">
+            <!-- USER (right) -->
+            <div class="self-end max-w-[85%] rounded-2xl bg-slate-800/60 border border-slate-700/60 p-3">
+              I’ve got spinach, feta, and eggs — ideas?
+            </div>
+            <!-- ASSISTANT (left) -->
+            <div class="self-start max-w-[85%] rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-3">
+              Try a <span class="text-emerald-300 font-medium">Spinach &amp; Feta Frittata</span>: whisk eggs, sauté spinach, fold in feta, bake 12–15 min. Want a 2-pan version?
+            </div>
+            <!-- USER (right) -->
+            <div class="self-end max-w-[85%] rounded-2xl bg-slate-800/60 border border-slate-700/60 p-3">
+              Yes, and add potatoes?
+            </div>
+          </div>
+
+          <div class="mt-4 h-12 rounded-2xl bg-slate-800/60 border border-slate-700/60 flex items-center px-3 text-slate-400">
+            Type a message…
+          </div>
         </div>
-      </aside>
-
-      <!-- Main column -->
-      <main class="flex-1">
-        <!-- CARD: grid rows (header / content). Mobile fills screen; desktop unchanged -->
-        <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden
-                    grid grid-rows-[auto,1fr] min-h-[calc(100svh-2rem)] md:min-h-0">
-          <!-- Header -->
-          <header
-            class="sticky md:static top-0 z-30 px-4 sm:px-8 py-3 md:pt-6 md:pb-4 border-b border-slate-800/60
-                   bg-slate-900/70 md:bg-transparent backdrop-blur supports-[backdrop-filter]:bg-slate-900/50 md:supports-[backdrop-filter]:bg-transparent">
-            <div class="flex items-center justify-between gap-2">
-              <h1 class="text-2xl sm:text-4xl md:text-4xl font-bold tracking-tight">
-                Yummy Tummy <span class="text-emerald-400">AI</span>
-              </h1>
-
-              <!-- Mobile hamburger (desktop hidden) -->
-              <button id="mobileMenuBtn" aria-controls="mobileSavedModal" aria-expanded="false"
-                class="md:hidden inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800/80
-                       px-0 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
-                aria-label="Show saved chats">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
-                </svg>
-              </button>
-            </div>
-          </header>
-
-          <!-- CONTENT ROW (fills remaining height) -->
-          <section class="relative flex flex-col min-h-0 md:h-[75vh]">
-            <!-- Local-only storage notice -->
-            <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
-                <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
-                </svg>
-                <div class="text-sm leading-6">
-                  <strong class="font-semibold">Privacy:</strong>
-                  Your chats are saved <span class="font-semibold">locally on this device only</span>.
-                  Clearing your browser data (or using a different device/browser) will remove them.
-                  <button id="privacyLearnMore" class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
-                </div>
-                <button id="privacyDismiss"
-                  class="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm ring-1 ring-inset ring-emerald-500 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
-                  aria-label="Dismiss privacy notice">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- Messages (NOTE: removed scroll-smooth to avoid fight with JS pinning) -->
-            <div id="chatbox"
-                 class="flex-1 min-h-0 overflow-y-auto px-3 md:px-5 lg:px-8 py-4 md:py-5 space-y-3 md:space-y-4">
-            </div>
-
-            <!-- Jump-to-latest (appears only when user scrolled up) -->
-            <button id="jumpLatest"
-              class="hidden md:hidden absolute right-4 bottom-24 rounded-full bg-slate-800/95 text-emerald-300
-                     ring-1 ring-slate-700 shadow px-3 py-1.5 text-sm">
-              Jump to latest ↓
-            </button>
-
-            <!-- Typing indicator -->
-            <div id="typing" class="hidden px-3 md:px-8">
-              <div class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-slate-300">
-                <span>Chef is typing</span>
-                <span class="inline-flex gap-1">
-                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-                </span>
-              </div>
-            </div>
-
-            <!-- Attachments preview tray -->
-            <div id="previewTray" class="px-3 md:px-8 hidden">
-              <div class="flex gap-2 flex-wrap py-2"></div>
-            </div>
-
-            <!-- SR live region -->
-            <div id="srLive" class="sr-only" aria-live="polite"></div>
-
-            <!-- Composer -->
-            <div class="composer-safe sticky bottom-0 px-3 md:px-8 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2 md:pt-3
-                        bg-slate-900/70 md:bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
-              <div class="flex flex-col md:flex-row md:items-end gap-2">
-                <label for="input" class="sr-only">Your message</label>
-                <textarea id="input" rows="1" enterkeyhint="send" inputmode="text" autocomplete="off" autocapitalize="sentences"
-                  class="w-full md:flex-1 rounded-xl md:rounded-2xl border border-slate-700/70 bg-slate-900/70 md:bg-slate-900/60
-                         px-3 md:px-4 py-3 text-[15px] md:text-[15px] text-slate-100 placeholder-slate-400
-                         shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30
-                         transition resize-none leading-6 md:leading-7 min-h-[52px] md:min-h-[48px] max-h-56"
-                  placeholder="Ask a recipe question or paste your ingredients..."></textarea>
-
-                <div class="flex items-center justify-end gap-2 shrink-0">
-                  <button id="saveBtn" onclick="saveChat()"
-                    class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
-                           ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
-                    title="Save chat" aria-label="Save chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3" />
-                    </svg>
-                  </button>
-
-                  <button id="newChatBtn"
-                    class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
-                           ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
-                           transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98]"
-                    title="New Chat" aria-label="New Chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-
-                  <button id="sendBtn" onclick="send()"
-                    class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 md:px-5 h-12 md:h-11
-                           text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99]
-                           transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Send" aria-label="Send message" disabled>
-                    <span class="hidden md:inline">Send</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </main>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Mobile Saved Chats Modal -->
-  <div class="fixed inset-0 z-40 hidden bg-black/70 sm:bg-black/60" id="mobileSavedModalBg"></div>
-  <div class="fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] sm:w-[82vw] max-w-xs overflow-y-auto
-              rounded-r-2xl border border-slate-800 bg-slate-900/95 sm:bg-slate-900/90 backdrop-blur-md p-5"
-       id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
-    <div class="mb-3 flex items-center justify-between">
-      <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-      <button class="rounded-full w-10 h-10 flex items-center justify-center text-slate-300 hover:bg-slate-800
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
-              aria-label="Close" id="mobileCloseBtn">✕</button>
+  <!-- How it works -->
+  <section id="how" class="px-4 sm:px-6 lg:px-8 mt-12">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-4">
+      <div class="glass rounded-2xl border border-slate-800/70 p-5">
+        <div class="text-sm text-slate-400">Step 1</div>
+        <h3 class="text-lg font-semibold mt-1">Tell it what you have</h3>
+        <p class="mt-2 text-slate-300">Type or paste your ingredients and any preferences.</p>
+      </div>
+      <div class="glass rounded-2xl border border-slate-800/70 p-5">
+        <div class="text-sm text-slate-400">Step 2</div>
+        <h3 class="text-lg font-semibold mt-1">Chat through options</h3>
+        <p class="mt-2 text-slate-300">Get substitutions, dietary tweaks, and timings as you cook.</p>
+      </div>
+      <div class="glass rounded-2xl border border-slate-800/70 p-5">
+        <div class="text-sm text-slate-400">Step 3</div>
+        <h3 class="text-lg font-semibold mt-1">Save your favourites</h3>
+        <p class="mt-2 text-slate-300">Keep go-to recipes locally. No logins, no tracking.</p>
+      </div>
     </div>
-    <ul id="mobileSavedChats" class="space-y-2 text-sm"></ul>
-    <hr class="my-4 border-slate-800">
-    <a href="/public/about.html" class="block text-sm text-emerald-400 hover:underline">About</a>
-  </div>
+  </section>
 
-  <!-- Your client app (unchanged) -->
-  <script type="module" src="/app.js"></script>
+  <!-- Feature grid -->
+  <section class="px-4 sm:px-6 lg:px-8 mt-12">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-4">
+      <div class="glass rounded-2xl border border-slate-800/70 p-5">
+        <h3 class="font-semibold">Responsive design (in progress)</h3>
+        <p class="mt-2 text-slate-300">
+          Works today on phones and desktop; we’re actively polishing the layout and interactions.
+        </p>
+      </div>
+      <div class="glass rounded-2xl border border-slate-800/70 p-5">
+        <h3 class="font-semibold">Privacy-friendly</h3>
+        <p class="mt-2 text-slate-300">Your chats stay on your device. Clear your browser to wipe them.</p>
+      </div>
+      <div class="glass rounded-2xl border border-slate-800/70 p-5">
+        <h3 class="font-semibold">Clear recipe formatting</h3>
+        <p class="mt-2 text-slate-300">
+          Messages support clean formatting — steps, lists, and links — so recipes stay easy to follow.
+        </p>
+      </div>
+    </div>
+  </section>
 
-  <!-- Stick-to-bottom like ChatGPT/FB Messenger -->
+  <!-- CTA strip -->
+  <section class="px-4 sm:px-6 lg:px-8 mt-12 mb-10">
+    <div class="max-w-7xl mx-auto glass rounded-2xl border border-slate-800/70 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <h3 class="text-xl font-semibold">Ready to cook smarter?</h3>
+        <p class="text-slate-300 mt-1">Open the chat and ask away.</p>
+      </div>
+      <a id="cta2" href="/chat.html"
+         class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 h-12 text-white font-semibold shadow-lg ring-1 ring-emerald-400/40 hover:bg-emerald-600">
+        Start chatting
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="px-4 sm:px-6 lg:px-8 pb-8">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400">
+      <div>© <span id="year"></span> Yummy Tummy AI</div>
+      <div class="flex gap-4">
+        <a href="/about.html" class="hover:text-emerald-300">About</a>
+        <a href="/chat.html" class="hover:text-emerald-300">Open Chat</a>
+      </div>
+    </div>
+  </footer>
+
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const chatbox = document.getElementById('chatbox');
-      const input   = document.getElementById('input');
-      const jumpBtn = document.getElementById('jumpLatest');
+    // current year + “Continue chat” if a draft exists
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const hasDraft = !!localStorage.getItem('yt_ai_draft');
+    if (hasDraft) {
+      const cta  = document.getElementById('cta');
+      const cta2 = document.getElementById('cta2');
+      if (cta)  cta.textContent  = 'Continue chat';
+      if (cta2) cta2.textContent = 'Continue chat';
+    }
 
-      // --- Stick logic
-      const THRESHOLD = 64;
-      let stickToLatest = true; // start pinned
-
-      const atBottom = () =>
-        (chatbox.scrollHeight - chatbox.scrollTop - chatbox.clientHeight) <= THRESHOLD;
-
-      function showJump(show) {
-        jumpBtn.classList.toggle('hidden', !show);
-      }
-
-      function scrollToLatest(immediate = true) {
-        // Disable smooth behavior to avoid fighting animations
-        const prev = chatbox.style.scrollBehavior;
-        chatbox.style.scrollBehavior = 'auto';
-        chatbox.scrollTop = chatbox.scrollHeight;
-        chatbox.style.scrollBehavior = prev || '';
-      }
-
-      function nudgeLatest(frames = 3, spreadMs = 120) {
-        // Pin across a few frames to beat IME/layout reflows
-        let i = 0;
-        const tick = () => {
-          scrollToLatest(true);
-          if (++i < frames) requestAnimationFrame(tick);
-          else setTimeout(() => scrollToLatest(true), spreadMs);
-        };
-        requestAnimationFrame(tick);
-      }
-
-      // Track manual scroll to toggle stick mode
-      let scrollTimeout = null;
-      chatbox.addEventListener('scroll', () => {
-        if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
-        scrollTimeout = requestAnimationFrame(() => {
-          stickToLatest = atBottom();
-          showJump(!stickToLatest);
-        });
-      }, { passive: true });
-
-      // Jump button
-      jumpBtn.addEventListener('click', () => {
-        stickToLatest = true;
-        nudgeLatest(4, 120);
-        showJump(false);
-      });
-
-      // Observe new message nodes (direct children) and stay pinned if we were pinned
-      const mo = new MutationObserver((muts) => {
-        const added = muts.some(m => m.addedNodes && m.addedNodes.length);
-        if (!added) return;
-        if (stickToLatest) nudgeLatest(2, 80);
-        else showJump(true);
-      });
-      mo.observe(chatbox, { childList: true });
-
-      // Images/markdown late layout
-      document.addEventListener('load', (e) => {
-        if (e.target && e.target.tagName === 'IMG' && e.target.closest('#chatbox')) {
-          if (stickToLatest) nudgeLatest(2, 80);
-        }
-      }, true);
-
-      // Keyboard (IME) show/hide and viewport shifts
-      if (window.visualViewport) {
-        const pin = () => { if (stickToLatest) nudgeLatest(2, 80); };
-        visualViewport.addEventListener('resize', pin);
-        visualViewport.addEventListener('scroll',  pin);
-      }
-
-      // Wrap send(): close keyboard and keep pinned like real chats
-      if (typeof window.send === 'function') {
-        const originalSend = window.send;
-        window.send = async function patchedSend() {
-          const msg = (input.value || '').trim();
-          if (!msg) return;
-
-          stickToLatest = true;
-          try { input.blur(); } catch {}
-          nudgeLatest(4, 120); // make sure your outgoing message area is visible
-
-          try {
-            await originalSend();
-          } finally {
-            // In case app.js refocuses input, re-blur and pin a beat later
-            setTimeout(() => { try { input.blur(); } catch {} }, 10);
-            setTimeout(() => { try { input.blur(); } catch {} }, 150);
-            nudgeLatest(6, 220); // assistant reply lands -> stay pinned
-          }
-        };
-      }
-
-      // Also handle Return (Enter) without Shift
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          stickToLatest = true;
-          try { input.blur(); } catch {}
-          nudgeLatest(4, 120);
-        }
-      });
+    // Dismissible responsive notice (persists)
+    const noticeKey = 'yt_ai_notice_dismissed_v1';
+    const noticeEl  = document.getElementById('notice');
+    const btn       = document.getElementById('noticeDismiss');
+    if (localStorage.getItem(noticeKey) === '1') {
+      noticeEl.style.display = 'none';
+    }
+    btn?.addEventListener('click', () => {
+      localStorage.setItem(noticeKey, '1');
+      noticeEl.style.display = 'none';
     });
-  </script>
 
-  <!-- Drawer wiring (no styling changes) -->
-  <script>
-    // Ensures the drawer panel becomes visible (even if another script only shows the overlay)
-    window.addEventListener('DOMContentLoaded', () => {
-      const btn    = document.getElementById('mobileMenuBtn');
-      const bg     = document.getElementById('mobileSavedModalBg');
-      const panel  = document.getElementById('mobileSavedModal');
-      const close  = document.getElementById('mobileCloseBtn');
-
-      if (!btn || !bg || !panel) return;
-
-      function openDrawer() {
-        try {
-          bg.classList.remove('hidden');
-          panel.classList.remove('hidden');
-          panel.style.display = 'block'; // force visible if any CSS/display race
-          panel.setAttribute('aria-hidden', 'false');
-          panel.setAttribute('tabindex', '-1');
-          document.body.classList.add('overflow-hidden');
-          btn.setAttribute('aria-expanded', 'true');
-
-          // Mirror saved chats if present
-          try {
-            if (typeof renderSavedChats === 'function') renderSavedChats();
-            const src = document.getElementById('savedChats');
-            const dst = document.getElementById('mobileSavedChats');
-            if (src && dst) dst.innerHTML = src.innerHTML;
-          } catch {}
-
-          // Focus panel to ensure iOS paints it reliably
-          requestAnimationFrame(() => {
-            try { panel.focus({ preventScroll: true }); } catch {}
-          });
-        } catch (err) {
-          // If anything fails, hide overlay so you don't get "blur only"
-          bg.classList.add('hidden');
-          console.warn('Drawer open failed:', err);
+    // Smooth scroll for “How it works”
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const id = a.getAttribute('href');
+        if (id.length > 1) {
+          const el = document.querySelector(id);
+          if (el) {
+            e.preventDefault();
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
-      }
-
-      function closeDrawer() {
-        panel.classList.add('hidden');
-        panel.style.removeProperty('display');
-        panel.setAttribute('aria-hidden', 'true');
-        bg.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-        btn.setAttribute('aria-expanded', 'false');
-      }
-
-      btn.addEventListener('click', openDrawer);
-      close?.addEventListener('click', closeDrawer);
-      bg.addEventListener('click', closeDrawer);
-      window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+      });
     });
   </script>
 </body>

@@ -2,7 +2,6 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <!-- Mobile: better IME behavior + safe areas -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Yummy Tummy AI</title>
 
@@ -38,7 +37,6 @@
   </style>
 </head>
 
-<!-- Use small viewport height to avoid iOS toolbar jumps -->
 <body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
   <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
     <div class="flex gap-4">
@@ -86,7 +84,7 @@
           </header>
 
           <!-- CONTENT ROW (fills remaining height) -->
-          <section class="flex flex-col min-h-0 md:h-[75vh]">
+          <section class="relative flex flex-col min-h-0 md:h-[75vh]">
             <!-- Local-only storage notice -->
             <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
@@ -109,10 +107,17 @@
               </div>
             </div>
 
-            <!-- Messages -->
+            <!-- Messages (NOTE: removed scroll-smooth to avoid fight with JS pinning) -->
             <div id="chatbox"
-                 class="flex-1 min-h-0 overflow-y-auto px-3 md:px-5 lg:px-8 py-4 md:py-5 space-y-3 md:space-y-4 scroll-smooth">
+                 class="flex-1 min-h-0 overflow-y-auto px-3 md:px-5 lg:px-8 py-4 md:py-5 space-y-3 md:space-y-4">
             </div>
+
+            <!-- Jump-to-latest (appears only when user scrolled up) -->
+            <button id="jumpLatest"
+              class="hidden md:hidden absolute right-4 bottom-24 rounded-full bg-slate-800/95 text-emerald-300
+                     ring-1 ring-slate-700 shadow px-3 py-1.5 text-sm">
+              Jump to latest ↓
+            </button>
 
             <!-- Typing indicator -->
             <div id="typing" class="hidden px-3 md:px-8">
@@ -207,75 +212,111 @@
   <!-- Your client app (unchanged) -->
   <script type="module" src="/app.js"></script>
 
-  <!-- Stick-to-bottom & close-keyboard patch (mobile only behavior; desktop unaffected) -->
+  <!-- Stick-to-bottom like ChatGPT/FB Messenger -->
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       const chatbox = document.getElementById('chatbox');
       const input   = document.getElementById('input');
+      const jumpBtn = document.getElementById('jumpLatest');
 
-      const BOTTOM_THRESHOLD = 64;
-      const now = () => performance.now();
-      let forceStickUntil = 0;
+      // --- Stick logic
+      const THRESHOLD = 64;
+      let stickToLatest = true; // start pinned
 
-      const isAtBottom = () =>
-        (chatbox.scrollHeight - chatbox.scrollTop - chatbox.clientHeight) <= BOTTOM_THRESHOLD;
+      const atBottom = () =>
+        (chatbox.scrollHeight - chatbox.scrollTop - chatbox.clientHeight) <= THRESHOLD;
 
-      function forceToBottom(frames = 8, spreadMs = 200) {
-        forceStickUntil = now() + spreadMs + 200;
+      function showJump(show) {
+        jumpBtn.classList.toggle('hidden', !show);
+      }
+
+      function scrollToLatest(immediate = true) {
+        // Disable smooth behavior to avoid fighting animations
         const prev = chatbox.style.scrollBehavior;
         chatbox.style.scrollBehavior = 'auto';
+        chatbox.scrollTop = chatbox.scrollHeight;
+        chatbox.style.scrollBehavior = prev || '';
+      }
+
+      function nudgeLatest(frames = 3, spreadMs = 120) {
+        // Pin across a few frames to beat IME/layout reflows
         let i = 0;
         const tick = () => {
-          chatbox.scrollTop = chatbox.scrollHeight;
+          scrollToLatest(true);
           if (++i < frames) requestAnimationFrame(tick);
-          else {
-            chatbox.style.scrollBehavior = prev || '';
-            setTimeout(() => {
-              if (now() < forceStickUntil) chatbox.scrollTop = chatbox.scrollHeight;
-            }, spreadMs);
-          }
+          else setTimeout(() => scrollToLatest(true), spreadMs);
         };
         requestAnimationFrame(tick);
       }
 
-      // Observe new messages; pin if needed
-      const mo = new MutationObserver(() => {
-        if (isAtBottom() || now() < forceStickUntil) forceToBottom(2, 80);
-      });
-      mo.observe(chatbox, { childList: true, subtree: true });
+      // Track manual scroll to toggle stick mode
+      let scrollTimeout = null;
+      chatbox.addEventListener('scroll', () => {
+        if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
+        scrollTimeout = requestAnimationFrame(() => {
+          stickToLatest = atBottom();
+          showJump(!stickToLatest);
+        });
+      }, { passive: true });
 
-      // Re-pin when images inside messages load
+      // Jump button
+      jumpBtn.addEventListener('click', () => {
+        stickToLatest = true;
+        nudgeLatest(4, 120);
+        showJump(false);
+      });
+
+      // Observe new message nodes (direct children) and stay pinned if we were pinned
+      const mo = new MutationObserver((muts) => {
+        const added = muts.some(m => m.addedNodes && m.addedNodes.length);
+        if (!added) return;
+        if (stickToLatest) nudgeLatest(2, 80);
+        else showJump(true);
+      });
+      mo.observe(chatbox, { childList: true });
+
+      // Images/markdown late layout
       document.addEventListener('load', (e) => {
         if (e.target && e.target.tagName === 'IMG' && e.target.closest('#chatbox')) {
-          forceToBottom(2, 80);
+          if (stickToLatest) nudgeLatest(2, 80);
         }
       }, true);
 
-      // Keep pinned through viewport shifts (IME show/hide)
+      // Keyboard (IME) show/hide and viewport shifts
       if (window.visualViewport) {
-        const pin = () => { if (isAtBottom() || now() < forceStickUntil) forceToBottom(2, 80); };
+        const pin = () => { if (stickToLatest) nudgeLatest(2, 80); };
         visualViewport.addEventListener('resize', pin);
         visualViewport.addEventListener('scroll',  pin);
       }
 
-      // Wrap send(): blur keyboard + pin before send, and after reply arrives
+      // Wrap send(): close keyboard and keep pinned like real chats
       if (typeof window.send === 'function') {
         const originalSend = window.send;
         window.send = async function patchedSend() {
           const msg = (input.value || '').trim();
           if (!msg) return;
+
+          stickToLatest = true;
           try { input.blur(); } catch {}
-          forceToBottom(4, 120);      // ensure outgoing message area is visible
-          try { await originalSend(); }
-          finally { forceToBottom(6, 220); } // pin again when assistant reply lands
+          nudgeLatest(4, 120); // make sure your outgoing message area is visible
+
+          try {
+            await originalSend();
+          } finally {
+            // In case app.js refocuses input, re-blur and pin a beat later
+            setTimeout(() => { try { input.blur(); } catch {} }, 10);
+            setTimeout(() => { try { input.blur(); } catch {} }, 150);
+            nudgeLatest(6, 220); // assistant reply lands -> stay pinned
+          }
         };
       }
 
-      // Also pin/blur on Return (Enter) without Shift
+      // Also handle Return (Enter) without Shift
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
+          stickToLatest = true;
           try { input.blur(); } catch {}
-          forceToBottom(4, 120);
+          nudgeLatest(4, 120);
         }
       });
     });

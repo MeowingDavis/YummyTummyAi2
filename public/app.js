@@ -18,7 +18,7 @@ let chatHistory = [];
 let pendingFiles = [];
 const DRAFT_KEY = "yt_ai_draft";
 
-// ---- Suggestion pool (randomized each refresh/new chat) ----
+// ---- Suggestion pool ----
 const SUGGESTIONS = [
   "What can I cook with eggs, spinach, and feta?",
   "What are some simple meals I can cook on a budget",
@@ -54,7 +54,7 @@ function sample(array, k = 4) {
 // ---------- Saved Chats ----------
 function getSavedChats() { return JSON.parse(localStorage.getItem("savedChats") || "[]"); }
 function saveChats(arr) { localStorage.setItem("savedChats", JSON.stringify(arr)); }
-function saveChatCapped(obj, cap = 30) {
+function saveChatCapped(obj, cap = 30){
   const saved = getSavedChats();
   saved.push(obj);
   while (saved.length > cap) saved.shift();
@@ -124,13 +124,13 @@ function exportChat(idx) {
 }
 window.exportChat = exportChat;
 
-// ---------- Markdown (sanitized) ----------
+// ---------- Markdown ----------
 function renderMarkdown(md) {
   const html = marked.parse(md || "");
   return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
 }
 
-// ---------- Code blocks: highlight + copy ----------
+// ---------- Code blocks ----------
 function enhanceCodeBlocks(scope = document) {
   scope.querySelectorAll('pre > code').forEach(code => {
     try { hljs.highlightElement(code); } catch {}
@@ -153,7 +153,7 @@ function enhanceCodeBlocks(scope = document) {
   });
 }
 
-// ---------- Smart scroll + virtualize ----------
+// ---------- Smart scroll ----------
 function isNearBottom(el){ return el.scrollHeight - el.scrollTop - el.clientHeight < 48; }
 function trimChatDom(maxNodes = 200){
   const nodes = [...chatbox.children].filter(n => n.id !== 'typing' && n.id !== 'previewTray');
@@ -170,7 +170,6 @@ function safeAppend(node){
 }
 function announce(text){ document.getElementById("srLive").textContent = text; }
 
-// NOTE: Regenerate removed for simplicity
 function makeActions({ onCopy, onDelete }){
   const bar = document.createElement('div');
   bar.className = "msg-actions opacity-0 transition-opacity absolute top-2 right-2 inline-flex gap-1";
@@ -266,7 +265,7 @@ async function postJSON(url, body, tries=3){
   }
 }
 
-// ---------- Attachments (paste/drag-drop images) ----------
+// ---------- Attachments ----------
 function showTray(){ tray.classList.remove('hidden'); }
 function hideTray(){ tray.classList.add('hidden'); }
 function renderTray(){
@@ -303,7 +302,7 @@ async function uploadAll(){
   return urls;
 }
 
-// ---------- Empty state (randomized suggestions) ----------
+// ---------- Empty state ----------
 function renderEmptyState(){
   if (chatbox.children.length) return;
   const picks = sample(SUGGESTIONS, 4);
@@ -410,28 +409,30 @@ function openMobileSavedChats(){
   mobileBg?.classList.remove("hidden");
   mobileModal?.classList.remove("hidden");
   mobileBtn?.setAttribute("aria-expanded", "true");
-  document.body.style.overflow = 'hidden'; // lock scroll
+  document.body.style.overflow = 'hidden';
 }
 function hideMobileSavedChats(){
   mobileBg?.classList.add("hidden");
   mobileModal?.classList.add("hidden");
   mobileBtn?.setAttribute("aria-expanded", "false");
-  document.body.style.overflow = ''; // unlock scroll
+  document.body.style.overflow = '';
 }
 function toggleMobileSavedChats(){
   const isOpen = !mobileBg?.classList.contains("hidden");
   if (isOpen) hideMobileSavedChats(); else openMobileSavedChats();
 }
 
-// Expose only the hide function if external code wants it
-window.hideMobileSavedChats = hideMobileSavedChats;
+// Expose in case any inline HTML or other scripts call them
+window.openMobileSavedChats   = openMobileSavedChats;
+window.hideMobileSavedChats   = hideMobileSavedChats;
+window.toggleMobileSavedChats = toggleMobileSavedChats;
 
-// ---- Bindings (handle both touch & click without double-fire) ----
+// ---- Bindings (touch + click, de-duped) ----
 let lastToggleAt = 0;
 function safeToggle(ev){
-  if (ev.type === 'touchend') ev.preventDefault(); // prevent ghost click on mobile
+  if (ev.type === 'touchend') ev.preventDefault(); // prevent ghost click on mobile Safari
   const now = performance.now();
-  if (now - lastToggleAt < 250) return; // de-dupe
+  if (now - lastToggleAt < 250) return; // de-dupe touchend->click
   lastToggleAt = now;
   toggleMobileSavedChats();
 }
@@ -439,14 +440,15 @@ function safeToggle(ev){
 mobileBtn?.addEventListener('touchend', safeToggle, { passive: false });
 mobileBtn?.addEventListener('click', safeToggle, { passive: true });
 
-// Close interactions
+// Close on backdrop & ✕
 function bindClose(el){
   el?.addEventListener('touchend', (e)=>{ e.preventDefault(); hideMobileSavedChats(); }, { passive: false });
   el?.addEventListener('click', hideMobileSavedChats, { passive: true });
 }
-bindClose(mobileBg);    // tap backdrop
-bindClose(mobileClose); // tap ✕
+bindClose(mobileBg);
+bindClose(mobileClose);
 
+// Esc key closes
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !mobileBg?.classList.contains('hidden')) hideMobileSavedChats();
 });
@@ -457,7 +459,7 @@ mobileModal?.addEventListener('click', (e) => {
   if (t instanceof HTMLAnchorElement) hideMobileSavedChats();
 });
 
-// ---------- Init & Privacy (safe) ----------
+// ---------- Init & Privacy ----------
 (function boot() {
   function initCore() {
     try {

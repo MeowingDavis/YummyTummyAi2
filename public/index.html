@@ -29,16 +29,21 @@
     <div class="flex gap-4">
       <!-- Sidebar (desktop) -->
       <aside class="hidden md:flex md:w-72 shrink-0">
-        <div class="w-full rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
+        <div class="w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
             <button onclick="renderSavedChats()" class="text-xs text-slate-400 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded-md px-2 py-1">Refresh</button>
           </div>
           <ul id="savedChats" class="mt-3 space-y-2 text-sm"></ul>
-          <a href="/about.html" class="hover:underline text-emerald-400">About</a>
 
+          <!-- Spacer pushes About link to the bottom -->
+          <div class="flex-1"></div>
+
+          <!-- Bottom section: About -->
+          <a href="/about.html" class="block mt-4 text-sm text-emerald-400 hover:underline">
+            About
+          </a>
         </div>
-        
       </aside>
 
       <!-- Main column -->
@@ -50,20 +55,21 @@
               <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
                 Yummy Tummy <span class="text-emerald-400">AI</span>
               </h1>
-              <div class="flex items-center gap-2">
-                <button id="mobileMenuBtn"
-                        onclick="toggleMobileSavedChats()"
-                        class="md:hidden inline-flex h-10 items-center justify-center rounded-xl bg-slate-800/80 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
-                        aria-label="Show saved chats">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
-                  </svg>
-                </button>
-              </div>
+
+              <!-- Mobile Saved Chats toggle (no inline onclick; JS binds the handler) -->
+              <button id="mobileMenuBtn"
+                      aria-controls="mobileSavedModal"
+                      aria-expanded="false"
+                      class="md:hidden inline-flex h-10 items-center justify-center rounded-xl bg-slate-800/80 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+                      aria-label="Show saved chats">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                </svg>
+              </button>
             </div>
           </header>
 
-          <!-- Local-only storage notice -->
+          <!-- Local-only storage notice (one-time, dismissible) -->
           <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
               <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -87,7 +93,10 @@
 
           <!-- Chat body -->
           <section class="flex flex-col h-[72vh] sm:h-[75vh]">
+            <!-- Messages -->
             <div id="chatbox" class="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth"></div>
+
+            <!-- Typing indicator -->
             <div id="typing" class="hidden px-5 sm:px-8">
               <div class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-slate-300">
                 <span>Chef is typing</span>
@@ -99,19 +108,25 @@
               </div>
             </div>
 
+            <!-- Attachments preview tray -->
             <div id="previewTray" class="px-5 sm:px-8 hidden"><div class="flex gap-2 flex-wrap py-2"></div></div>
+
+            <!-- SR live region -->
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
             <!-- Composer -->
             <div class="composer-safe sticky bottom-0 px-5 sm:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
               <div class="flex flex-col sm:flex-row sm:items-end gap-2">
+                <!-- Textarea -->
                 <label for="input" class="sr-only">Your message</label>
                 <textarea id="input" rows="1"
                   class="w-full sm:flex-1 rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur-xl px-4 py-3 text-base sm:text-[15px] text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition resize-none leading-6 sm:leading-7 min-h-[56px] sm:min-h-[48px] max-h-56"
                   placeholder="Ask a recipe question or paste your ingredients..." autocomplete="off"></textarea>
 
+                <!-- Buttons -->
                 <div class="flex items-center justify-end gap-2 shrink-0">
-                  <button id="saveBtn" onclick="saveChat()"
+                  <button id="saveBtn"
+                    onclick="saveChat()"
                     class="h-11 w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
                     title="Save chat" aria-label="Save chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,7 +143,8 @@
                     </svg>
                   </button>
 
-                  <button id="sendBtn" onclick="send()"
+                  <button id="sendBtn"
+                    onclick="send()"
                     class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 sm:px-5 h-11 text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Send" aria-label="Send message" disabled>
                     <span class="hidden sm:inline">Send</span>
@@ -147,12 +163,16 @@
 
   <!-- Mobile Saved Chats Modal -->
   <div class="fixed inset-0 z-40 hidden bg-black/60" id="mobileSavedModalBg"></div>
-  <div class="fixed left-0 top-0 z-50 hidden h-full w-[82vw] max-w-xs overflow-y-auto rounded-r-2xl border border-slate-800 bg-slate-900/90 backdrop-blur-md p-6" id="mobileSavedModal">
+  <div class="fixed left-0 top-0 z-50 hidden h-full w-[82vw] max-w-xs overflow-y-auto rounded-r-2xl border border-slate-800 bg-slate-900/90 backdrop-blur-md p-6" id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
     <div class="mb-4 flex items-center justify-between">
-      <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-      <button onclick="hideMobileSavedChats()" class="rounded-md px-2 py-1 text-xl leading-none text-slate-300 hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50" aria-label="Close">&times;</button>
+      <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
+      <button class="rounded-md px-2 py-1 text-xl leading-none text-slate-300 hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50" aria-label="Close" id="mobileCloseBtn">&times;</button>
     </div>
     <ul id="mobileSavedChats" class="space-y-2 text-sm"></ul>
+
+    <!-- Divider + About link in mobile drawer -->
+    <hr class="my-4 border-slate-800">
+    <a href="/about.html" class="block text-sm text-emerald-400 hover:underline">About</a>
   </div>
 
   <!-- Your client app -->

@@ -2,167 +2,199 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Yummy Tummy AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <title>About — Yummy Tummy AI</title>
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Sanitizer + Markdown -->
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-  <!-- Syntax highlight -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
-
   <style>
-    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
-    .msg:hover .msg-actions { opacity: 1; }
-    @media (hover: none) { .msg-actions { opacity: 1; } }
-    @supports(padding: max(0px)) { .composer-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); } }
+    @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important;} }
+    .glass { background: rgba(15,23,42,.55); backdrop-filter: blur(10px); }
   </style>
 </head>
+<body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
 
-<body class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-    <div class="flex gap-4">
-      <!-- Sidebar (desktop) -->
-      <aside class="hidden md:flex md:w-72 shrink-0">
-        <div class="w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-            <button onclick="renderSavedChats()" class="text-xs text-slate-400 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded-md px-2 py-1">Refresh</button>
-          </div>
-          <ul id="savedChats" class="mt-3 space-y-2 text-sm"></ul>
-
-          <div class="flex-1"></div>
-
-          <a href="/about.html" class="block mt-4 text-sm text-emerald-400 hover:underline">About</a>
-        </div>
-      </aside>
-
-      <!-- Main column -->
-      <main class="flex-1">
-        <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden">
-          <!-- Header -->
-          <header class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-800/60">
-            <div class="flex items-center justify-between gap-2">
-              <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
-                Yummy Tummy <span class="text-emerald-400">AI</span>
-              </h1>
-
-              <!-- Mobile Saved Chats toggle (no inline onclick now) -->
-              <button id="mobileMenuBtn"
-                      aria-controls="mobileSavedModal" aria-expanded="false"
-                      class="md:hidden inline-flex h-10 items-center justify-center rounded-xl bg-slate-800/80 px-3 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
-                      aria-label="Show saved chats">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
-                </svg>
-              </button>
-            </div>
-          </header>
-
-          <!-- Local-only storage notice (one-time, dismissible) -->
-          <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
-              <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
-              </svg>
-              <div class="text-sm leading-6">
-                <strong class="font-semibold">Privacy:</strong>
-                Your chats are saved <span class="font-semibold">locally on this device only</span>.
-                Clearing your browser data (or using a different device/browser) will remove them.
-                <button id="privacyLearnMore" class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
-              </div>
-              <button id="privacyDismiss"
-                class="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm ring-1 ring-inset ring-emerald-500 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
-                aria-label="Dismiss privacy notice">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Chat body -->
-          <section class="flex flex-col h-[72vh] sm:h-[75vh]">
-            <div id="chatbox" class="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-4 scroll-smooth"></div>
-
-            <div id="typing" class="hidden px-5 sm:px-8">
-              <div class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-slate-300">
-                <span>Chef is typing</span>
-                <span class="inline-flex gap-1">
-                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-                </span>
-              </div>
-            </div>
-
-            <div id="previewTray" class="px-5 sm:px-8 hidden"><div class="flex gap-2 flex-wrap py-2"></div></div>
-            <div id="srLive" class="sr-only" aria-live="polite"></div>
-
-            <!-- Composer -->
-            <div class="composer-safe sticky bottom-0 px-5 sm:px-8 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
-              <div class="flex flex-col sm:flex-row sm:items-end gap-2">
-                <label for="input" class="sr-only">Your message</label>
-                <textarea id="input" rows="1"
-                  class="w-full sm:flex-1 rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur-xl px-4 py-3 text-base sm:text-[15px] text-slate-100 placeholder-slate-400 shadow-inner outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition resize-none leading-6 sm:leading-7 min-h-[56px] sm:min-h-[48px] max-h-56"
-                  placeholder="Ask a recipe question or paste your ingredients..." autocomplete="off"></textarea>
-
-                <div class="flex items-center justify-end gap-2 shrink-0">
-                  <button id="saveBtn" onclick="saveChat()"
-                    class="h-11 w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
-                    title="Save chat" aria-label="Save chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3"/>
-                    </svg>
-                  </button>
-
-                  <button id="newChatBtn"
-                    class="h-11 w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70 ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98]"
-                    title="New Chat" aria-label="New Chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-
-                  <button id="sendBtn" onclick="send()"
-                    class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 sm:px-5 h-11 text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Send" aria-label="Send message" disabled>
-                    <span class="hidden sm:inline">Send</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </main>
+  <!-- Header -->
+  <header class="px-4 sm:px-6 lg:px-8 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      <a href="/" class="inline-flex items-center gap-2">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
+        <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
+      </a>
+      <nav class="hidden sm:flex items-center gap-2">
+        <a href="/chat.html" class="text-sm text-slate-300 hover:text-emerald-300">Open Chat</a>
+        <a href="/" class="text-sm text-slate-300 hover:text-emerald-300">Home</a>
+      </nav>
+      <a href="/chat.html" class="sm:hidden inline-flex items-center rounded-full bg-emerald-500 px-4 h-10 text-white font-medium shadow ring-1 ring-emerald-400/40">Open Chat</a>
     </div>
-  </div>
+  </header>
 
-  <!-- Mobile Saved Chats Modal -->
-  <div class="fixed inset-0 z-40 hidden bg-black/60" id="mobileSavedModalBg"></div>
-  <div class="fixed left-0 top-0 z-50 hidden h-full w-[82vw] max-w-xs overflow-y-auto rounded-r-2xl border border-slate-800 bg-slate-900/90 backdrop-blur-md p-6"
-       id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
-    <div class="mb-4 flex items-center justify-between">
-      <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-      <button id="mobileCloseBtn"
-        class="rounded-md px-2 py-1 text-xl leading-none text-slate-300 hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
-        aria-label="Close">&times;</button>
+  <!-- Page heading -->
+  <section class="px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight">About</h1>
+      <p class="mt-3 text-slate-300 text-lg leading-relaxed">
+        Yummy Tummy AI helps you turn the ingredients you have into dinner ideas — via a simple, private chat.
+      </p>
     </div>
-    <ul id="mobileSavedChats" class="space-y-2 text-sm"></ul>
-    <hr class="my-4 border-slate-800">
-    <a href="/about.html" class="block text-sm text-emerald-400 hover:underline">About</a>
-  </div>
+  </section>
 
-  <!-- Your client app -->
-  <script type="module" src="/app.js"></script>
+  <!-- Notice: responsive in progress -->
+  <section class="px-4 sm:px-6 lg:px-8 mt-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="glass rounded-2xl border border-slate-800/70 p-3 sm:p-4 flex items-start gap-3">
+        <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+        </svg>
+        <div class="text-sm leading-6 text-slate-200">
+          <strong class="font-semibold">Responsive design:</strong>
+          It works on phones and desktop today; we’re still polishing layout and interactions.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <main class="px-4 sm:px-6 lg:px-8 mt-8 mb-14">
+    <div class="max-w-4xl mx-auto grid gap-6">
+
+      <!-- What it is -->
+      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+        <h2 class="text-xl font-semibold">What is it?</h2>
+        <p class="mt-2 text-slate-300">
+          A lightweight web chat that suggests recipes, ingredient swaps, and step-by-step guidance based on what you type.
+          No accounts. No tracking pixels. Just a simple chat.
+        </p>
+      </section>
+
+      <!-- How it works -->
+      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+        <h2 class="text-xl font-semibold">How it works</h2>
+        <ul class="mt-3 space-y-2 text-slate-300 list-disc list-inside">
+          <li>Type or paste what you’ve got and what you feel like cooking.</li>
+          <li>Your message is sent securely to an AI service and the reply is streamed back to the site.</li>
+          <li>Saved chats live only in your browser; there’s no server-side database for your history.</li>
+        </ul>
+      </section>
+
+      <!-- Privacy -->
+      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+        <h2 class="text-xl font-semibold">Privacy</h2>
+        <div class="mt-3 grid sm:grid-cols-2 gap-4">
+          <div>
+            <h3 class="font-medium">Local storage</h3>
+            <p class="mt-1 text-slate-300">
+              Chats you save are stored in <span class="font-mono text-slate-200">localStorage</span> on this device (e.g., key
+              <span class="font-mono text-emerald-300">yt_ai_draft</span> for drafts). Clearing your browser data removes them.
+            </p>
+          </div>
+          <div>
+            <h3 class="font-medium">What’s sent</h3>
+            <p class="mt-1 text-slate-300">
+              When you press <em>Send</em>, your message is processed by an AI service over HTTPS. We don’t store your chats on a server; they’re kept only long enough to generate a response and show it to you.
+            </p>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-400">
+          Tip: avoid sharing sensitive personal or payment information in any AI chat.
+        </p>
+      </section>
+
+      <!-- Current limitations -->
+      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+        <h2 class="text-xl font-semibold">Current limitations</h2>
+        <ul class="mt-3 space-y-2 text-slate-300 list-disc list-inside">
+          <li>No photo/attachment input right now (text only).</li>
+          <li>Responsive design is being refined; behavior may vary by device/browser.</li>
+          <li>Suggestions are informational — always check allergies and doneness to your preference.</li>
+        </ul>
+      </section>
+
+      <!-- FAQ -->
+      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+        <h2 class="text-xl font-semibold">FAQ</h2>
+        <div class="mt-4 space-y-4">
+          <details class="group">
+            <summary class="cursor-pointer select-none flex items-center justify-between">
+              <span>Where are my chats stored?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
+            </summary>
+            <p class="mt-2 text-slate-300">
+              In your browser’s local storage on this device. Clear your browser data to remove them.
+            </p>
+          </details>
+          <details class="group">
+            <summary class="cursor-pointer select-none flex items-center justify-between">
+              <span>Does it support photos?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
+            </summary>
+            <p class="mt-2 text-slate-300">Not currently. The interface is text-only for now.</p>
+          </details>
+          <details class="group">
+            <summary class="cursor-pointer select-none flex items-center justify-between">
+              <span>Is it free?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
+            </summary>
+            <p class="mt-2 text-slate-300">
+              The site itself doesn’t charge. If a third-party AI service is used, usage may incur costs under that provider.
+            </p>
+          </details>
+          <details class="group">
+            <summary class="cursor-pointer select-none flex items-center justify-between">
+              <span>Why are assistant messages on the left?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
+            </summary>
+            <p class="mt-2 text-slate-300">
+              To match common messenger patterns: assistant (left), you (right). The landing page preview mirrors the chat.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <!-- Roadmap -->
+      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+        <h2 class="text-xl font-semibold">Roadmap</h2>
+        <ul class="mt-3 space-y-2 text-slate-300 list-disc list-inside">
+          <li>Polish responsive layout & mobile interactions.</li>
+          <li>Better saved-chat management and export.</li>
+          <li>Optional offline/PWA support.</li>
+        </ul>
+        <p class="mt-3 text-sm text-slate-400">Subject to change based on feedback.</p>
+      </section>
+
+      <!-- CTA -->
+      <section class="glass rounded-2xl border border-slate-800/70 p-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div>
+          <h3 class="text-lg font-semibold">Ready to try it?</h3>
+          <p class="text-slate-300">Open the chat and ask away.</p>
+        </div>
+        <div class="flex gap-2">
+          <a href="/chat.html" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 h-11 text-white font-semibold shadow-lg ring-1 ring-emerald-400/40 hover:bg-emerald-600">
+            Open Chat
+          </a>
+          <a href="/" class="inline-flex items-center justify-center rounded-full px-5 h-11 ring-1 ring-slate-700 bg-slate-900/60 hover:bg-slate-800/60">
+            Home
+          </a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="px-4 sm:px-6 lg:px-8 pb-8">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400">
+      <div>© <span id="year"></span> Yummy Tummy AI</div>
+      <div class="flex gap-4">
+        <a href="/" class="hover:text-emerald-300">Home</a>
+        <a href="/chat.html" class="hover:text-emerald-300">Open Chat</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>

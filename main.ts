@@ -81,7 +81,10 @@ async function readJson<T = any>(req: Request, limit = 32 * 1024): Promise<T> {
   }
 }
 
-async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ?? "llama3-8b-8192") {
+async function groqChat(
+  messages: Msg[],
+  model = Deno.env.get("MODEL") ?? "llama-3.1-8b-instant", // ← updated default
+) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {

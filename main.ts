@@ -47,7 +47,10 @@ SCOPE:
   Then give 1 short example prompt relevant to cooking.
 
 TASK:
-- Help users make meals from the exact ingredients they provide. Do NOT add ingredients unless the user requests a named recipe.
+- Support two paths:
+  1) Ingredient Mode: user lists specific ingredients. Help them make meals using ONLY those items plus reasonable basics (oil, salt, pepper, water) unless they ask for a named recipe or allow extras.
+  2) Idea Mode: user asks open-ended questions like "What should I cook for dinner?" Suggest a few dish ideas with short steps. You may introduce ingredients as part of those ideas.
+
 - If the user asks for a specific dish, you may output a full recipe.
 
 STYLE:
@@ -75,12 +78,12 @@ const FOOD_ALLOWLIST = [
   "cook","cooking","recipe","recipes","ingredient","ingredients","meal","meals","dish","dishes",
   "bake","baking","roast","roasting","grill","grilling","fry","frying","boil","simmer","saute","steam",
   "soup","salad","sauce","stir-fry","marinade","marinate","season","spice","spices","herb","herbs",
-  "breakfast","lunch","dinner","dessert","snack","drink","beverage",
+  "breakfast","lunch","dinner","dessert","snack","drink","beverage","ideas","what should i cook",
   // dietary
-  "vegan","vegetarian","gluten","dairy-free","nut-free","halal","kosher","low-carb","keto",
+  "vegan","vegetarian","gluten","dairy-free","nut-free","halal","kosher","low-carb","keto","pescatarian",
   // pantry/common
   "egg","eggs","flour","sugar","salt","pepper","oil","butter","milk","cream","cheese",
-  "chicken","beef","pork","fish","tofu","tempeh","beans","rice","pasta",
+  "chicken","beef","pork","fish","tofu","tempeh","beans","rice","pasta","noodles","lentils","chickpeas",
   // coffee/tea (since you used cold press)
   "coffee","cold brew","cold press","espresso","latte","tea","matcha"
 ];
@@ -92,12 +95,10 @@ const TECH_BLOCKLIST = [
 
 function isCookingQuery(s: string): boolean {
   const t = s.toLowerCase();
-  // block if it clearly asks for code/tech (unless it also mentions obvious food words)
   const mentionsTech = TECH_BLOCKLIST.some(w => t.includes(w));
   const mentionsFood = FOOD_ALLOWLIST.some(w => t.includes(w));
   if (mentionsTech && !mentionsFood) return false;
 
-  // allow if any food word appears OR the text looks like ingredients (comma/line separated nouns)
   if (mentionsFood) return true;
 
   // very lightweight "ingredients line" heuristic
@@ -108,6 +109,50 @@ function isCookingQuery(s: string): boolean {
 const OFF_TOPIC_REPLY =
   "I'm here to help with cooking and recipes! Please ask about food or ingredients.\n\n" +
   "💡 Try: **“I have eggs, spinach, and feta — what can I make?”**";
+
+// ---------- Mode detection helpers ----------
+type Mode = "INGREDIENTS" | "IDEAS";
+
+function detectMode(s: string): Mode {
+  const t = s.toLowerCase().trim();
+
+  // Obvious idea prompts
+  const ideaTriggers = [
+    "what should i cook", "dinner ideas", "lunch ideas", "breakfast ideas",
+    "recipe ideas", "give me ideas", "i need ideas", "what's for dinner",
+    "what can i cook", "suggest a meal", "meal ideas"
+  ];
+  if (ideaTriggers.some(k => t.includes(k))) return "IDEAS";
+
+  // Looks like an ingredient list: commas or newlines, quantities, or starts with "i have"/"with"
+  const mentionsQuant = /\b(\d+|\d+\s*\/\s*\d+)\s*(g|kg|ml|l|cup|cups|tsp|tbsp)\b/.test(t);
+  const looksListy = /[,;\n]/.test(t) || /\bi have\b|\bwith\b|\bon hand\b/.test(t);
+
+  // Strong ingredient keywords present
+  const hasManyFoodWords = FOOD_ALLOWLIST.filter(w => t.includes(w)).length >= 3;
+
+  if (mentionsQuant || (looksListy && hasManyFoodWords)) return "INGREDIENTS";
+
+  // Default to ideas when ambiguous
+  return "IDEAS";
+}
+
+// Mode-specific steering for the model (prepended to the turn)
+const IDEA_STEER = `
+You are in **Idea Mode**.
+- The user did not provide a concrete ingredient list.
+- Provide **3 dinner ideas** that match any constraints in the message (time, diet, budget, cuisine).
+- For each idea, include 3–5 short steps. Be concise.
+- Respect diet/allergy terms if present.
+- Invite a quick follow-up: "Want the full recipe for one?"
+`.trim();
+
+const INGREDIENTS_STEER = `
+You are in **Ingredient Mode**.
+- The user provided specific ingredients.
+- Suggest 1–3 recipes that use ONLY those ingredients plus basic staples (oil, salt, pepper, water). Do not invent extras unless they asked for a named recipe or explicitly allow substitutions.
+- Keep steps short and practical.
+`.trim();
 
 // ---------- Helpers ----------
 async function readJson<T = any>(req: Request, limit = 32 * 1024): Promise<T> {
@@ -173,7 +218,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true }), {
       headers: withSecurity({ "Content-Type": "application/json" }),
     });
-    }
+  }
 
   // Chat endpoint
   if (req.method === "POST" && url.pathname === "/chat") {
@@ -219,8 +264,21 @@ Deno.serve(async (req) => {
       if (body.newChat) delete chatHistories[sessionId];
       ensureHistory(sessionId);
 
+      // Decide mode for this turn
+      const mode: Mode = detectMode(message);
+      const steer: Msg = {
+        role: "system",
+        content: mode === "IDEAS" ? IDEA_STEER : INGREDIENTS_STEER,
+      };
+
+      // Build the message list sent to the model for THIS turn
+      // Keep long-term system + last ~12 turns, then add mode steer, then user
+      const recent = chatHistories[sessionId].slice(-12);
+      const messagesToSend: Msg[] = [...recent, steer, { role: "user", content: message }];
+
+      // Keep history as usual
       pushAndClamp(sessionId, { role: "user", content: message });
-      const reply = await groqChat(chatHistories[sessionId].slice(-15));
+      const reply = await groqChat(messagesToSend);
       pushAndClamp(sessionId, { role: "assistant", content: reply });
 
       return new Response(JSON.stringify({ reply, markdown: reply }), {

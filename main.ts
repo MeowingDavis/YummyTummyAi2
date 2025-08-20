@@ -10,7 +10,6 @@ const baseHeaders: HeadersInit = {
   "Content-Security-Policy": [
     "default-src 'self'",
     "img-src 'self' data: blob:",
-    // Allow both official Tailwind CDN and jsDelivr libs
     "script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net 'unsafe-inline'",
     "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'",
     "connect-src 'self' https://api.groq.com",
@@ -24,8 +23,20 @@ const baseHeaders: HeadersInit = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 };
 
+// Merge headers and optionally add Set-Cookie
 function withSecurity(extra: HeadersInit = {}) {
   return { ...baseHeaders, ...extra };
+}
+
+// ---------- Cookie session (per visitor) ----------
+function getOrSetSessionId(req: Request) {
+  const cookie = req.headers.get("cookie") ?? "";
+  const match = cookie.match(/(?:^|;\s*)yt_sid=([^;]+)/);
+  if (match) return { id: decodeURIComponent(match[1]), setCookie: null };
+
+  const id = crypto.randomUUID();
+  const cookieVal = `yt_sid=${encodeURIComponent(id)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`;
+  return { id, setCookie: cookieVal };
 }
 
 // ---------- Chat history ----------
@@ -41,25 +52,26 @@ function ensureHistory(sessionId: string) {
 You are Yummy Tummy, a helpful, expert recipe and cooking assistant AI.
 
 SCOPE:
-- You ONLY respond to questions about food, cooking, recipes, or ingredients.
-- If the user asks about code, HTML/CSS/JS, APIs, deployment, or anything not related to cooking, you MUST refuse with:
+- Only answer about food, cooking, recipes, drinks, ingredients, techniques, tools, substitutions, and kitchen safety.
+- If the user asks about code or unrelated topics, refuse with:
   "I'm here to help with cooking and recipes! Please ask about food or ingredients."
   Then give 1 short example prompt relevant to cooking.
 
 TASK:
 - Support two paths:
-  1) Ingredient Mode: user lists specific ingredients. Help them make meals using ONLY those items plus reasonable basics (oil, salt, pepper, water) unless they ask for a named recipe or allow extras.
-  2) Idea Mode: user asks open-ended questions like "What should I cook for dinner?" First provide idea suggestions only (titles + 1-line descriptions). Do not output full recipes by default. Offer to expand any idea into a full recipe on request.
+  1) Ingredient Mode: user lists specific ingredients. Suggest meals using ONLY those items plus basics (oil, salt, pepper, water) unless they ask for a named recipe or allow extras.
+  2) Idea Mode: user is open-ended ("what should I cook?", "dinner ideas", "juice ideas"). First provide idea suggestions only (titles + 1 short line). Do not output full recipes by default. Offer to expand one.
+- If the user requests details ("full recipe", "steps", "ingredients") or clearly selects one idea, provide a complete recipe.
 
-- If (and only if) the user asks for a specific dish or requests details (“full recipe”, “steps”, “ingredients”), you may output a full recipe.
+DIALOG:
+- Use conversation context. If the user says "that one" or "the second", infer selection from your last list.
+- Brief, friendly tone. No system chatter.
 
 STYLE:
-- Keep responses concise and practical.
-- Format in Markdown with **bold** section headings and bulleted/numbered lists.
-- No self-talk about being fast, systems, or APIs.
+- Concise, practical Markdown with **bold** section titles and lists.
 
 SAFETY:
-- If dietary/allergy terms appear, acknowledge and respect them.
+- Respect dietary/allergy terms and common kitchen safety.
 `.trim(),
       },
     ];
@@ -72,20 +84,19 @@ function pushAndClamp(sessionId: string, msg: Msg, max = 30) {
   if (len > max) chatHistories[sessionId] = chatHistories[sessionId].slice(len - max);
 }
 
-// ---------- Simple domain guard (server-side) ----------
+// ---------- Domain guard ----------
 const FOOD_ALLOWLIST = [
-  // general cooking terms
   "cook","cooking","recipe","recipes","ingredient","ingredients","meal","meals","dish","dishes",
   "bake","baking","roast","roasting","grill","grilling","fry","frying","boil","simmer","saute","steam",
   "soup","salad","sauce","stir-fry","marinade","marinate","season","spice","spices","herb","herbs",
   "breakfast","lunch","dinner","dessert","snack","drink","beverage","ideas","what should i cook",
+  "juice","juices","smoothie","smoothies",
   // dietary
   "vegan","vegetarian","gluten","dairy-free","nut-free","halal","kosher","low-carb","keto","pescatarian",
   // pantry/common
   "egg","eggs","flour","sugar","salt","pepper","oil","butter","milk","cream","cheese",
   "chicken","beef","pork","fish","tofu","tempeh","beans","rice","pasta","noodles","lentils","chickpeas",
-  // coffee/tea (since you used cold press)
-  "coffee","cold brew","cold press","espresso","latte","tea","matcha"
+  "quinoa","broth","stock","garlic","onion","tomato","tomatoes","ginger","lemon","lime"
 ];
 
 const TECH_BLOCKLIST = [
@@ -93,49 +104,69 @@ const TECH_BLOCKLIST = [
   "api","endpoint","server","client","deploy","docker","deno","node","python","sql","database","schema","uml","mermaid","github","git"
 ];
 
-// ---------- Mode detection helpers ----------
-type Mode = "INGREDIENTS" | "IDEAS";
+// ---------- Mode detection ----------
+type Mode = "INGREDIENTS" | "IDEAS" | "EXPAND" | "MORE_IDEAS";
 
-function detectMode(s: string): Mode {
-  const t = s.toLowerCase().trim();
+function detectMode(user: string, lastAssistant: string): Mode {
+  const t = user.toLowerCase().trim();
 
-  // Obvious idea prompts
+  // direct expansion cues
+  if (/\b(full recipe|steps|ingredients|details|expand|make that|how do i make|how to make)\b/i.test(t)) return "EXPAND";
+  if (/\b(more|more ideas|another|others|give me more)\b/i.test(t)) return "MORE_IDEAS";
+
+  // "that one", "the second", or referencing a dish name from last assistant
+  if (/\b(that one|this one|the first|the second|the third|number\s*\d+)\b/i.test(t)) return "EXPAND";
+  // if user echoes a word from last list like "middle eastern", "chickpea", "pilaf", etc.
+  if (lastAssistant && /\b(bowl|stew|curry|pilaf|harvest|chickpea|mediterranean|middle eastern|risotto|fiesta|green goddess|summer breeze)\b/i.test(t)) {
+    return "EXPAND";
+  }
+
+  // idea triggers
   const ideaTriggers = [
-    "what should i cook", "dinner ideas", "lunch ideas", "breakfast ideas",
-    "recipe ideas", "give me ideas", "i need ideas", "what's for dinner",
-    "what can i cook", "suggest a meal", "meal ideas"
+    "what should i cook","dinner ideas","lunch ideas","breakfast ideas",
+    "recipe ideas","give me ideas","i need ideas","what's for dinner",
+    "what can i cook","suggest a meal","meal ideas","juice ideas","refreshing juice ideas"
   ];
   if (ideaTriggers.some(k => t.includes(k))) return "IDEAS";
 
-  // Looks like an ingredient list: commas or newlines, quantities, or starts with "i have"/"with"
+  // ingredient-ish
   const mentionsQuant = /\b(\d+|\d+\s*\/\s*\d+)\s*(g|kg|ml|l|cup|cups|tsp|tbsp)\b/.test(t);
   const looksListy = /[,;\n]/.test(t) || /\bi have\b|\bwith\b|\bon hand\b/.test(t);
-
-  // Strong ingredient keywords present
   const hasManyFoodWords = FOOD_ALLOWLIST.filter(w => t.includes(w)).length >= 3;
-
   if (mentionsQuant || (looksListy && hasManyFoodWords)) return "INGREDIENTS";
 
-  // Default to ideas when ambiguous
+  // default to ideas for vague cooking queries
   return "IDEAS";
 }
 
-// Mode-specific steering for the model (prepended to the turn)
+// ---------- Per-turn steering ----------
 const IDEA_STEER = `
-You are in **Idea Mode**.
-- The user did not provide a concrete ingredient list.
-- Provide **5 dinner ideas** that match any constraints (time, diet, budget, cuisine).
-- Format as: numbered list, each item = **Dish Name** — 1 concise sentence describing why it fits.
+You are in Idea Mode.
+- Provide 5 ideas matching any constraints (time, diet, budget, cuisine).
+- Format as: numbered list, each item = **Dish Name** — 1 short sentence.
 - Do not include full ingredient lists or multi-step methods.
 - End with: "Want the full recipe for one of these?"
-- Respect diet/allergy terms if present.
+`.trim();
+
+const MORE_IDEAS_STEER = `
+Continue Idea Mode.
+- Provide 5 different ideas from your last list.
+- Same format: numbered list, **Dish Name** — 1 short sentence.
+- No full recipes yet.
+- End with: "Which one should I expand?"
 `.trim();
 
 const INGREDIENTS_STEER = `
-You are in **Ingredient Mode**.
-- The user provided specific ingredients.
-- Suggest 1–3 recipes that use ONLY those ingredients plus basic staples (oil, salt, pepper, water). Do not invent extras unless they asked for a named recipe or explicitly allow substitutions.
+You are in Ingredient Mode.
+- User gave specific ingredients. Suggest 1–3 recipes using ONLY those items plus basics (oil, salt, pepper, water), unless they asked for a named recipe or allow extras.
 - Keep steps short and practical.
+`.trim();
+
+const EXPAND_STEER = `
+Selection/Expansion Mode.
+- The user likely selected one idea from your last list (by name or position). Choose the best match from your previous ideas and output a complete, clear recipe.
+- Include: ingredients with amounts, concise steps (numbered), timing, and key tips or substitutions.
+- Respect any dietary constraints mentioned earlier.
 `.trim();
 
 const OFF_TOPIC_REPLY =
@@ -154,38 +185,32 @@ async function readJson<T = any>(req: Request, limit = 32 * 1024): Promise<T> {
   }
 }
 
-// ✅ Smarter cooking-query guard: allow brief confirmations if last assistant talked about food
+// Context-aware guard: block obvious tech, allow foody or contextual follow-ups
 function isCookingQuery(s: string, lastAssistant?: string): boolean {
   const t = s.toLowerCase();
 
-  // If they explicitly talk tech and not food, block
+  // 1) Hard block for tech unless food is also present
   const mentionsTech = TECH_BLOCKLIST.some(w => t.includes(w));
   const mentionsFood = FOOD_ALLOWLIST.some(w => t.includes(w));
   if (mentionsTech && !mentionsFood) return false;
 
-  // Obvious food content
+  // 2) Obvious food content
   if (mentionsFood) return true;
 
-  // Ingredient-like messages (quantities, lists)
+  // 3) Ingredient-like
   const looksLikeIngredients =
     /[,;\n]/.test(t) && /\b(grams|g|kg|ml|l|cup|cups|tsp|tbsp|teaspoon|tablespoon)\b/.test(t);
   if (looksLikeIngredients) return true;
 
-  // NEW: conversational follow-up that continues a food thread
-  if (lastAssistant && /quinoa|recipe|dish|cook|dinner|meal|idea|bowl|stew|curry|pilaf|chickpea/i.test(lastAssistant)) {
-    // Also allow short affirmations/selection phrases
-    if (/\b(yes|yeah|yep|sounds good|that one|the first|the second|more ideas|another|expand|details|full recipe|go on|cool|yum|yummy|love it|middle eastern|mediterranean|curry|stew)\b/i.test(t)) {
-      return true;
-    }
+  // 4) Contextual pass-through if last assistant was about cooking
+  if (lastAssistant && /\b(cook|dish|meal|recipe|idea|juice|smoothie|soup|salad|quinoa|stew|bowl|curry|pilaf|chickpea|drink|snack|dinner|lunch|breakfast)\b/i.test(lastAssistant)) {
+    return true;
   }
 
   return false;
 }
 
-async function groqChat(
-  messages: Msg[],
-  model = Deno.env.get("MODEL") ?? "llama-3.1-8b-instant",
-) {
+async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ?? "llama-3.1-8b-instant") {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -196,7 +221,7 @@ async function groqChat(
       model,
       messages,
       temperature: 0.5,
-      max_tokens: 400,
+      max_tokens: 500,
       top_p: 0.9,
     }),
   });
@@ -213,7 +238,6 @@ const RATE = { capacity: 8, refillPerSec: 0.5 }; // ~1 req/2s, burst up to 8
 function allow(ip: string) {
   const now = Date.now() / 1000;
   const b = BUCKETS.get(ip) ?? { tokens: RATE.capacity, last: now };
-  // refill
   b.tokens = Math.min(RATE.capacity, b.tokens + (now - b.last) * RATE.refillPerSec);
   b.last = now;
   if (b.tokens < 1) {
@@ -231,23 +255,26 @@ Deno.serve(async (req) => {
 
   // Health
   if (req.method === "GET" && url.pathname === "/health") {
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: withSecurity({ "Content-Type": "application/json" }),
-    });
+    const { setCookie } = getOrSetSessionId(req);
+    const headers = withSecurity({ "Content-Type": "application/json" });
+    const h = new Headers(headers);
+    if (setCookie) h.append("Set-Cookie", setCookie);
+    return new Response(JSON.stringify({ ok: true }), { headers: h });
   }
 
-  // Chat endpoint
+  // Chat
   if (req.method === "POST" && url.pathname === "/chat") {
+    const { id: sessionId, setCookie } = getOrSetSessionId(req);
+
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       req.headers.get("cf-connecting-ip") ??
       "anon";
 
     if (!allow(ip)) {
-      return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
-        status: 429,
-        headers: withSecurity({ "Content-Type": "application/json" }),
-      });
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { status: 429, headers: h });
     }
 
     try {
@@ -256,59 +283,55 @@ Deno.serve(async (req) => {
 
       // Validation
       if (!message) {
-        return new Response(JSON.stringify({ error: "Empty message" }), {
-          status: 400,
-          headers: withSecurity({ "Content-Type": "application/json" }),
-        });
+        const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        return new Response(JSON.stringify({ error: "Empty message" }), { status: 400, headers: h });
       }
       if (message.length > 1000) {
-        return new Response(JSON.stringify({ error: "Message too long (max 1000 chars)" }), {
-          status: 413,
-          headers: withSecurity({ "Content-Type": "application/json" }),
-        });
+        const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        return new Response(JSON.stringify({ error: "Message too long (max 1000 chars)" }), { status: 413, headers: h });
       }
 
-      // Session + history
-      const sessionId = "global";
       if (body.newChat) delete chatHistories[sessionId];
       ensureHistory(sessionId);
 
-      // Off-topic hard gate BEFORE calling the model (now context-aware)
-      const lastAssistant = chatHistories[sessionId]
-        .slice()
-        .reverse()
-        .find(m => m.role === "assistant")?.content ?? "";
+      const lastAssistant = chatHistories[sessionId].slice().reverse().find(m => m.role === "assistant")?.content ?? "";
 
+      // Off-topic guard (context-aware)
       if (!isCookingQuery(message, lastAssistant)) {
-        return new Response(JSON.stringify({ reply: OFF_TOPIC_REPLY, markdown: OFF_TOPIC_REPLY }), {
-          headers: withSecurity({ "Content-Type": "application/json" }),
-        });
+        const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        return new Response(JSON.stringify({ reply: OFF_TOPIC_REPLY, markdown: OFF_TOPIC_REPLY }), { headers: h });
       }
 
-      // Decide mode for this turn
-      const mode: Mode = detectMode(message);
+      // Choose mode
+      const mode: Mode = detectMode(message, lastAssistant);
       const steer: Msg = {
         role: "system",
-        content: mode === "IDEAS" ? IDEA_STEER : INGREDIENTS_STEER,
+        content:
+          mode === "IDEAS" ? IDEA_STEER :
+          mode === "MORE_IDEAS" ? MORE_IDEAS_STEER :
+          mode === "INGREDIENTS" ? INGREDIENTS_STEER :
+          EXPAND_STEER,
       };
 
-      // Build the message list sent to the model for THIS turn
+      // Build request to model
       const recent = chatHistories[sessionId].slice(-12);
       const messagesToSend: Msg[] = [...recent, steer, { role: "user", content: message }];
 
-      // Keep history as usual
+      // Call model
       pushAndClamp(sessionId, { role: "user", content: message });
       const reply = await groqChat(messagesToSend);
       pushAndClamp(sessionId, { role: "assistant", content: reply });
 
-      return new Response(JSON.stringify({ reply, markdown: reply }), {
-        headers: withSecurity({ "Content-Type": "application/json" }),
-      });
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      return new Response(JSON.stringify({ reply, markdown: reply }), { headers: h });
     } catch (err) {
-      return new Response(JSON.stringify({ error: String(err?.message ?? err) }), {
-        status: 500,
-        headers: withSecurity({ "Content-Type": "application/json" }),
-      });
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      return new Response(JSON.stringify({ error: String(err?.message ?? err) }), { status: 500, headers: h });
     }
   }
 
@@ -320,15 +343,11 @@ Deno.serve(async (req) => {
   }
 
   // Static files from /public
-  const res = await serveDir(req, {
-    fsRoot: "public",
-    quiet: true,
-  });
+  const res = await serveDir(req, { fsRoot: "public", quiet: true });
 
   // Add security headers + caching to static responses
   const h = new Headers(res.headers);
   for (const [k, v] of Object.entries(baseHeaders)) h.set(k, v as string);
-
   const ct = h.get("content-type") || "";
   if (ct.includes("text/html")) {
     h.set("Cache-Control", "no-store");

@@ -45,16 +45,13 @@ SCOPE:
 - If the user asks about code, HTML/CSS/JS, APIs, deployment, or anything not related to cooking, you MUST refuse with:
   "I'm here to help with cooking and recipes! Please ask about food or ingredients."
   Then give 1 short example prompt relevant to cooking.
-  
+
 TASK:
 - Support two paths:
   1) Ingredient Mode: user lists specific ingredients. Help them make meals using ONLY those items plus reasonable basics (oil, salt, pepper, water) unless they ask for a named recipe or allow extras.
-  2) Idea Mode: user asks open-ended questions like "What should I cook for dinner?" First provide **idea suggestions only** (titles + 1-line descriptions). Do **not** output full recipes by default. Offer to expand any idea into a full recipe on request.
+  2) Idea Mode: user asks open-ended questions like "What should I cook for dinner?" First provide idea suggestions only (titles + 1-line descriptions). Do not output full recipes by default. Offer to expand any idea into a full recipe on request.
 
 - If (and only if) the user asks for a specific dish or requests details (“full recipe”, “steps”, “ingredients”), you may output a full recipe.
-
-
-- If the user asks for a specific dish, you may output a full recipe.
 
 STYLE:
 - Keep responses concise and practical.
@@ -96,23 +93,6 @@ const TECH_BLOCKLIST = [
   "api","endpoint","server","client","deploy","docker","deno","node","python","sql","database","schema","uml","mermaid","github","git"
 ];
 
-function isCookingQuery(s: string): boolean {
-  const t = s.toLowerCase();
-  const mentionsTech = TECH_BLOCKLIST.some(w => t.includes(w));
-  const mentionsFood = FOOD_ALLOWLIST.some(w => t.includes(w));
-  if (mentionsTech && !mentionsFood) return false;
-
-  if (mentionsFood) return true;
-
-  // very lightweight "ingredients line" heuristic
-  const looksLikeIngredients = /[,;\n]/.test(t) && /\b(grams|g|kg|ml|l|cup|cups|tsp|tbsp|teaspoon|tablespoon)\b/.test(t);
-  return looksLikeIngredients;
-}
-
-const OFF_TOPIC_REPLY =
-  "I'm here to help with cooking and recipes! Please ask about food or ingredients.\n\n" +
-  "💡 Try: **“I have eggs, spinach, and feta — what can I make?”**";
-
 // ---------- Mode detection helpers ----------
 type Mode = "INGREDIENTS" | "IDEAS";
 
@@ -146,11 +126,10 @@ You are in **Idea Mode**.
 - The user did not provide a concrete ingredient list.
 - Provide **5 dinner ideas** that match any constraints (time, diet, budget, cuisine).
 - Format as: numbered list, each item = **Dish Name** — 1 concise sentence describing why it fits.
-- Do **not** include full ingredient lists or multi-step methods.
+- Do not include full ingredient lists or multi-step methods.
 - End with: "Want the full recipe for one of these?"
 - Respect diet/allergy terms if present.
 `.trim();
-
 
 const INGREDIENTS_STEER = `
 You are in **Ingredient Mode**.
@@ -158,6 +137,10 @@ You are in **Ingredient Mode**.
 - Suggest 1–3 recipes that use ONLY those ingredients plus basic staples (oil, salt, pepper, water). Do not invent extras unless they asked for a named recipe or explicitly allow substitutions.
 - Keep steps short and practical.
 `.trim();
+
+const OFF_TOPIC_REPLY =
+  "I'm here to help with cooking and recipes! Please ask about food or ingredients.\n\n" +
+  "💡 Try: **“I have eggs, spinach, and feta — what can I make?”**";
 
 // ---------- Helpers ----------
 async function readJson<T = any>(req: Request, limit = 32 * 1024): Promise<T> {
@@ -169,6 +152,34 @@ async function readJson<T = any>(req: Request, limit = 32 * 1024): Promise<T> {
   } catch {
     throw new Error("Invalid JSON");
   }
+}
+
+// ✅ Smarter cooking-query guard: allow brief confirmations if last assistant talked about food
+function isCookingQuery(s: string, lastAssistant?: string): boolean {
+  const t = s.toLowerCase();
+
+  // If they explicitly talk tech and not food, block
+  const mentionsTech = TECH_BLOCKLIST.some(w => t.includes(w));
+  const mentionsFood = FOOD_ALLOWLIST.some(w => t.includes(w));
+  if (mentionsTech && !mentionsFood) return false;
+
+  // Obvious food content
+  if (mentionsFood) return true;
+
+  // Ingredient-like messages (quantities, lists)
+  const looksLikeIngredients =
+    /[,;\n]/.test(t) && /\b(grams|g|kg|ml|l|cup|cups|tsp|tbsp|teaspoon|tablespoon)\b/.test(t);
+  if (looksLikeIngredients) return true;
+
+  // NEW: conversational follow-up that continues a food thread
+  if (lastAssistant && /quinoa|recipe|dish|cook|dinner|meal|idea|bowl|stew|curry|pilaf|chickpea/i.test(lastAssistant)) {
+    // Also allow short affirmations/selection phrases
+    if (/\b(yes|yeah|yep|sounds good|that one|the first|the second|more ideas|another|expand|details|full recipe|go on|cool|yum|yummy|love it|middle eastern|mediterranean|curry|stew)\b/i.test(t)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 async function groqChat(
@@ -257,17 +268,22 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Off-topic hard gate BEFORE calling the model
-      if (!isCookingQuery(message)) {
+      // Session + history
+      const sessionId = "global";
+      if (body.newChat) delete chatHistories[sessionId];
+      ensureHistory(sessionId);
+
+      // Off-topic hard gate BEFORE calling the model (now context-aware)
+      const lastAssistant = chatHistories[sessionId]
+        .slice()
+        .reverse()
+        .find(m => m.role === "assistant")?.content ?? "";
+
+      if (!isCookingQuery(message, lastAssistant)) {
         return new Response(JSON.stringify({ reply: OFF_TOPIC_REPLY, markdown: OFF_TOPIC_REPLY }), {
           headers: withSecurity({ "Content-Type": "application/json" }),
         });
       }
-
-      // Single-session memory; swap to cookie if you want multi-session per user
-      const sessionId = "global";
-      if (body.newChat) delete chatHistories[sessionId];
-      ensureHistory(sessionId);
 
       // Decide mode for this turn
       const mode: Mode = detectMode(message);
@@ -277,7 +293,6 @@ Deno.serve(async (req) => {
       };
 
       // Build the message list sent to the model for THIS turn
-      // Keep long-term system + last ~12 turns, then add mode steer, then user
       const recent = chatHistories[sessionId].slice(-12);
       const messagesToSend: Msg[] = [...recent, steer, { role: "user", content: message }];
 

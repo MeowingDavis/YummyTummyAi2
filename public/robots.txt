@@ -1,0 +1,13 @@
+# robots.txt for Yummy Tummy
+
+# Allow all well-behaved crawlers full access
+User-agent: *
+Disallow:
+
+# Block crawling of server endpoints not meant for indexing
+Disallow: /chat
+Disallow: /upload
+Disallow: /health
+
+# Optional: point to sitemap if you generate one
+# Sitemap: https://your-domain.com/sitemap.xml

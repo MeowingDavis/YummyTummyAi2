@@ -117,10 +117,12 @@ function detectMode(user: string, lastAssistant: string): Mode {
 
   // "that one", "the second", or referencing a dish name from last assistant
   if (/\b(that one|this one|the first|the second|the third|number\s*\d+)\b/i.test(t)) return "EXPAND";
+  // if user echoes a word from last list like "middle eastern", "chickpea", "pilaf", etc.
   if (lastAssistant && /\b(bowl|stew|curry|pilaf|harvest|chickpea|mediterranean|middle eastern|risotto|fiesta|green goddess|summer breeze)\b/i.test(t)) {
     return "EXPAND";
   }
 
+  // idea triggers
   const ideaTriggers = [
     "what should i cook","dinner ideas","lunch ideas","breakfast ideas",
     "recipe ideas","give me ideas","i need ideas","what's for dinner",
@@ -128,11 +130,13 @@ function detectMode(user: string, lastAssistant: string): Mode {
   ];
   if (ideaTriggers.some(k => t.includes(k))) return "IDEAS";
 
+  // ingredient-ish
   const mentionsQuant = /\b(\d+|\d+\s*\/\s*\d+)\s*(g|kg|ml|l|cup|cups|tsp|tbsp)\b/.test(t);
   const looksListy = /[,;\n]/.test(t) || /\bi have\b|\bwith\b|\bon hand\b/.test(t);
   const hasManyFoodWords = FOOD_ALLOWLIST.filter(w => t.includes(w)).length >= 3;
   if (mentionsQuant || (looksListy && hasManyFoodWords)) return "INGREDIENTS";
 
+  // default to ideas for vague cooking queries
   return "IDEAS";
 }
 
@@ -186,16 +190,20 @@ async function readJson<T = any>(req: Request, limit = 32 * 1024): Promise<T> {
 function isCookingQuery(s: string, lastAssistant?: string): boolean {
   const t = s.toLowerCase();
 
+  // 1) Hard block for tech unless food is also present
   const mentionsTech = TECH_BLOCKLIST.some(w => t.includes(w));
   const mentionsFood = FOOD_ALLOWLIST.some(w => t.includes(w));
   if (mentionsTech && !mentionsFood) return false;
 
+  // 2) Obvious food content
   if (mentionsFood) return true;
 
+  // 3) Ingredient-like
   const looksLikeIngredients =
     /[,;\n]/.test(t) && /\b(grams|g|kg|ml|l|cup|cups|tsp|tbsp|teaspoon|tablespoon)\b/.test(t);
   if (looksLikeIngredients) return true;
 
+  // 4) Contextual pass-through if last assistant was about cooking
   if (lastAssistant && /\b(cook|dish|meal|recipe|idea|juice|smoothie|soup|salad|quinoa|stew|bowl|curry|pilaf|chickpea|drink|snack|dinner|lunch|breakfast)\b/i.test(lastAssistant)) {
     return true;
   }
@@ -203,64 +211,30 @@ function isCookingQuery(s: string, lastAssistant?: string): boolean {
   return false;
 }
 
-// ---------- Model resolution and Groq call ----------
-const ALLOWED_MODELS = new Set<string>([
-  "llama-3.1-70b-versatile",
-  "llama-3.1-8b-instant",
-]);
-
-function resolveModel() {
-  const envModel = Deno.env.get("MODEL");
-  if (envModel && ALLOWED_MODELS.has(envModel)) return envModel;
-  return "llama-3.1-70b-versatile"; // default to versatile
-}
-
-async function groqChat(messages: Msg[], model = resolveModel()) {
-  const payload: Record<string, unknown> = {
-    model,
-    messages,
-    temperature: 0.5,
-    top_p: 0.9,
-    // Use max_completion_tokens for OpenAI-compatible Groq
-    max_completion_tokens: 500,
-  };
-
+async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ?? "llama-3.1-8b-instant") {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${GROQ_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.5,
+      max_tokens: 500,
+      top_p: 0.9,
+    }),
   });
-
-  let text: string | undefined;
-  try {
-    text = await res.text();
-  } catch {
-    // ignore
-  }
-
-  if (!res.ok) {
-    let detail = text;
-    try {
-      const j = text ? JSON.parse(text) : null;
-      detail = j?.error?.message ?? j?.message ?? text;
-    } catch {
-      // keep raw text
-    }
-    throw new Error(`Groq ${res.status}: ${detail ?? "Unknown error"}`);
-  }
-
-  const data = text ? JSON.parse(text) : {};
-  const content = data?.choices?.[0]?.message?.content;
-  return (content ?? "Sorry, no response.").trim();
+  if (!res.ok) throw new Error(`Groq API error: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return (data?.choices?.[0]?.message?.content ?? "Sorry, no response.").trim();
 }
 
 // ---------- Simple rate limiting (per IP) ----------
 type Bucket = { tokens: number; last: number };
 const BUCKETS = new Map<string, Bucket>();
-const RATE = { capacity: 8, refillPerSec: 0.5 }; // ~1 req per 2s, burst up to 8
+const RATE = { capacity: 8, refillPerSec: 0.5 }; // ~1 req/2s, burst up to 8
 
 function allow(ip: string) {
   const now = Date.now() / 1000;
@@ -325,14 +299,14 @@ Deno.serve(async (req) => {
 
       const lastAssistant = chatHistories[sessionId].slice().reverse().find(m => m.role === "assistant")?.content ?? "";
 
-      // Off-topic guard
+      // Off-topic guard (context-aware)
       if (!isCookingQuery(message, lastAssistant)) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
         return new Response(JSON.stringify({ reply: OFF_TOPIC_REPLY, markdown: OFF_TOPIC_REPLY }), { headers: h });
       }
 
-      // Mode steer
+      // Choose mode
       const mode: Mode = detectMode(message, lastAssistant);
       const steer: Msg = {
         role: "system",
@@ -349,24 +323,16 @@ Deno.serve(async (req) => {
 
       // Call model
       pushAndClamp(sessionId, { role: "user", content: message });
-      const reply = await groqChat(messagesToSend, resolveModel());
+      const reply = await groqChat(messagesToSend);
       pushAndClamp(sessionId, { role: "assistant", content: reply });
 
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       return new Response(JSON.stringify({ reply, markdown: reply }), { headers: h });
     } catch (err) {
-      // Log server-side
-      console.error("[/chat] error:", err);
-      // Try to surface provider status to client
-      const msg = String(err?.message ?? err);
-      const m = msg.match(/^Groq\s+(\d{3}):\s*(.*)$/);
-      const status = m ? Number(m[1]) : 500;
-      const clientMsg = m ? m[2] : msg;
-
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
-      return new Response(JSON.stringify({ error: clientMsg }), { status, headers: h });
+      return new Response(JSON.stringify({ error: String(err?.message ?? err) }), { status: 500, headers: h });
     }
   }
 

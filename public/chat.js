@@ -1,5 +1,4 @@
-
-    // current year + “Continue chat” if a draft exists
+ // current year + “Continue chat” if a draft exists
     document.getElementById('year').textContent = new Date().getFullYear();
     const hasDraft = !!localStorage.getItem('yt_ai_draft');
     if (hasDraft) {

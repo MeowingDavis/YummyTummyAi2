@@ -40,7 +40,7 @@
 <body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
   <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
     <div class="flex gap-4">
-      <!-- Sidebar (desktop only; unchanged) -->
+      <!-- Sidebar (desktop only; unchanged except nav links) -->
       <aside class="hidden md:flex md:w-72 shrink-0">
         <div class="w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
           <div class="flex items-center justify-between">
@@ -52,7 +52,13 @@
           </div>
           <ul id="savedChats" class="mt-3 space-y-2 text-sm"></ul>
           <div class="flex-1"></div>
-          <a href="/about.html" class="block mt-4 text-sm text-emerald-400 hover:underline">About</a>
+
+          <!-- Home + About links -->
+          <nav class="mt-4 text-sm">
+            <a href="/" class="text-emerald-400 hover:underline">Home</a>
+            <span class="mx-2 text-slate-500">•</span>
+            <a href="/about.html" class="text-emerald-400 hover:underline">About</a>
+          </nav>
         </div>
       </aside>
 
@@ -152,7 +158,7 @@
                   placeholder="Ask a recipe question..."></textarea>
 
                 <div class="flex items-center justify-end gap-2 shrink-0">
-                  <button id="saveBtn" onclick="saveChat()"
+                  <button id="saveBtn" onclick="saveChat"
                     class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
                            ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
                            focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
@@ -206,8 +212,12 @@
     </div>
     <ul id="mobileSavedChats" class="space-y-2 text-sm"></ul>
     <hr class="my-4 border-slate-800">
-    <a href="/public/about.html" class="block text-sm text-emerald-400 hover:underline">About</a>
-    <a href="/public/index.html" class="block text-sm text-emerald-400 hover:underline">Home</a>
+
+    <!-- Home + About links (mobile) -->
+    <div class="flex items-center gap-4">
+      <a href="/" class="text-sm text-emerald-400 hover:underline">Home</a>
+      <a href="/about.html" class="text-sm text-emerald-400 hover:underline">About</a>
+    </div>
   </div>
 
   <!-- Your client app (unchanged) -->
@@ -232,7 +242,6 @@
       }
 
       function scrollToLatest(immediate = true) {
-        // Disable smooth behavior to avoid fighting animations
         const prev = chatbox.style.scrollBehavior;
         chatbox.style.scrollBehavior = 'auto';
         chatbox.scrollTop = chatbox.scrollHeight;
@@ -240,7 +249,6 @@
       }
 
       function nudgeLatest(frames = 3, spreadMs = 120) {
-        // Pin across a few frames to beat IME/layout reflows
         let i = 0;
         const tick = () => {
           scrollToLatest(true);
@@ -299,15 +307,14 @@
 
           stickToLatest = true;
           try { input.blur(); } catch {}
-          nudgeLatest(4, 120); // make sure your outgoing message area is visible
+          nudgeLatest(4, 120);
 
           try {
             await originalSend();
           } finally {
-            // In case app.js refocuses input, re-blur and pin a beat later
             setTimeout(() => { try { input.blur(); } catch {} }, 10);
             setTimeout(() => { try { input.blur(); } catch {} }, 150);
-            nudgeLatest(6, 220); // assistant reply lands -> stay pinned
+            nudgeLatest(6, 220);
           }
         };
       }
@@ -325,7 +332,6 @@
 
   <!-- Drawer wiring (no styling changes) -->
   <script>
-    // Ensures the drawer panel becomes visible (even if another script only shows the overlay)
     window.addEventListener('DOMContentLoaded', () => {
       const btn    = document.getElementById('mobileMenuBtn');
       const bg     = document.getElementById('mobileSavedModalBg');
@@ -338,13 +344,12 @@
         try {
           bg.classList.remove('hidden');
           panel.classList.remove('hidden');
-          panel.style.display = 'block'; // force visible if any CSS/display race
+          panel.style.display = 'block';
           panel.setAttribute('aria-hidden', 'false');
           panel.setAttribute('tabindex', '-1');
           document.body.classList.add('overflow-hidden');
           btn.setAttribute('aria-expanded', 'true');
 
-          // Mirror saved chats if present
           try {
             if (typeof renderSavedChats === 'function') renderSavedChats();
             const src = document.getElementById('savedChats');
@@ -352,12 +357,10 @@
             if (src && dst) dst.innerHTML = src.innerHTML;
           } catch {}
 
-          // Focus panel to ensure iOS paints it reliably
           requestAnimationFrame(() => {
             try { panel.focus({ preventScroll: true }); } catch {}
           });
         } catch (err) {
-          // If anything fails, hide overlay so you don't get "blur only"
           bg.classList.add('hidden');
           console.warn('Drawer open failed:', err);
         }

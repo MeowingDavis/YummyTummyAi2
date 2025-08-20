@@ -21,14 +21,9 @@ const baseHeaders: HeadersInit = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-  // Extra hardening (relax later if needed)
-  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
-  "Cross-Origin-Opener-Policy": "same-origin",
-  "Cross-Origin-Embedder-Policy": "require-corp",
-  "Cross-Origin-Resource-Policy": "same-origin",
-  "X-Permitted-Cross-Domain-Policies": "none",
 };
 
+// Merge headers and optionally add Set-Cookie
 function withSecurity(extra: HeadersInit = {}) {
   return { ...baseHeaders, ...extra };
 }
@@ -54,30 +49,30 @@ function ensureHistory(sessionId: string) {
       {
         role: "system",
         content: `
-You are Yummy Tummy, a friendly, expert cooking assistant.
+You are Yummy Tummy, a helpful, expert recipe and cooking assistant AI.
 
 SCOPE:
-- Only answer about food, cooking, recipes, drinks, ingredients, techniques, substitutions, meal planning, and kitchen safety.
+- Only answer about food, cooking, recipes, drinks, ingredients, techniques, tools, substitutions, and kitchen safety.
 - If the user asks about code or unrelated topics, refuse with:
   "I'm here to help with cooking and recipes! Please ask about food or ingredients."
+  Then give 1 short example prompt relevant to cooking.
 
 TASK:
-- Two paths:
-  1) Ingredient Mode — user lists specific ingredients. Suggest meals using ONLY those items plus basics (oil, water, pepper) unless they ask for a named recipe or allow extras.
-  2) Idea Mode — user is open-ended ("what should I cook?", "juice ideas"). First provide ideas only (titles + one short line). Offer to expand one into a full recipe. Do not dump full recipes by default.
-- If user selects an idea or asks for details, provide a clear, complete recipe.
-
-CONSTRAINTS & NUTRITION:
-- If the user mentions constraints (e.g., "low-sodium", "vegan", "gluten-free"), treat them as active for the rest of the chat.
-- For low-sodium: avoid salt and high-sodium ingredients by default; prefer no-salt-added variants and build flavor with acid, herbs, spices. Do not make incorrect claims (e.g., garlic is low in sodium).
-- When unsure, avoid definitive nutrition claims; suggest sensible substitutions.
+- Support two paths:
+  1) Ingredient Mode: user lists specific ingredients. Suggest meals using ONLY those items plus basics (oil, salt, pepper, water) unless they ask for a named recipe or allow extras.
+  2) Idea Mode: user is open-ended ("what should I cook?", "dinner ideas", "juice ideas"). First provide idea suggestions only (titles + 1 short line). Do not output full recipes by default. Offer to expand one.
+- If the user requests details ("full recipe", "steps", "ingredients") or clearly selects one idea, provide a complete recipe.
 
 DIALOG:
 - Use conversation context. If the user says "that one" or "the second", infer selection from your last list.
-- Friendly, concise tone. No meta/system chatter mid-convo.
+- Brief, friendly tone. No system chatter.
 
 STYLE:
-- Markdown with **bold** section headers and lists. Keep steps short and practical.
+- Concise, practical Markdown with **bold** section titles and lists.
+-Ingredients and instructions should seperated clearly.
+
+SAFETY:
+- Respect dietary/allergy terms and common kitchen safety.
 `.trim(),
       },
     ];
@@ -90,40 +85,6 @@ function pushAndClamp(sessionId: string, msg: Msg, max = 30) {
   if (len > max) chatHistories[sessionId] = chatHistories[sessionId].slice(len - max);
 }
 
-// ---------- Lightweight session context (sticky constraints) ----------
-type SessionCtx = { constraints: Set<string> };
-const sessionCtx: Record<string, SessionCtx> = {};
-function getCtx(sessionId: string): SessionCtx {
-  if (!sessionCtx[sessionId]) sessionCtx[sessionId] = { constraints: new Set() };
-  return sessionCtx[sessionId];
-}
-
-const CONSTRAINT_LEXICON: Record<string, string[]> = {
-  "low-sodium": ["low sodium", "low-sodium", "low salt", "low-salt", "heart healthy"],
-  "vegan": ["vegan", "plant-based"],
-  "vegetarian": ["vegetarian"],
-  "gluten-free": ["gluten free", "gluten-free", "coeliac", "celiac"],
-  "dairy-free": ["dairy free", "dairy-free", "lactose free", "lactose-free"],
-  "nut-free": ["nut free", "nut-free", "no nuts", "allergic to nuts"],
-  "halal": ["halal"],
-  "kosher": ["kosher"],
-  "keto": ["keto", "ketogenic", "low carb", "low-carb"],
-  "pescatarian": ["pescatarian"],
-};
-
-function extractConstraints(msg: string): string[] {
-  const t = msg.toLowerCase();
-  const hits: string[] = [];
-  for (const [key, syns] of Object.entries(CONSTRAINT_LEXICON)) {
-    if (syns.some((s) => t.includes(s))) hits.push(key);
-  }
-  // Basic "no X" pattern (e.g., "no dairy", "no pork")
-  if (/no\s+dairy/i.test(t)) hits.push("dairy-free");
-  if (/no\s+gluten/i.test(t)) hits.push("gluten-free");
-  if (/no\s+nuts?/i.test(t)) hits.push("nut-free");
-  return Array.from(new Set(hits));
-}
-
 // ---------- Domain guard ----------
 const FOOD_ALLOWLIST = [
   "cook","cooking","recipe","recipes","ingredient","ingredients","meal","meals","dish","dishes",
@@ -131,7 +92,9 @@ const FOOD_ALLOWLIST = [
   "soup","salad","sauce","stir-fry","marinade","marinate","season","spice","spices","herb","herbs",
   "breakfast","lunch","dinner","dessert","snack","drink","beverage","ideas","what should i cook",
   "juice","juices","smoothie","smoothies",
+  // dietary
   "vegan","vegetarian","gluten","dairy-free","nut-free","halal","kosher","low-carb","keto","pescatarian",
+  // pantry/common
   "egg","eggs","flour","sugar","salt","pepper","oil","butter","milk","cream","cheese",
   "chicken","beef","pork","fish","tofu","tempeh","beans","rice","pasta","noodles","lentils","chickpeas",
   "quinoa","broth","stock","garlic","onion","tomato","tomatoes","ginger","lemon","lime"
@@ -148,13 +111,18 @@ type Mode = "INGREDIENTS" | "IDEAS" | "EXPAND" | "MORE_IDEAS";
 function detectMode(user: string, lastAssistant: string): Mode {
   const t = user.toLowerCase().trim();
 
+  // direct expansion cues
   if (/\b(full recipe|steps|ingredients|details|expand|make that|how do i make|how to make)\b/i.test(t)) return "EXPAND";
   if (/\b(more|more ideas|another|others|give me more)\b/i.test(t)) return "MORE_IDEAS";
+
+  // "that one", "the second", or referencing a dish name from last assistant
   if (/\b(that one|this one|the first|the second|the third|number\s*\d+)\b/i.test(t)) return "EXPAND";
-  if (lastAssistant && /\b(bowl|stew|curry|pilaf|harvest|chickpea|mediterranean|middle eastern|risotto|fiesta|goddess|summer breeze|sun-dried)\b/i.test(t)) {
+  // if user echoes a word from last list like "middle eastern", "chickpea", "pilaf", etc.
+  if (lastAssistant && /\b(bowl|stew|curry|pilaf|harvest|chickpea|mediterranean|middle eastern|risotto|fiesta|green goddess|summer breeze)\b/i.test(t)) {
     return "EXPAND";
   }
 
+  // idea triggers
   const ideaTriggers = [
     "what should i cook","dinner ideas","lunch ideas","breakfast ideas",
     "recipe ideas","give me ideas","i need ideas","what's for dinner",
@@ -162,11 +130,13 @@ function detectMode(user: string, lastAssistant: string): Mode {
   ];
   if (ideaTriggers.some(k => t.includes(k))) return "IDEAS";
 
+  // ingredient-ish
   const mentionsQuant = /\b(\d+|\d+\s*\/\s*\d+)\s*(g|kg|ml|l|cup|cups|tsp|tbsp)\b/.test(t);
   const looksListy = /[,;\n]/.test(t) || /\bi have\b|\bwith\b|\bon hand\b/.test(t);
   const hasManyFoodWords = FOOD_ALLOWLIST.filter(w => t.includes(w)).length >= 3;
   if (mentionsQuant || (looksListy && hasManyFoodWords)) return "INGREDIENTS";
 
+  // default to ideas for vague cooking queries
   return "IDEAS";
 }
 
@@ -189,18 +159,20 @@ Continue Idea Mode.
 
 const INGREDIENTS_STEER = `
 You are in Ingredient Mode.
-- User gave specific ingredients. Suggest 1–3 recipes using ONLY those items plus basics (oil, water, pepper), unless they asked for a named recipe or allow extras.
+- User gave specific ingredients. Suggest 1–3 recipes using ONLY those items plus basics (oil, salt, pepper, water), unless they asked for a named recipe or allow extras.
 - Keep steps short and practical.
 `.trim();
 
 const EXPAND_STEER = `
 Selection/Expansion Mode.
-- Expand the chosen idea into a full recipe.
-- Include amounts, concise steps, timing, tips.
-- Strictly respect active constraints from context (e.g., dietary/allergy).
+- The user likely selected one idea from your last list (by name or position). Choose the best match from your previous ideas and output a complete, clear recipe.
+- Include: ingredients with amounts, concise steps (numbered), timing, and key tips or substitutions.
+- Respect any dietary constraints mentioned earlier.
 `.trim();
 
-const OFF_TOPIC_REPLY = "I'm here to help with cooking and recipes! Please ask about food or ingredients.";
+const OFF_TOPIC_REPLY =
+  "I'm here to help with cooking and recipes! Please ask about food or ingredients.\n\n" +
+  "💡 Try: **“I have eggs, spinach, and feta — what can I make?”**";
 
 // ---------- Helpers ----------
 async function readJson<T = any>(req: Request, limit = 32 * 1024): Promise<T> {
@@ -217,32 +189,29 @@ async function readJson<T = any>(req: Request, limit = 32 * 1024): Promise<T> {
 // Context-aware guard: block obvious tech, allow foody or contextual follow-ups
 function isCookingQuery(s: string, lastAssistant?: string): boolean {
   const t = s.toLowerCase();
+
+  // 1) Hard block for tech unless food is also present
   const mentionsTech = TECH_BLOCKLIST.some(w => t.includes(w));
   const mentionsFood = FOOD_ALLOWLIST.some(w => t.includes(w));
   if (mentionsTech && !mentionsFood) return false;
+
+  // 2) Obvious food content
   if (mentionsFood) return true;
 
+  // 3) Ingredient-like
   const looksLikeIngredients =
     /[,;\n]/.test(t) && /\b(grams|g|kg|ml|l|cup|cups|tsp|tbsp|teaspoon|tablespoon)\b/.test(t);
   if (looksLikeIngredients) return true;
 
-  if (lastAssistant && /\b(cook|dish|meal|recipe|idea|juice|smoothie|soup|salad|quinoa|stew|bowl|curry|pilaf|chickpea|drink|snack|dinner|lunch|breakfast|sauce)\b/i.test(lastAssistant)) {
+  // 4) Contextual pass-through if last assistant was about cooking
+  if (lastAssistant && /\b(cook|dish|meal|recipe|idea|juice|smoothie|soup|salad|quinoa|stew|bowl|curry|pilaf|chickpea|drink|snack|dinner|lunch|breakfast)\b/i.test(lastAssistant)) {
     return true;
   }
+
   return false;
 }
 
-function pickModel(url?: URL) {
-  const DEFAULT = "llama-3.1-70b-versatile";
-  const envModel = Deno.env.get("MODEL");
-  const m = url?.searchParams.get("model");
-  const ALLOWED = new Set(["llama-3.1-70b-versatile", "llama-3.1-8b-instant"]);
-  if (m && ALLOWED.has(m)) return m;
-  if (envModel && ALLOWED.has(envModel)) return envModel;
-  return DEFAULT;
-}
-
-async function groqChat(messages: Msg[], model: string) {
+async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ?? "llama-3.1-8b-instant") {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -254,7 +223,7 @@ async function groqChat(messages: Msg[], model: string) {
       messages,
       temperature: 0.5,
       max_tokens: 500,
-      top_p: 0.85,
+      top_p: 0.9,
     }),
   });
   if (!res.ok) throw new Error(`Groq API error: ${res.status} ${await res.text()}`);
@@ -325,10 +294,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Message too long (max 1000 chars)" }), { status: 413, headers: h });
       }
 
-      if (body.newChat) {
-        delete chatHistories[sessionId];
-        delete sessionCtx[sessionId];
-      }
+      if (body.newChat) delete chatHistories[sessionId];
       ensureHistory(sessionId);
 
       const lastAssistant = chatHistories[sessionId].slice().reverse().find(m => m.role === "assistant")?.content ?? "";
@@ -340,18 +306,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ reply: OFF_TOPIC_REPLY, markdown: OFF_TOPIC_REPLY }), { headers: h });
       }
 
-      // Update constraint memory
-      const ctx = getCtx(sessionId);
-      for (const c of extractConstraints(message)) ctx.constraints.add(c);
-
-      // Sticky constraints reminder
-      const stickyNote = ctx.constraints.size
-        ? `Reminder: The user has these active dietary constraints: ${[...ctx.constraints].join(", ")}. Respect them strictly in all suggestions and recipes.`
-        : `Reminder: No special dietary constraints mentioned so far.`;
-
-      const stickyMsg: Msg = { role: "system", content: stickyNote };
-
-      // Choose mode + steer
+      // Choose mode
       const mode: Mode = detectMode(message, lastAssistant);
       const steer: Msg = {
         role: "system",
@@ -364,12 +319,11 @@ Deno.serve(async (req) => {
 
       // Build request to model
       const recent = chatHistories[sessionId].slice(-12);
-      const messagesToSend: Msg[] = [...recent, stickyMsg, steer, { role: "user", content: message }];
+      const messagesToSend: Msg[] = [...recent, steer, { role: "user", content: message }];
 
       // Call model
       pushAndClamp(sessionId, { role: "user", content: message });
-      const model = pickModel(url);
-      const reply = await groqChat(messagesToSend, model);
+      const reply = await groqChat(messagesToSend);
       pushAndClamp(sessionId, { role: "assistant", content: reply });
 
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));

@@ -211,7 +211,7 @@ function isCookingQuery(s: string, lastAssistant?: string): boolean {
   return false;
 }
 
-async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ?? "llama-3.1-8b-instant") {
+async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ?? "llama-3.1-70b-versatile") {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {

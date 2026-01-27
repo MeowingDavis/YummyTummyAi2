@@ -6,6 +6,7 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Yummy Tummy AI</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -19,10 +20,101 @@
   <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
 
   <style>
+    :root {
+      --bg: #141a27;
+      --text: #e6e9ef;
+      --muted: #a7b1c1;
+      --card: #1b2435;
+      --card2: #202a3e;
+      --card3: #242f45;
+      --border: rgba(226, 232, 240, 0.22);
+      --shadow: none;
+      --radius: 0px;
+      --space-1: 8px;
+      --space-2: 12px;
+      --space-3: 16px;
+      --space-4: 20px;
+      --space-5: 24px;
+      --space-6: 32px;
+    }
+
+    body {
+      color: var(--text);
+      background: var(--bg) !important;
+      background-image: linear-gradient(135deg, #1a2232 0%, #141a27 50%, #1d2638 100%) !important;
+    }
+
+    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div) {
+      --stack-offset-1: 3px;
+      --stack-offset-2: 6px;
+      position: relative;
+      isolation: isolate;
+      z-index: 0;
+      background: var(--card) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      transition: transform 180ms ease;
+    }
+    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::before,
+    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::after {
+      content: none;
+      display: none;
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--border);
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: -1;
+    }
+    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::before {
+      background: var(--card2);
+      transform: translate(var(--stack-offset-1), var(--stack-offset-1));
+    }
+    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::after {
+      background: var(--card3);
+      transform: translate(var(--stack-offset-2), var(--stack-offset-2));
+      z-index: -2;
+      box-shadow: none;
+    }
+
+    .stack-card { padding: var(--space-4); }
+    .stack-compact {
+      --stack-offset-1: 2px;
+      --stack-offset-2: 4px;
+    }
+    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div):hover,
+    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div):focus-within {
+      transform: translateY(-2px);
+    }
+
+    button,
+    [role="button"],
+    a[class*="rounded"] {
+      border-radius: 0 !important;
+    }
+
+    :where([class*="shadow"]) {
+      box-shadow: none !important;
+    }
+
+    :where([class*="drop-shadow"]) {
+      filter: none !important;
+    }
+
+    :where(a, button, input, textarea, select, summary):focus-visible {
+      outline: 2px solid #34d399;
+      outline-offset: 3px;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       * {
         animation: none !important;
         transition: none !important;
+      }
+      :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div) {
+        transform: none !important;
       }
     }
 
@@ -72,7 +164,7 @@
       <!-- Sidebar (desktop only; unchanged except nav links) -->
       <aside class="hidden md:flex md:w-72 shrink-0">
         <div
-          class="w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
+          class="stack-surface w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
             <button onclick="renderSavedChats()"
@@ -95,7 +187,7 @@
       <!-- Main column -->
       <main class="flex-1">
         <!-- CARD: grid rows (header / content). Mobile fills screen; desktop unchanged -->
-        <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden
+        <div class="stack-surface rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-visible
                     grid grid-rows-[auto,1fr] min-h-[calc(100svh-2rem)] md:min-h-0">
           <!-- Header -->
           <header
@@ -124,15 +216,16 @@
             <!-- Local-only storage notice -->
             <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div
-                class="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
+                class="stack-surface stack-compact mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
                 <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                 </svg>
                 <div class="text-sm leading-6">
                   <strong class="font-semibold">Privacy:</strong>
-                  Your chats are saved <span class="font-semibold">locally on this device only</span>.
-                  Clearing your browser data (or using a different device/browser) will remove them.
+                  Saved chats are stored <span class="font-semibold">locally on this device</span>.
+                  Live chat context is held briefly in server memory to keep the conversation flowing.
+                  Acknowledging this notice enables saving.
                   <button id="privacyLearnMore"
                     class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
                 </div>
@@ -180,7 +273,7 @@
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
             <!-- Composer -->
-            <div class="composer-safe sticky bottom-0 px-3 md:px-8 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2 md:pt-3
+            <div class="stack-surface stack-compact composer-safe sticky bottom-0 px-3 md:px-8 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2 md:pt-3
                         bg-slate-900/70 md:bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
               <div class="flex flex-col md:flex-row md:items-end gap-2">
                 <label for="input" class="sr-only">Your message</label>
@@ -239,7 +332,7 @@
 
   <!-- Mobile Saved Chats Modal -->
   <div class="fixed inset-0 z-40 hidden bg-black/70 sm:bg-black/60" id="mobileSavedModalBg"></div>
-  <div class="fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] sm:w-[82vw] max-w-xs overflow-y-auto
+  <div class="stack-drawer stack-compact fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] sm:w-[82vw] max-w-xs overflow-y-auto
               rounded-r-2xl border border-slate-800 bg-slate-900/95 sm:bg-slate-900/90 backdrop-blur-md p-5"
     id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
     <div class="mb-3 flex items-center justify-between">
@@ -262,6 +355,7 @@
   <script type="module" src="/app.js"></script>
 
   <!-- Stick-to-bottom like ChatGPT/FB Messenger -->
+  <script src="/stickToBottom.js"></script>
 
 
   <!-- Drawer wiring (no styling changes) -->

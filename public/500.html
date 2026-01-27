@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <title>Server error - Yummy Tummy AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #141a27;
+      --text: #e6e9ef;
+      --muted: #a7b1c1;
+      --card: #1b2435;
+      --card2: #202a3e;
+      --card3: #242f45;
+      --border: rgba(226, 232, 240, 0.22);
+      --shadow: none;
+      --radius: 0px;
+      --space-1: 8px;
+      --space-2: 12px;
+      --space-3: 16px;
+      --space-4: 20px;
+      --space-5: 24px;
+      --space-6: 32px;
+    }
+    body {
+      color: var(--text);
+      background: var(--bg) !important;
+      background-image: linear-gradient(135deg, #1a2232 0%, #141a27 50%, #1d2638 100%) !important;
+    }
+    :where(.stack-surface, .stack-card) {
+      --stack-offset-1: 3px;
+      --stack-offset-2: 6px;
+      position: relative;
+      isolation: isolate;
+      z-index: 0;
+      background: var(--card) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      transition: transform 180ms ease;
+    }
+    :where(.stack-surface, .stack-card)::before,
+    :where(.stack-surface, .stack-card)::after {
+      content: none;
+      display: none;
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--border);
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: -1;
+    }
+    :where(.stack-surface, .stack-card)::before {
+      background: var(--card2);
+      transform: translate(var(--stack-offset-1), var(--stack-offset-1));
+    }
+    :where(.stack-surface, .stack-card)::after {
+      background: var(--card3);
+      transform: translate(var(--stack-offset-2), var(--stack-offset-2));
+      z-index: -2;
+      box-shadow: none;
+    }
+    .stack-card { padding: var(--space-4); }
+    :where(.stack-surface, .stack-card):hover,
+    :where(.stack-surface, .stack-card):focus-within {
+      transform: translateY(-2px);
+    }
+    button,
+    [role="button"],
+    a[class*="rounded"] {
+      border-radius: 0 !important;
+    }
+    :where(a, button, input, textarea, select, summary):focus-visible {
+      outline: 2px solid #34d399;
+      outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none!important;transition:none!important;}
+      :where(.stack-surface, .stack-card){transform:none!important;}
+    }
+  </style>
+</head>
+<body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
+  <main class="min-h-[100svh] flex items-center justify-center px-4">
+    <div class="stack-surface max-w-xl w-full rounded-3xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl p-8">
+      <div class="text-sm text-slate-400">Error 500</div>
+      <h1 class="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">Something went wrong</h1>
+      <p class="mt-3 text-slate-300">
+        The server hit an error. Please try again in a moment, or head back to the home page.
+      </p>
+      <div class="mt-6 flex flex-col sm:flex-row gap-3">
+        <a href="/" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 h-11 text-white font-semibold shadow-lg ring-1 ring-emerald-400/40 hover:bg-emerald-600">
+          Go home
+        </a>
+        <a href="/chat.html" class="inline-flex items-center justify-center rounded-full px-5 h-11 ring-1 ring-slate-700 bg-slate-900/60 hover:bg-slate-800/60">
+          Open chat
+        </a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

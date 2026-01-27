@@ -3,14 +3,101 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-  <title>About — Yummy Tummy AI</title>
+  <title>About - Yummy Tummy AI</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important;} }
-    .glass { background: rgba(15,23,42,.55); backdrop-filter: blur(10px); }
+    :root {
+      --bg: #141a27;
+      --text: #e6e9ef;
+      --muted: #a7b1c1;
+      --card: #1b2435;
+      --card2: #202a3e;
+      --card3: #242f45;
+      --border: rgba(226, 232, 240, 0.22);
+      --shadow: none;
+      --radius: 0px;
+      --space-1: 8px;
+      --space-2: 12px;
+      --space-3: 16px;
+      --space-4: 20px;
+      --space-5: 24px;
+      --space-6: 32px;
+    }
+
+    body {
+      color: var(--text);
+      background: var(--bg) !important;
+      background-image: linear-gradient(135deg, #1a2232 0%, #141a27 50%, #1d2638 100%) !important;
+    }
+
+    :where(.stack-surface, .stack-card, .glass) {
+      --stack-offset-1: 3px;
+      --stack-offset-2: 6px;
+      position: relative;
+      isolation: isolate;
+      z-index: 0;
+      background: var(--card) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      transition: transform 180ms ease;
+    }
+    :where(.stack-surface, .stack-card, .glass)::before,
+    :where(.stack-surface, .stack-card, .glass)::after {
+      content: none;
+      display: none;
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--border);
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: -1;
+    }
+    :where(.stack-surface, .stack-card, .glass)::before {
+      background: var(--card2);
+      transform: translate(var(--stack-offset-1), var(--stack-offset-1));
+    }
+    :where(.stack-surface, .stack-card, .glass)::after {
+      background: var(--card3);
+      transform: translate(var(--stack-offset-2), var(--stack-offset-2));
+      z-index: -2;
+      box-shadow: none;
+    }
+
+    .stack-card { padding: var(--space-4); }
+    :where(.stack-surface, .stack-card, .glass):hover,
+    :where(.stack-surface, .stack-card, .glass):focus-within {
+      transform: translateY(-2px);
+    }
+
+    button,
+    [role="button"],
+    a[class*="rounded"] {
+      border-radius: 0 !important;
+    }
+
+    :where([class*="shadow"]) {
+      box-shadow: none !important;
+    }
+
+    :where([class*="drop-shadow"]) {
+      filter: none !important;
+    }
+
+    :where(a, button, input, textarea, select, summary):focus-visible {
+      outline: 2px solid #34d399;
+      outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none!important;transition:none!important;}
+      :where(.stack-surface, .stack-card, .glass){transform:none!important;}
+    }
   </style>
 </head>
 <body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
@@ -35,7 +122,7 @@
     <div class="max-w-4xl mx-auto">
       <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight">About</h1>
       <p class="mt-3 text-slate-300 text-lg leading-relaxed">
-        Yummy Tummy AI helps you turn the ingredients you have into dinner ideas — via a simple, private chat.
+        Yummy Tummy AI helps you turn the ingredients you have into dinner ideas - via a simple, private chat.
       </p>
     </div>
   </section>
@@ -73,7 +160,7 @@
         <h2 class="text-xl font-semibold">How it works</h2>
         <ul class="mt-3 space-y-2 text-slate-300 list-disc list-inside">
           <li>Type or paste what you’ve got and what you feel like cooking.</li>
-          <li>Your message is sent securely to an AI service and the reply is streamed back to the site.</li>
+          <li>Your message is sent securely to an AI service and the reply is sent back to the site.</li>
           <li>Saved chats live only in your browser; there’s no server-side database for your history.</li>
         </ul>
       </section>
@@ -85,14 +172,15 @@
           <div>
             <h3 class="font-medium">Local storage</h3>
             <p class="mt-1 text-slate-300">
-              Chats you save are stored in <span class="font-mono text-slate-200">localStorage</span> on this device (e.g., key
+              Saved chats are stored in <span class="font-mono text-slate-200">localStorage</span> on this device (e.g., key
               <span class="font-mono text-emerald-300">yt_ai_draft</span> for drafts). Clearing your browser data removes them.
+              The live conversation is held temporarily in memory on the server to keep context and is not persisted.
             </p>
           </div>
           <div>
             <h3 class="font-medium">What’s sent</h3>
             <p class="mt-1 text-slate-300">
-              When you press <em>Send</em>, your message is processed by an AI service over HTTPS. We don’t store your chats on a server; they’re kept only long enough to generate a response and show it to you.
+              When you press <em>Send</em>, your message is processed by an AI service over HTTPS. This server keeps a short in-memory session history for context and does not persist it to a database.
             </p>
           </div>
         </div>
@@ -105,9 +193,9 @@
       <section class="glass rounded-2xl border border-slate-800/70 p-6">
         <h2 class="text-xl font-semibold">Current limitations</h2>
         <ul class="mt-3 space-y-2 text-slate-300 list-disc list-inside">
-          <li>No photo/attachment input right now (text only).</li>
+          <li>Image attachments are not processed yet (text-only responses).</li>
           <li>Responsive design is being refined; behavior may vary by device/browser.</li>
-          <li>Suggestions are informational — always check allergies and doneness to your preference.</li>
+          <li>Suggestions are informational - always check allergies and doneness to your preference.</li>
         </ul>
       </section>
 
@@ -121,7 +209,7 @@
               <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
             </summary>
             <p class="mt-2 text-slate-300">
-              In your browser’s local storage on this device. Clear your browser data to remove them.
+              Saved chats are in your browser’s local storage on this device. Live session context is temporary and held in server memory.
             </p>
           </details>
           <details class="group">
@@ -129,7 +217,7 @@
               <span>Does it support photos?</span>
               <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
             </summary>
-            <p class="mt-2 text-slate-300">Not currently. The interface is text-only for now.</p>
+            <p class="mt-2 text-slate-300">Not yet. You can attach images, but they are currently ignored.</p>
           </details>
           <details class="group">
             <summary class="cursor-pointer select-none flex items-center justify-between">

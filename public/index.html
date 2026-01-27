@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-  <title>Yummy Tummy AI — Smart recipe chat</title>
+  <title>Yummy Tummy AI - Smart recipe chat</title>
 
   <!-- SEO / Social -->
   <meta name="description" content="Yummy Tummy AI turns the ingredients you type or paste into delicious meals. Private by default, no account required." />
@@ -11,13 +11,105 @@
   <meta property="og:description" content="Turn what you’ve got into dinner. Private by default." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="/og-image.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important;} }
-    .glass { background: rgba(15,23,42,.55); backdrop-filter: blur(10px); }
+    :root {
+      --bg: #141a27;
+      --text: #e6e9ef;
+      --muted: #a7b1c1;
+      --card: #1b2435;
+      --card2: #202a3e;
+      --card3: #242f45;
+      --border: rgba(226, 232, 240, 0.22);
+      --shadow: none;
+      --radius: 0px;
+      --space-1: 8px;
+      --space-2: 12px;
+      --space-3: 16px;
+      --space-4: 20px;
+      --space-5: 24px;
+      --space-6: 32px;
+    }
+
+    body {
+      color: var(--text);
+      background: var(--bg) !important;
+      background-image: linear-gradient(135deg, #1a2232 0%, #141a27 50%, #1d2638 100%) !important;
+    }
+
+    :where(.stack-surface, .stack-card, .glass) {
+      --stack-offset-1: 3px;
+      --stack-offset-2: 6px;
+      position: relative;
+      isolation: isolate;
+      z-index: 0;
+      background: var(--card) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      transition: transform 180ms ease;
+    }
+    :where(.stack-surface, .stack-card, .glass)::before,
+    :where(.stack-surface, .stack-card, .glass)::after {
+      content: none;
+      display: none;
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--border);
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: -1;
+    }
+    :where(.stack-surface, .stack-card, .glass)::before {
+      background: var(--card2);
+      transform: translate(var(--stack-offset-1), var(--stack-offset-1));
+    }
+    :where(.stack-surface, .stack-card, .glass)::after {
+      background: var(--card3);
+      transform: translate(var(--stack-offset-2), var(--stack-offset-2));
+      z-index: -2;
+      box-shadow: none;
+    }
+
+    .stack-card { padding: var(--space-4); }
+    :where(.stack-surface, .stack-card, .glass):hover,
+    :where(.stack-surface, .stack-card, .glass):focus-within {
+      transform: translateY(-2px);
+    }
+
+    button,
+    [role="button"],
+    a[class*="rounded"] {
+      border-radius: 0 !important;
+    }
+
+    :where([class*="shadow"]) {
+      box-shadow: none !important;
+    }
+
+    :where([class*="drop-shadow"]) {
+      filter: none !important;
+    }
+
+    #notice,
+    #privacyNoticeHome {
+      margin-bottom: var(--space-4);
+    }
+
+    :where(a, button, input, textarea, select, summary):focus-visible {
+      outline: 2px solid #34d399;
+      outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none!important;transition:none!important;}
+      :where(.stack-surface, .stack-card, .glass){transform:none!important;}
+    }
   </style>
 </head>
 <body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
@@ -53,6 +145,24 @@
     </div>
   </div>
 
+  <!-- Privacy notice (acknowledge to enable saving) -->
+  <div id="privacyNoticeHome" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="glass mt-3 rounded-2xl border border-emerald-800/50 bg-emerald-950/30 p-3 sm:p-4 flex items-start gap-3">
+      <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+      </svg>
+      <div class="text-sm leading-6 text-slate-200">
+        <strong class="font-semibold">Privacy:</strong>
+        Saved chats are stored locally on this device. Acknowledge this notice to enable saving.
+      </div>
+      <button id="privacyDismissHome"
+              class="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm ring-1 ring-inset ring-emerald-500 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+              aria-label="Acknowledge privacy notice">
+        Acknowledge
+      </button>
+    </div>
+  </div>
+
   <!-- Hero -->
   <section class="px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-6 md:gap-10 items-center">
@@ -76,7 +186,7 @@
         </div>
 
         <div class="mt-4 text-sm text-emerald-300/90">
-          Private by default — your chats are stored locally on this device.
+          Private by default - saved chats are stored locally on this device.
         </div>
       </div>
 
@@ -91,7 +201,7 @@
           <div class="mt-4 flex flex-col gap-3 text-[15px] leading-6">
             <!-- USER (right) -->
             <div class="self-end max-w-[85%] rounded-2xl bg-slate-800/60 border border-slate-700/60 p-3">
-              I’ve got spinach, feta, and eggs — ideas?
+              I’ve got spinach, feta, and eggs - ideas?
             </div>
             <!-- ASSISTANT (left) -->
             <div class="self-start max-w-[85%] rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-3">
@@ -127,7 +237,7 @@
       <div class="glass rounded-2xl border border-slate-800/70 p-5">
         <div class="text-sm text-slate-400">Step 3</div>
         <h3 class="text-lg font-semibold mt-1">Save your favourites</h3>
-        <p class="mt-2 text-slate-300">Keep go-to recipes locally. No logins, no tracking.</p>
+        <p class="mt-2 text-slate-300">Save favorite recipes locally. No logins, no tracking.</p>
       </div>
     </div>
   </section>
@@ -148,7 +258,7 @@
       <div class="glass rounded-2xl border border-slate-800/70 p-5">
         <h3 class="font-semibold">Clear recipe formatting</h3>
         <p class="mt-2 text-slate-300">
-          Messages support clean formatting — steps, lists, and links — so recipes stay easy to follow.
+          Messages support clean formatting - steps, lists, and links - so recipes stay easy to follow.
         </p>
       </div>
     </div>
@@ -180,9 +290,6 @@
   </footer>
 
   <script src="/chat.js"></script>
-  <script src="/stickToBottom.js"></script>
-
-
  
 </body>
 </html>

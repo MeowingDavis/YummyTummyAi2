@@ -28,6 +28,48 @@ function withSecurity(extra: HeadersInit = {}) {
   return { ...baseHeaders, ...extra };
 }
 
+function wantsHtml(req: Request, pathname?: string) {
+  const accept = req.headers.get("accept") ?? "";
+  if (accept.includes("text/html")) return true;
+  const path = pathname ?? new URL(req.url).pathname;
+  return !path.includes(".") || path.endsWith(".html");
+}
+
+async function serveTextTemplate(
+  path: string,
+  contentType: string,
+  origin: string,
+  status = 200,
+) {
+  try {
+    const text = await Deno.readTextFile(path);
+    const body = text.replaceAll("{{ORIGIN}}", origin);
+    const headers = withSecurity({
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=3600",
+    });
+    return new Response(body, { status, headers });
+  } catch (err) {
+    const headers = withSecurity({ "Content-Type": "text/plain; charset=utf-8" });
+    return new Response(`Template error: ${String(err?.message ?? err)}`, { status: 500, headers });
+  }
+}
+
+async function serveErrorPage(code: 404 | 500) {
+  const file = code === 404 ? "public/404.html" : "public/500.html";
+  try {
+    const html = await Deno.readTextFile(file);
+    const headers = withSecurity({
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+    });
+    return new Response(html, { status: code, headers });
+  } catch {
+    const headers = withSecurity({ "Content-Type": "text/plain; charset=utf-8" });
+    return new Response(code === 404 ? "Not Found" : "Server Error", { status: code, headers });
+  }
+}
+
 // ---------- Cookie session (per visitor) ----------
 function getOrSetSessionId(req: Request) {
   const cookie = req.headers.get("cookie") ?? "";
@@ -49,13 +91,12 @@ function ensureHistory(sessionId: string) {
       {
         role: "system",
         content: `
-You are Yummy Tummy, a helpful, expert recipe and cooking assistant AI.
+You are Yummy Tummy, a friendly expert recipe and cooking assistant.
 
 SCOPE:
-- Only answer about food, cooking, recipes, drinks, ingredients, techniques, tools, substitutions, and kitchen safety.
-- If the user asks about code or unrelated topics, refuse with:
-  "I'm here to help with cooking and recipes! Please ask about food or ingredients."
-  Then give 1 short example prompt relevant to cooking.
+- Focus on food, cooking, recipes, drinks, ingredients, techniques, tools, substitutions, and kitchen safety.
+- If a request is off-topic, briefly acknowledge it and gently steer back to cooking.
+  Provide 1 short example cooking prompt. Avoid scolding.
 
 TASK:
 - Support two paths:
@@ -69,7 +110,7 @@ DIALOG:
 
 STYLE:
 - Concise, practical Markdown with **bold** section titles and lists.
--Ingredients and instructions should seperated clearly.
+- Ingredients and instructions should be separated clearly.
 
 SAFETY:
 - Respect dietary/allergy terms and common kitchen safety.
@@ -90,14 +131,18 @@ const FOOD_ALLOWLIST = [
   "cook","cooking","recipe","recipes","ingredient","ingredients","meal","meals","dish","dishes",
   "bake","baking","roast","roasting","grill","grilling","fry","frying","boil","simmer","saute","steam",
   "soup","salad","sauce","stir-fry","marinade","marinate","season","spice","spices","herb","herbs",
-  "breakfast","lunch","dinner","dessert","snack","drink","beverage","ideas","what should i cook",
-  "juice","juices","smoothie","smoothies",
+  "breakfast","lunch","dinner","dessert","snack","drink","beverage","coffee","tea","cocktail","mocktail",
+  "ideas","what should i cook","juice","juices","smoothie","smoothies",
   // dietary
   "vegan","vegetarian","gluten","dairy-free","nut-free","halal","kosher","low-carb","keto","pescatarian",
   // pantry/common
   "egg","eggs","flour","sugar","salt","pepper","oil","butter","milk","cream","cheese",
   "chicken","beef","pork","fish","tofu","tempeh","beans","rice","pasta","noodles","lentils","chickpeas",
-  "quinoa","broth","stock","garlic","onion","tomato","tomatoes","ginger","lemon","lime"
+  "quinoa","broth","stock","garlic","onion","tomato","tomatoes","ginger","lemon","lime",
+  "apple","apples","banana","bananas","carrot","carrots","potato","potatoes","spinach","feta",
+  "yogurt","oats","cinnamon","mushroom","mushrooms","broccoli","lettuce","vegetable","vegetables","veggies","fruit",
+  // tools/gear
+  "oven","stove","pan","pot","skillet","air fryer","airfryer","knife","cutting board"
 ];
 
 const TECH_BLOCKLIST = [
@@ -122,6 +167,16 @@ function detectMode(user: string, lastAssistant: string): Mode {
     return "EXPAND";
   }
 
+  const mentionsTech = TECH_BLOCKLIST.some(w => t.includes(w));
+  const foodHits = FOOD_ALLOWLIST.filter(w => t.includes(w)).length;
+  const mentionsQuant = /\b(\d+|\d+\s*\/\s*\d+)\s*(g|kg|ml|l|cup|cups|tsp|tbsp)\b/.test(t);
+  const ingredientCue = /\b(i have|with|on hand|pantry|fridge|ingredients|leftovers|using)\b/.test(t);
+  const listy = /[,;\n]/.test(t) || (/\band\b/.test(t) && foodHits >= 2);
+
+  if (!mentionsTech && (mentionsQuant || ((ingredientCue || listy) && (foodHits >= 1 || ingredientCue)))) {
+    return "INGREDIENTS";
+  }
+
   // idea triggers
   const ideaTriggers = [
     "what should i cook","dinner ideas","lunch ideas","breakfast ideas",
@@ -129,12 +184,6 @@ function detectMode(user: string, lastAssistant: string): Mode {
     "what can i cook","suggest a meal","meal ideas","juice ideas","refreshing juice ideas"
   ];
   if (ideaTriggers.some(k => t.includes(k))) return "IDEAS";
-
-  // ingredient-ish
-  const mentionsQuant = /\b(\d+|\d+\s*\/\s*\d+)\s*(g|kg|ml|l|cup|cups|tsp|tbsp)\b/.test(t);
-  const looksListy = /[,;\n]/.test(t) || /\bi have\b|\bwith\b|\bon hand\b/.test(t);
-  const hasManyFoodWords = FOOD_ALLOWLIST.filter(w => t.includes(w)).length >= 3;
-  if (mentionsQuant || (looksListy && hasManyFoodWords)) return "INGREDIENTS";
 
   // default to ideas for vague cooking queries
   return "IDEAS";
@@ -171,8 +220,8 @@ Selection/Expansion Mode.
 `.trim();
 
 const OFF_TOPIC_REPLY =
-  "I'm here to help with cooking and recipes! Please ask about food or ingredients.\n\n" +
-  "💡 Try: **“I have eggs, spinach, and feta — what can I make?”**";
+  "I can help with cooking and recipes. If you'd like, share what you have or what you're craving.\n\n" +
+  "Try: **“I have eggs, spinach, and feta — what can I make?”**";
 
 // ---------- Helpers ----------
 async function readJson<T = any>(req: Request, limit = 32 * 1024): Promise<T> {
@@ -195,12 +244,17 @@ function isCookingQuery(s: string, lastAssistant?: string): boolean {
   const mentionsFood = FOOD_ALLOWLIST.some(w => t.includes(w));
   if (mentionsTech && !mentionsFood) return false;
 
+  // 1b) Light small-talk passthrough
+  if (/^(hi|hello|hey|thanks|thank you|ok|okay|cool|great|nice|awesome)$/i.test(t)) return true;
+
   // 2) Obvious food content
   if (mentionsFood) return true;
 
   // 3) Ingredient-like
+  const ingredientCue = /\b(i have|with|on hand|pantry|fridge|ingredients|leftovers|using)\b/.test(t);
   const looksLikeIngredients =
-    /[,;\n]/.test(t) && /\b(grams|g|kg|ml|l|cup|cups|tsp|tbsp|teaspoon|tablespoon)\b/.test(t);
+    /\b(grams|g|kg|ml|l|cup|cups|tsp|tbsp|teaspoon|tablespoon)\b/.test(t) ||
+    ((ingredientCue || /[,;\n]/.test(t)) && (mentionsFood || ingredientCue));
   if (looksLikeIngredients) return true;
 
   // 4) Contextual pass-through if last assistant was about cooking
@@ -261,6 +315,14 @@ Deno.serve(async (req) => {
     const h = new Headers(headers);
     if (setCookie) h.append("Set-Cookie", setCookie);
     return new Response(JSON.stringify({ ok: true }), { headers: h });
+  }
+
+  // Sitemap + robots (templated with request origin)
+  if (req.method === "GET" && url.pathname === "/sitemap.xml") {
+    return await serveTextTemplate("public/sitemap.xml", "application/xml; charset=utf-8", url.origin);
+  }
+  if (req.method === "GET" && url.pathname === "/robots.txt") {
+    return await serveTextTemplate("public/robots.txt", "text/plain; charset=utf-8", url.origin);
   }
 
   // Chat
@@ -344,24 +406,34 @@ Deno.serve(async (req) => {
   }
 
   // Static files from /public
-  const res = await serveDir(req, { fsRoot: "public", quiet: true });
+  try {
+    const res = await serveDir(req, { fsRoot: "public", quiet: true });
 
-  // Add security headers + caching to static responses
-  const h = new Headers(res.headers);
-  for (const [k, v] of Object.entries(baseHeaders)) h.set(k, v as string);
-  const ct = h.get("content-type") || "";
-  if (ct.includes("text/html")) {
-    h.set("Cache-Control", "no-store");
-  } else if (
-    ct.includes("javascript") ||
-    ct.includes("css") ||
-    ct.includes("image") ||
-    ct.includes("font") ||
-    ct.includes("json") ||
-    ct.includes("webmanifest")
-  ) {
-    h.set("Cache-Control", "public, max-age=31536000, immutable");
+    if (res.status === 404 && wantsHtml(req, url.pathname)) {
+      return await serveErrorPage(404);
+    }
+
+    // Add security headers + caching to static responses
+    const h = new Headers(res.headers);
+    for (const [k, v] of Object.entries(baseHeaders)) h.set(k, v as string);
+    const ct = h.get("content-type") || "";
+    if (ct.includes("text/html")) {
+      h.set("Cache-Control", "no-store");
+    } else if (
+      ct.includes("javascript") ||
+      ct.includes("css") ||
+      ct.includes("image") ||
+      ct.includes("font") ||
+      ct.includes("json") ||
+      ct.includes("webmanifest")
+    ) {
+      h.set("Cache-Control", "public, max-age=31536000, immutable");
+    }
+
+    return new Response(res.body, { status: res.status, headers: h });
+  } catch {
+    if (wantsHtml(req, url.pathname)) return await serveErrorPage(500);
+    const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+    return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
   }
-
-  return new Response(res.body, { status: res.status, headers: h });
 });

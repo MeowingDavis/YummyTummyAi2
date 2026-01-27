@@ -9,6 +9,12 @@ let mobileBtn, mobileBg, mobileModal, mobileClose;
 let chatHistory = [];
 let pendingFiles = [];
 const DRAFT_KEY = "yt_ai_draft";
+const PRIVACY_DISMISSED_KEY = "yt_privacy_notice_dismissed_v1";
+
+function hasPrivacyAck() {
+  try { return localStorage.getItem(PRIVACY_DISMISSED_KEY) === "1"; }
+  catch { return false; }
+}
 
 // ---- Suggestions ----
 const SUGGESTIONS = [
@@ -44,9 +50,16 @@ function sample(array, k = 4) {
 }
 
 // ---------- Saved Chats ----------
-function getSavedChats() { return JSON.parse(localStorage.getItem("savedChats") || "[]"); }
-function saveChats(arr) { localStorage.setItem("savedChats", JSON.stringify(arr)); }
+function getSavedChats() {
+  if (!hasPrivacyAck()) return [];
+  return JSON.parse(localStorage.getItem("savedChats") || "[]");
+}
+function saveChats(arr) {
+  if (!hasPrivacyAck()) return;
+  localStorage.setItem("savedChats", JSON.stringify(arr));
+}
 function saveChatCapped(obj, cap = 30){
+  if (!hasPrivacyAck()) return;
   const saved = getSavedChats();
   saved.push(obj);
   while (saved.length > cap) saved.shift();
@@ -58,6 +71,13 @@ function renderSavedChats() {
   const ul = document.getElementById("savedChats");
   if (!ul) return;
   ul.innerHTML = "";
+  if (!hasPrivacyAck()) {
+    const li = document.createElement("li");
+    li.className = "rounded-xl border border-slate-800 bg-slate-800/40 px-3 py-2 text-slate-300";
+    li.textContent = "Acknowledge the privacy notice to enable saved chats.";
+    ul.appendChild(li);
+    return;
+  }
   savedChats.forEach((chat, idx) => {
     const li = document.createElement("li");
     li.className = "flex items-center justify-between rounded-xl border border-slate-800 bg-slate-800/50 px-3 py-2";
@@ -75,6 +95,10 @@ function renderSavedChats() {
 window.renderSavedChats = renderSavedChats;
 
 function saveChat() {
+  if (!hasPrivacyAck()) {
+    alert("Please acknowledge the privacy notice to enable saved chats.");
+    return;
+  }
   const title = prompt("Name this chat:", "Recipe Chat");
   if (!title) return;
   saveChatCapped({ title, history: chatHistory });
@@ -84,6 +108,7 @@ function saveChat() {
 window.saveChat = saveChat;
 
 function loadChat(idx) {
+  if (!hasPrivacyAck()) return;
   const savedChats = getSavedChats();
   if (!savedChats[idx]) return;
   chatHistory = savedChats[idx].history || [];
@@ -97,6 +122,7 @@ function loadChat(idx) {
 window.loadChat = loadChat;
 
 function deleteChat(idx) {
+  if (!hasPrivacyAck()) return;
   const savedChats = getSavedChats();
   savedChats.splice(idx, 1);
   saveChats(savedChats);
@@ -106,6 +132,7 @@ function deleteChat(idx) {
 window.deleteChat = deleteChat;
 
 function exportChat(idx) {
+  if (!hasPrivacyAck()) return;
   const saved = getSavedChats()[idx];
   if (!saved) return;
   const blob = new Blob([JSON.stringify(saved, null, 2)], { type: "application/json" });
@@ -215,8 +242,14 @@ function autoresize() {
 }
 
 // Draft autosave
-function saveDraft(){ localStorage.setItem(DRAFT_KEY, input.value); }
-function clearDraft(){ localStorage.removeItem(DRAFT_KEY); }
+function saveDraft(){
+  if (!hasPrivacyAck()) return;
+  localStorage.setItem(DRAFT_KEY, input.value);
+}
+function clearDraft(){
+  if (!hasPrivacyAck()) return;
+  localStorage.removeItem(DRAFT_KEY);
+}
 
 // ---------- Networking with retry ----------
 async function postJSON(url, body, tries=3){
@@ -275,12 +308,7 @@ async function send(){
 
   sendBtn.disabled = true;
 
-  const allowedKeywords = ["cook","recipe","food","ingredient","bake","grill","fry","boil","meal","dish","kitchen","dinner","lunch","breakfast","snack","dessert","spice","herb","nutrition","calorie","vegan","vegetarian","meat","fish","sauce","flavor","taste","garnish","chef","cuisine"];
   const lowerMsg = message.toLowerCase();
-  const isCookingRelated = allowedKeywords.some(word => lowerMsg.includes(word));
-  if (!isCookingRelated && message.split(" ").length < 8) {
-    appendMessage("Chef", "💡 Tip: Ask about food or list ingredients for best results.");
-  }
 
   appendMessage("You", message);
   chatHistory.push({ role: "user", content: message });
@@ -339,6 +367,13 @@ function renderMobileSavedChats(){
   const ul = document.getElementById("mobileSavedChats");
   if (!ul) return;
   ul.innerHTML = "";
+  if (!hasPrivacyAck()) {
+    const li = document.createElement("li");
+    li.className = "rounded-xl border border-slate-800 bg-slate-800/40 px-3 py-2 text-slate-300";
+    li.textContent = "Acknowledge the privacy notice to enable saved chats.";
+    ul.appendChild(li);
+    return;
+  }
   savedChats.forEach((chat, idx) => {
     const li = document.createElement("li");
     li.className = "flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2";
@@ -420,10 +455,18 @@ function wireDrawer() {
       input      = document.getElementById('input');
       sendBtn    = document.getElementById('sendBtn');
       newChatBtn = document.getElementById('newChatBtn');
+      const saveBtn = document.getElementById('saveBtn');
 
       newChatBtn?.addEventListener('click', newChat);
 
-      input.value = localStorage.getItem(DRAFT_KEY) || "";
+      if (hasPrivacyAck()) {
+        input.value = localStorage.getItem(DRAFT_KEY) || "";
+      }
+      if (saveBtn && !hasPrivacyAck()) {
+        saveBtn.disabled = true;
+        saveBtn.title = "Acknowledge the privacy notice to enable saving.";
+        saveBtn.classList.add("opacity-50", "cursor-not-allowed");
+      }
       let composing = false;
       input.addEventListener("compositionstart", () => composing = true);
       input.addEventListener("compositionend",   () => composing = false);
@@ -464,7 +507,6 @@ function wireDrawer() {
 
   function initPrivacy() {
     try {
-      const PRIVACY_DISMISSED_KEY = "yt_privacy_notice_dismissed_v1";
       const notice = document.getElementById("privacyNotice");
       const dismissBtn = document.getElementById("privacyDismiss");
       const learnBtn = document.getElementById("privacyLearnMore");
@@ -479,6 +521,14 @@ function wireDrawer() {
         try {
           localStorage.setItem(PRIVACY_DISMISSED_KEY, "1");
           notice.classList.add("hidden");
+          renderSavedChats();
+          renderMobileSavedChats();
+          const saveBtn = document.getElementById('saveBtn');
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.title = "Save chat";
+            saveBtn.classList.remove("opacity-50", "cursor-not-allowed");
+          }
         } catch (e) { console.warn("[privacy] dismiss failed:", e); }
       });
 
@@ -487,8 +537,9 @@ function wireDrawer() {
         try {
           alert(
             "Where are chats stored?\n\n" +
-            "• Chats are saved in your browser’s local storage on this device only.\n" +
-            "• They are not uploaded to a server by the app.\n" +
+            "• Saved chats live in your browser's local storage on this device.\n" +
+            "• Messages are sent to the AI service to generate replies.\n" +
+            "• Live chat context is held briefly in server memory to keep the conversation flowing.\n" +
             "• Clearing site data or using a different browser/device will remove them.\n" +
             "• You can export a chat from the Saved Chats panel at any time."
           );

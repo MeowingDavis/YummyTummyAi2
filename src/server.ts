@@ -4,12 +4,13 @@ import { applySecurityHeaders, withSecurity } from "./security.ts";
 import { serveErrorPage, serveTextTemplate, wantsHtml } from "./templates.ts";
 import { getOrSetSessionId } from "./session.ts";
 import { readJson } from "./http.ts";
-import { allow } from "./rateLimit.ts";
+import { allow, allowSession } from "./rateLimit.ts";
 import { SYSTEM_PROMPT, OFF_TOPIC_REPLY } from "./chat/prompts.ts";
 import { ensureHistory, getHistory, pushAndClamp, clearHistory } from "./chat/history.ts";
 import { isCookingQuery } from "./chat/guard.ts";
 import { detectMode, steerForMode } from "./chat/modes.ts";
 import { groqChat } from "./chat/groq.ts";
+import { redact } from "./redact.ts";
 
 export function startServer() {
   Deno.serve(async (req) => {
@@ -41,7 +42,7 @@ export function startServer() {
         req.headers.get("cf-connecting-ip") ??
         "anon";
 
-      if (!allow(ip)) {
+      if (!allow(ip) || !allowSession(sessionId)) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
         return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { status: 429, headers: h });
@@ -95,7 +96,9 @@ export function startServer() {
       } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
-        return new Response(JSON.stringify({ error: String(err?.message ?? err) }), { status: 500, headers: h });
+        const safe = redact(String(err?.message ?? err));
+        console.warn("[chat] error:", safe);
+        return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
       }
     }
 

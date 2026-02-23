@@ -19,7 +19,7 @@ export async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ??
       top_p: 0.9,
     }),
   });
-  if (!res.ok) throw new Error(`Groq API error: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`Groq API error: ${res.status}`);
   const data = await res.json();
   return (data?.choices?.[0]?.message?.content ?? "Sorry, no response.").trim();
 }

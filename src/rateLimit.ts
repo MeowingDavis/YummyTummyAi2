@@ -17,3 +17,15 @@ export function allow(ip: string) {
   BUCKETS.set(ip, b);
   return true;
 }
+
+// Simple per-session cooldown to reduce rapid-fire spam
+const SESSION_LAST = new Map<string, number>();
+const MIN_SESSION_INTERVAL_MS = 1200;
+
+export function allowSession(sessionId: string) {
+  const now = Date.now();
+  const last = SESSION_LAST.get(sessionId) ?? 0;
+  if (now - last < MIN_SESSION_INTERVAL_MS) return false;
+  SESSION_LAST.set(sessionId, now);
+  return true;
+}

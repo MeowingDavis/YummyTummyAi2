@@ -2,16 +2,37 @@
 
 export type Msg = { role: "system" | "user" | "assistant"; content: string };
 
-const chatHistories: Record<string, Msg[]> = {};
+type SessionHistory = {
+  messages: Msg[];
+  createdAt: number;
+};
+
+const chatHistories: Record<string, SessionHistory> = {};
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+function isExpired(entry: SessionHistory) {
+  return Date.now() - entry.createdAt > SESSION_TTL_MS;
+}
 
 export function ensureHistory(sessionId: string, systemPrompt: string) {
-  if (!chatHistories[sessionId]) {
-    chatHistories[sessionId] = [{ role: "system", content: systemPrompt.trim() }];
+  const existing = chatHistories[sessionId];
+  if (!existing || isExpired(existing)) {
+    chatHistories[sessionId] = {
+      messages: [{ role: "system", content: systemPrompt.trim() }],
+      createdAt: Date.now(),
+    };
+    return;
   }
 }
 
 export function getHistory(sessionId: string) {
-  return chatHistories[sessionId] ?? [];
+  const entry = chatHistories[sessionId];
+  if (!entry) return [];
+  if (isExpired(entry)) {
+    delete chatHistories[sessionId];
+    return [];
+  }
+  return entry.messages;
 }
 
 export function clearHistory(sessionId: string) {
@@ -19,7 +40,9 @@ export function clearHistory(sessionId: string) {
 }
 
 export function pushAndClamp(sessionId: string, msg: Msg, max = 30) {
-  chatHistories[sessionId].push(msg);
-  const len = chatHistories[sessionId].length;
-  if (len > max) chatHistories[sessionId] = chatHistories[sessionId].slice(len - max);
+  const entry = chatHistories[sessionId];
+  if (!entry) return;
+  entry.messages.push(msg);
+  const len = entry.messages.length;
+  if (len > max) entry.messages = entry.messages.slice(len - max);
 }

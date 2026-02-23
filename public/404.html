@@ -40,7 +40,6 @@
       border-radius: var(--radius) !important;
       box-shadow: none !important;
       backdrop-filter: none !important;
-      transition: transform 180ms ease;
     }
     :where(.stack-surface, .stack-card)::before,
     :where(.stack-surface, .stack-card)::after {
@@ -64,10 +63,6 @@
       box-shadow: none;
     }
     .stack-card { padding: var(--space-4); }
-    :where(.stack-surface, .stack-card):hover,
-    :where(.stack-surface, .stack-card):focus-within {
-      transform: translateY(-2px);
-    }
     button,
     [role="button"],
     a[class*="rounded"] {

@@ -55,7 +55,6 @@
       border-radius: var(--radius) !important;
       box-shadow: none !important;
       backdrop-filter: none !important;
-      transition: transform 180ms ease;
     }
     :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::before,
     :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::after {
@@ -84,11 +83,6 @@
       --stack-offset-1: 2px;
       --stack-offset-2: 4px;
     }
-    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div):hover,
-    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div):focus-within {
-      transform: translateY(-2px);
-    }
-
     button,
     [role="button"],
     a[class*="rounded"] {
@@ -352,63 +346,12 @@
   </div>
 
   <!-- Your client app (unchanged) -->
-  <script type="module" src="/app.js"></script>
+  <script type="module" src="/js/chat/index.js"></script>
 
   <!-- Stick-to-bottom like ChatGPT/FB Messenger -->
   <script src="/stickToBottom.js"></script>
 
 
-  <!-- Drawer wiring (no styling changes) -->
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const btn = document.getElementById('mobileMenuBtn');
-      const bg = document.getElementById('mobileSavedModalBg');
-      const panel = document.getElementById('mobileSavedModal');
-      const close = document.getElementById('mobileCloseBtn');
-
-      if (!btn || !bg || !panel) return;
-
-      function openDrawer() {
-        try {
-          bg.classList.remove('hidden');
-          panel.classList.remove('hidden');
-          panel.style.display = 'block';
-          panel.setAttribute('aria-hidden', 'false');
-          panel.setAttribute('tabindex', '-1');
-          document.body.classList.add('overflow-hidden');
-          btn.setAttribute('aria-expanded', 'true');
-
-          try {
-            if (typeof renderSavedChats === 'function') renderSavedChats();
-            const src = document.getElementById('savedChats');
-            const dst = document.getElementById('mobileSavedChats');
-            if (src && dst) dst.innerHTML = src.innerHTML;
-          } catch { }
-
-          requestAnimationFrame(() => {
-            try { panel.focus({ preventScroll: true }); } catch { }
-          });
-        } catch (err) {
-          bg.classList.add('hidden');
-          console.warn('Drawer open failed:', err);
-        }
-      }
-
-      function closeDrawer() {
-        panel.classList.add('hidden');
-        panel.style.removeProperty('display');
-        panel.setAttribute('aria-hidden', 'true');
-        bg.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-        btn.setAttribute('aria-expanded', 'false');
-      }
-
-      btn.addEventListener('click', openDrawer);
-      close?.addEventListener('click', closeDrawer);
-      bg.addEventListener('click', closeDrawer);
-      window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
-    });
-  </script>
 </body>
 
 </html>

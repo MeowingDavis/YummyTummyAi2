@@ -1,11 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
 
 :root {
-  --np-paper: #141a27;
-  --np-ink: #e6e9ef;
-  --np-muted: #1b2435;
+  --np-paper: #101826;
+  --np-ink: #f3f6fb;
+  --np-muted: #1f2d42;
   --np-accent: #34d399;
-  --np-border: rgba(226, 232, 240, 0.22);
+  --np-subtle: #b7c1d3;
+  --np-border: rgba(226, 232, 240, 0.34);
   --np-invert-bg: #e6e9ef;
   --np-invert-fg: #141a27;
   --np-space-1: 0.5rem;
@@ -165,6 +166,7 @@ pre,
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 700;
+  color: var(--np-subtle);
 }
 
 .np-link {
@@ -173,6 +175,7 @@ pre,
   letter-spacing: 0.12em;
   text-transform: uppercase;
   text-decoration: none;
+  color: var(--np-ink);
 }
 
 .np-link:hover {
@@ -201,7 +204,7 @@ pre,
 }
 
 .np-btn-secondary {
-  background: var(--np-muted);
+  background: #24344c;
   color: var(--np-ink);
 }
 
@@ -226,7 +229,7 @@ pre,
 }
 
 .np-btn-secondary:hover {
-  background: #202a3e;
+  background: #2a3b56;
 }
 
 .news-grid {
@@ -333,7 +336,7 @@ pre,
 }
 
 [class*='text-slate-'] {
-  color: var(--np-ink) !important;
+  color: var(--np-subtle) !important;
 }
 
 [class*='border-slate-'],
@@ -361,6 +364,23 @@ pre,
 
 .sharp-corners {
   border-radius: 0 !important;
+}
+
+/* Readability helpers for long-form/chat text */
+p, li, small {
+  color: var(--np-subtle);
+}
+
+strong, b {
+  color: var(--np-ink);
+}
+
+.np-btn,
+.np-link,
+button,
+label,
+summary {
+  color: var(--np-ink);
 }
 
 /* Chat-specific behavior retained from previous inline styles */

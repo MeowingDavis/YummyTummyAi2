@@ -30,7 +30,7 @@ function makeActions({ onCopy, onDelete }){
   bar.className = "msg-actions opacity-0 transition-opacity absolute top-2 right-2 inline-flex gap-1";
   const mk = (label, cb) => {
     const b = document.createElement('button');
-    b.className = "np-btn np-btn-secondary hard-shadow-hover text-xs px-2 py-1";
+    b.className = "skeuo-btn skeuo-btn-secondary skeuo-interactive text-xs px-2 py-1";
     b.textContent = label;
     b.onclick = cb;
     return b;
@@ -42,10 +42,10 @@ function makeActions({ onCopy, onDelete }){
 
 export function appendMessage(sender, text) {
   const wrapper = document.createElement("div");
-  wrapper.className = "msg np-surface np-card-pad relative";
+  wrapper.className = "msg skeuo-surface skeuo-card-pad relative";
 
   const senderEl = document.createElement("div");
-  senderEl.className = "mb-1 np-label text-emerald-400";
+  senderEl.className = "mb-1 skeuo-label text-emerald-400";
   senderEl.textContent = sender;
 
   const textEl = document.createElement("div");
@@ -65,9 +65,9 @@ export function appendMessage(sender, text) {
 
 export function appendMarkdown(sender, markdown) {
   const wrapper = document.createElement("div");
-  wrapper.className = "msg np-surface np-card-pad relative";
+  wrapper.className = "msg skeuo-surface skeuo-card-pad relative";
   const safe = renderMarkdown(markdown);
-  wrapper.innerHTML = `<div class="mb-2 np-label text-emerald-400">${sender}</div><div class="prose max-w-none">${safe}</div>`;
+  wrapper.innerHTML = `<div class="mb-2 skeuo-label text-emerald-400">${sender}</div><div class="prose max-w-none">${safe}</div>`;
   const acts = makeActions({
     onCopy: () => navigator.clipboard.writeText(markdown),
     onDelete: () => wrapper.remove()
@@ -88,7 +88,7 @@ export function renderEmptyState(){
   box.className = "grid gap-2 sm:grid-cols-2";
   picks.forEach(q => {
     const b = document.createElement('button');
-    b.className = "text-left np-surface hard-shadow-hover np-card-pad";
+    b.className = "text-left skeuo-surface skeuo-interactive skeuo-card-pad";
     b.textContent = q;
     b.onclick = () => {
       refs.input.value = q;
@@ -113,7 +113,7 @@ export function renderTray(){
     img.className = "w-full h-full object-cover";
 
     const removeBtn = document.createElement("button");
-    removeBtn.className = "absolute -top-2 -right-2 np-btn np-btn-danger w-6 h-6 text-xs";
+    removeBtn.className = "absolute -top-2 -right-2 skeuo-btn skeuo-btn-danger w-6 h-6 text-xs";
     removeBtn.type = "button";
     removeBtn.textContent = "×";
     removeBtn.onclick = () => {

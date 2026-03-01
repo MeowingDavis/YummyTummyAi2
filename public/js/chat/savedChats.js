@@ -16,28 +16,28 @@ function actionButton(label, classes, onClick) {
 function buildSavedChatItem(chat, idx, mobile = false) {
   const li = document.createElement("li");
   li.className = mobile
-    ? "flex items-center justify-between np-surface px-3 py-2"
-    : "flex items-center justify-between np-surface px-3 py-2";
+    ? "flex items-center justify-between skeuo-surface px-3 py-2"
+    : "flex items-center justify-between skeuo-surface px-3 py-2";
 
   const title = document.createElement("span");
-  title.className = "truncate max-w-[160px] text-slate-200 np-ui";
+  title.className = "truncate max-w-[160px] text-slate-200 skeuo-ui";
   title.textContent = chat.title || `Chat ${idx + 1}`;
 
   const actions = document.createElement("span");
   actions.className = "shrink-0 space-x-2";
   actions.appendChild(actionButton(
     "Load",
-    "np-btn np-btn-secondary hard-shadow-hover px-2 py-1 text-xs",
+    "skeuo-btn skeuo-btn-secondary skeuo-interactive px-2 py-1 text-xs",
     () => loadChat(idx),
   ));
   actions.appendChild(actionButton(
     "Export",
-    "np-btn np-btn-secondary hard-shadow-hover px-2 py-1 text-xs",
+    "skeuo-btn skeuo-btn-secondary skeuo-interactive px-2 py-1 text-xs",
     () => exportChat(idx),
   ));
   actions.appendChild(actionButton(
     "Delete",
-    "np-btn np-btn-danger hard-shadow-hover px-2 py-1 text-xs",
+    "skeuo-btn skeuo-btn-danger skeuo-interactive px-2 py-1 text-xs",
     () => deleteChat(idx),
   ));
 
@@ -53,7 +53,7 @@ export function renderSavedChats() {
   ul.innerHTML = "";
   if (!hasPrivacyAck()) {
     const li = document.createElement("li");
-    li.className = "np-surface px-3 py-2 text-slate-300";
+    li.className = "skeuo-surface px-3 py-2 text-slate-300";
     li.textContent = "Acknowledge the privacy notice to enable saved chats.";
     ul.appendChild(li);
     return;
@@ -70,7 +70,7 @@ export function renderMobileSavedChats(){
   ul.innerHTML = "";
   if (!hasPrivacyAck()) {
     const li = document.createElement("li");
-    li.className = "np-surface px-3 py-2 text-slate-300";
+    li.className = "skeuo-surface px-3 py-2 text-slate-300";
     li.textContent = "Acknowledge the privacy notice to enable saved chats.";
     ul.appendChild(li);
     return;

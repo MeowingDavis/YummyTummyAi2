@@ -14,36 +14,36 @@
   <link rel="manifest" href="/manifest.webmanifest" />
 
   <!-- Tailwind -->
-  <script src="/newsprint-tailwind.js"></script>
+  <script src="/industrial-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/newsprint.css" />
+  <link rel="stylesheet" href="/industrial.css" />
 
   
 </head>
-<body class="min-h-[100svh] bg-newsprint-paper text-newsprint-ink antialiased newsprint-texture">
+<body class="min-h-[100svh] bg-industrial-chassis text-industrial-text antialiased industrial-texture">
 
   <!-- Header -->
-  <header class="np-wrap np-header">
-    <div class="np-container-wide flex items-center justify-between gap-3">
+  <header class="skeuo-wrap skeuo-header">
+    <div class="skeuo-container-wide flex items-center justify-between gap-3">
       <a href="/" class="inline-flex items-center gap-2">
         <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
         <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
       </a>
       <nav class="hidden sm:flex items-center gap-4">
-        <a href="/about.html" class="np-link">About</a>
-        <a href="/chat.html" class="np-link">Open Chat</a>
+        <a href="/about.html" class="skeuo-link">About</a>
+        <a href="/chat.html" class="skeuo-link">Open Chat</a>
       </nav>
-      <a href="/chat.html" class="sm:hidden np-btn np-btn-primary hard-shadow-hover">Open Chat</a>
+      <a href="/chat.html" class="sm:hidden skeuo-btn skeuo-btn-primary skeuo-interactive">Open Chat</a>
     </div>
   </header>
 
-  <section class="np-ticker" aria-label="Announcements">
-    <div class="np-ticker-track">Yummy Tummy AI • Accounts + cloud chat sync coming • Private by default • Ingredient-first recipe assistant • </div>
+  <section class="skeuo-ticker" aria-label="Announcements">
+    <div class="skeuo-ticker-track">Yummy Tummy AI • Accounts + cloud chat sync coming • Private by default • Ingredient-first recipe assistant • </div>
   </section>
 
   <!-- Notice: responsive design in progress -->
-  <div id="notice" class="np-wrap np-container-wide">
-    <div class="glass np-surface np-section-tight np-card-pad flex items-start gap-3">
+  <div id="notice" class="skeuo-wrap skeuo-container-wide">
+    <div class="glass skeuo-surface skeuo-section-tight skeuo-card-pad flex items-start gap-3">
       <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
       </svg>
@@ -58,8 +58,8 @@
   </div>
 
   <!-- Privacy notice (acknowledge to enable saving) -->
-  <div id="privacyNoticeHome" class="np-wrap np-container-wide">
-    <div class="glass np-surface np-section-tight np-card-pad flex items-start gap-3">
+  <div id="privacyNoticeHome" class="skeuo-wrap skeuo-container-wide">
+    <div class="glass skeuo-surface skeuo-section-tight skeuo-card-pad flex items-start gap-3">
       <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
       </svg>
@@ -68,7 +68,7 @@
         Saved chats are currently stored on this device. Accounts and cloud sync are planned.
       </div>
       <button id="privacyDismissHome"
-              class="ml-auto np-btn np-btn-danger hard-shadow-hover"
+              class="ml-auto skeuo-btn skeuo-btn-danger skeuo-interactive"
               aria-label="Acknowledge privacy notice">
         Acknowledge
       </button>
@@ -76,8 +76,8 @@
   </div>
 
   <!-- Hero -->
-  <section class="np-wrap np-section-tight">
-    <div class="np-container-wide max-w-4xl">
+  <section class="skeuo-wrap skeuo-section-tight">
+    <div class="skeuo-container-wide max-w-4xl">
       <div>
         <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
           Turn your <span class="text-emerald-400">ingredients</span> into dinner.
@@ -88,10 +88,10 @@
         </p>
 
         <div class="mt-6 flex flex-col sm:flex-row gap-3">
-          <a id="cta" href="/chat.html" class="np-btn np-btn-primary hard-shadow-hover">
+          <a id="cta" href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">
             Start chatting
           </a>
-          <a href="#how" class="np-btn np-btn-secondary hard-shadow-hover">
+          <a href="#how" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">
             How it works
           </a>
         </div>
@@ -104,20 +104,20 @@
   </section>
 
   <!-- How it works -->
-  <section id="how" class="np-wrap np-section">
-    <div class="np-container-wide grid md:grid-cols-3 news-grid">
-      <div class="glass np-surface np-card-pad-lg">
-        <div class="np-label">Step 1</div>
+  <section id="how" class="skeuo-wrap skeuo-section">
+    <div class="skeuo-container-wide grid md:grid-cols-3 news-grid">
+      <div class="glass skeuo-surface skeuo-card-pad-lg">
+        <div class="skeuo-label">Step 1</div>
         <h3 class="text-lg font-semibold mt-1">Tell it what you have</h3>
         <p class="mt-2 text-slate-300">Type or paste your ingredients and any preferences.</p>
       </div>
-      <div class="glass np-surface np-card-pad-lg">
-        <div class="np-label">Step 2</div>
+      <div class="glass skeuo-surface skeuo-card-pad-lg">
+        <div class="skeuo-label">Step 2</div>
         <h3 class="text-lg font-semibold mt-1">Chat through options</h3>
         <p class="mt-2 text-slate-300">Get substitutions, dietary tweaks, and timings as you cook.</p>
       </div>
-      <div class="glass np-surface np-card-pad-lg">
-        <div class="np-label">Step 3</div>
+      <div class="glass skeuo-surface skeuo-card-pad-lg">
+        <div class="skeuo-label">Step 3</div>
         <h3 class="text-lg font-semibold mt-1">Save your favourites</h3>
         <p class="mt-2 text-slate-300">Save favorite recipes now, with account and cloud storage support coming.</p>
       </div>
@@ -125,19 +125,19 @@
   </section>
 
   <!-- Feature grid -->
-  <section class="np-wrap np-section">
-    <div class="np-container-wide grid md:grid-cols-3 news-grid">
-      <div class="glass np-surface np-card-pad-lg">
+  <section class="skeuo-wrap skeuo-section">
+    <div class="skeuo-container-wide grid md:grid-cols-3 news-grid">
+      <div class="glass skeuo-surface skeuo-card-pad-lg">
         <h3 class="font-semibold">Responsive design (in progress)</h3>
         <p class="mt-2 text-slate-300">
           Works today on phones and desktop; we’re actively polishing the layout and interactions.
         </p>
       </div>
-      <div class="glass np-surface np-card-pad-lg">
+      <div class="glass skeuo-surface skeuo-card-pad-lg">
         <h3 class="font-semibold">Privacy-friendly</h3>
         <p class="mt-2 text-slate-300">Your chats stay on your device. Clear your browser to wipe them.</p>
       </div>
-      <div class="glass np-surface np-card-pad-lg">
+      <div class="glass skeuo-surface skeuo-card-pad-lg">
         <h3 class="font-semibold">Clear recipe formatting</h3>
         <p class="mt-2 text-slate-300">
           Messages support clean formatting - steps, lists, and links - so recipes stay easy to follow.
@@ -147,25 +147,25 @@
   </section>
 
   <!-- CTA strip -->
-  <section class="np-wrap np-section mb-10">
-    <div class="np-container-wide glass np-surface np-invert np-card-pad-lg flex flex-col md:flex-row items-center justify-between gap-4">
+  <section class="skeuo-wrap skeuo-section mb-10">
+    <div class="skeuo-container-wide glass skeuo-surface skeuo-invert skeuo-card-pad-lg flex flex-col md:flex-row items-center justify-between gap-4">
       <div>
         <h3 class="text-xl font-semibold">Ready to cook smarter?</h3>
         <p class="text-slate-300 mt-1">Open the chat and ask away.</p>
       </div>
-      <a id="cta2" href="/chat.html" class="np-btn np-btn-secondary hard-shadow-hover">
+      <a id="cta2" href="/chat.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">
         Start chatting
       </a>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="np-wrap pb-8">
-    <div class="np-container-wide flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400">
+  <footer class="skeuo-wrap pb-8">
+    <div class="skeuo-container-wide flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400">
       <div>© <span id="year"></span> Yummy Tummy AI</div>
       <div class="flex gap-4">
-        <a href="/about.html" class="np-link">About</a>
-        <a href="/chat.html" class="np-link">Open Chat</a>
+        <a href="/about.html" class="skeuo-link">About</a>
+        <a href="/chat.html" class="skeuo-link">Open Chat</a>
       </div>
     </div>
   </footer>

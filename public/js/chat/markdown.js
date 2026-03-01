@@ -12,7 +12,7 @@ export function enhanceCodeBlocks(scope = document) {
     if (pre.dataset.enhanced) return;
     pre.dataset.enhanced = "1";
     const btn = document.createElement('button');
-    btn.className = "absolute top-2 right-2 np-btn np-btn-secondary hard-shadow-hover text-xs px-2 py-1";
+    btn.className = "absolute top-2 right-2 skeuo-btn skeuo-btn-secondary skeuo-interactive text-xs px-2 py-1";
     btn.textContent = "Copy";
     btn.onclick = async () => {
       await navigator.clipboard.writeText(code.innerText);

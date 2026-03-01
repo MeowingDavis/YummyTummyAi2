@@ -1,10 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
 
 :root {
-  --np-paper: #F9F9F7;
-  --np-ink: #111111;
-  --np-muted: #E5E5E0;
-  --np-accent: #CC0000;
+  --np-paper: #141a27;
+  --np-ink: #e6e9ef;
+  --np-muted: #1b2435;
+  --np-accent: #34d399;
+  --np-border: rgba(226, 232, 240, 0.22);
+  --np-invert-bg: #e6e9ef;
+  --np-invert-fg: #141a27;
 }
 
 * {
@@ -12,10 +15,10 @@
 }
 
 body {
-  font-family: 'Lora', serif;
+  font-family: 'Inter', sans-serif;
   background-color: var(--np-paper);
   color: var(--np-ink);
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 a {
@@ -70,7 +73,7 @@ pre,
 }
 
 .newsprint-texture {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='1' cy='1' r='1' fill='%23E5E5E0'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='1' cy='1' r='1' fill='%231b2435'/%3E%3C/svg%3E");
   background-repeat: repeat;
 }
 
@@ -88,8 +91,8 @@ pre,
 #savedChats > li,
 #mobileSavedChats > li,
 #privacyNotice > div {
-  background: var(--np-paper) !important;
-  border: 1px solid var(--np-ink) !important;
+  background: var(--np-muted) !important;
+  border: 1px solid var(--np-border) !important;
   backdrop-filter: none !important;
 }
 
@@ -123,46 +126,57 @@ pre,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--np-ink);
+  border: 1px solid var(--np-border);
   padding: 0.65rem 1.1rem;
   font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 700;
-  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
 .np-btn-primary {
-  background: var(--np-ink);
-  color: var(--np-paper);
+  background: var(--np-accent);
+  color: #0f172a;
 }
 
 .np-btn-secondary {
-  background: var(--np-paper);
+  background: var(--np-muted);
   color: var(--np-ink);
 }
 
 .np-btn-danger {
-  background: var(--np-accent);
-  color: var(--np-paper);
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.hard-shadow-hover:hover {
+  border-color: var(--np-accent) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.np-btn:hover {
   border-color: var(--np-accent);
 }
 
-.hard-shadow-hover:hover,
-.np-btn:hover,
-.np-surface:hover {
-  box-shadow: 4px 4px 0 var(--np-ink) !important;
-  transform: translate(-2px, -2px);
+.np-btn-primary:hover {
+  background: #2fc391;
+}
+
+.np-btn-secondary:hover {
+  background: #202a3e;
 }
 
 .news-grid {
-  border: 1px solid var(--np-ink);
+  border: 1px solid var(--np-border);
 }
 
 .news-grid > * {
-  border-right: 1px solid var(--np-ink);
-  border-bottom: 1px solid var(--np-ink);
+  border-right: 1px solid var(--np-border);
+  border-bottom: 1px solid var(--np-border);
 }
 
 .news-grid > *:nth-child(3n) {
@@ -183,9 +197,9 @@ pre,
 }
 
 .np-invert {
-  background: var(--np-ink) !important;
-  color: var(--np-paper) !important;
-  border: 1px solid var(--np-ink);
+  background: var(--np-invert-bg) !important;
+  color: var(--np-invert-fg) !important;
+  border: 1px solid var(--np-border);
 }
 
 .np-invert h1,
@@ -194,12 +208,12 @@ pre,
 .np-invert p,
 .np-invert a,
 .np-invert span {
-  color: var(--np-paper) !important;
+  color: var(--np-invert-fg) !important;
 }
 
 .np-ticker {
-  border-top: 1px solid var(--np-ink);
-  border-bottom: 1px solid var(--np-ink);
+  border-top: 1px solid var(--np-border);
+  border-bottom: 1px solid var(--np-border);
   overflow: hidden;
   white-space: nowrap;
   font-family: 'Inter', sans-serif;
@@ -248,12 +262,12 @@ pre,
 
 [class*='border-slate-'],
 [class*='ring-slate-'] {
-  border-color: var(--np-ink) !important;
+  border-color: var(--np-border) !important;
 }
 
 [class*='bg-emerald-'] {
   background-color: var(--np-accent) !important;
-  color: var(--np-paper) !important;
+  color: #0f172a !important;
 }
 
 [class*='text-emerald-'] {

@@ -23,8 +23,9 @@ export async function serveTextTemplate(
     });
     return new Response(body, { status, headers });
   } catch (err) {
+    console.warn("[templates] read failed:", String((err as Error)?.message ?? err));
     const headers = withSecurity({ "Content-Type": "text/plain; charset=utf-8" });
-    return new Response(`Template error: ${String(err?.message ?? err)}`, { status: 500, headers });
+    return new Response("Server error", { status: 500, headers });
   }
 }
 

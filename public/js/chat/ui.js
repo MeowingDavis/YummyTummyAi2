@@ -43,7 +43,18 @@ function makeActions({ onCopy, onDelete }){
 export function appendMessage(sender, text) {
   const wrapper = document.createElement("div");
   wrapper.className = "msg relative rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
-  wrapper.innerHTML = `<div class="mb-1 text-emerald-400 font-semibold">${sender}</div><div class="text-slate-200 whitespace-pre-wrap leading-relaxed">${text}</div>`;
+
+  const senderEl = document.createElement("div");
+  senderEl.className = "mb-1 text-emerald-400 font-semibold";
+  senderEl.textContent = sender;
+
+  const textEl = document.createElement("div");
+  textEl.className = "text-slate-200 whitespace-pre-wrap leading-relaxed";
+  textEl.textContent = text;
+
+  wrapper.appendChild(senderEl);
+  wrapper.appendChild(textEl);
+
   const acts = makeActions({
     onCopy: () => navigator.clipboard.writeText(text),
     onDelete: () => wrapper.remove()
@@ -96,12 +107,23 @@ export function renderTray(){
     const url = URL.createObjectURL(f);
     const card = document.createElement('div');
     card.className = "relative w-20 h-20 rounded-lg overflow-hidden ring-1 ring-slate-700";
-    card.innerHTML = `<img src="${url}" class="w-full h-full object-cover"><button class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-6 h-6 text-xs">×</button>`;
-    card.querySelector('button').onclick = () => {
+
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = "w-full h-full object-cover";
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-6 h-6 text-xs";
+    removeBtn.type = "button";
+    removeBtn.textContent = "×";
+    removeBtn.onclick = () => {
       state.pendingFiles.splice(i, 1);
       renderTray();
       if (!state.pendingFiles.length) hideTray();
     };
+
+    card.appendChild(img);
+    card.appendChild(removeBtn);
     wrap.appendChild(card);
   });
 }

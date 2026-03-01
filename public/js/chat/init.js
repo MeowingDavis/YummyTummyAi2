@@ -16,8 +16,15 @@ export function initCore() {
     refs.sendBtn  = document.getElementById('sendBtn');
     refs.newChatBtn = document.getElementById('newChatBtn');
     refs.saveBtn  = document.getElementById('saveBtn');
+    refs.refreshSavedBtn = document.getElementById('refreshSavedBtn');
 
     refs.newChatBtn?.addEventListener('click', window.newChat);
+    refs.sendBtn?.addEventListener('click', window.send);
+    refs.saveBtn?.addEventListener('click', window.saveChat);
+    refs.refreshSavedBtn?.addEventListener('click', () => {
+      renderSavedChats();
+      renderMobileSavedChats();
+    });
 
     if (hasPrivacyAck()) {
       refs.input.value = loadDraft();

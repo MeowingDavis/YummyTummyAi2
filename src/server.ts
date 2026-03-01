@@ -3,7 +3,7 @@ import { serveDir } from "https://deno.land/std@0.224.0/http/file_server.ts";
 import { applySecurityHeaders, withSecurity } from "./security.ts";
 import { serveErrorPage, serveTextTemplate, wantsHtml } from "./templates.ts";
 import { getOrSetSessionId } from "./session.ts";
-import { readJson } from "./http.ts";
+import { HttpError, readJson } from "./http.ts";
 import { allow, allowSession } from "./rateLimit.ts";
 import { SYSTEM_PROMPT, OFF_TOPIC_REPLY } from "./chat/prompts.ts";
 import { ensureHistory, getHistory, pushAndClamp, clearHistory } from "./chat/history.ts";
@@ -12,13 +12,59 @@ import { detectMode, steerForMode } from "./chat/modes.ts";
 import { groqChat } from "./chat/groq.ts";
 import { redact } from "./redact.ts";
 
+const CANONICAL_ORIGIN = Deno.env.get("CANONICAL_ORIGIN")?.trim() ?? "";
+const ALLOWED_HOSTS = new Set(parseCsv(Deno.env.get("ALLOWED_HOSTS")));
+const TRUSTED_PROXY_IPS = new Set(parseCsv(Deno.env.get("TRUSTED_PROXY_IPS")));
+const IP_RE = /^[0-9a-fA-F:.]+$/;
+
+function parseCsv(value: string | undefined) {
+  if (!value) return [];
+  return value.split(",").map(v => v.trim()).filter(Boolean);
+}
+
+function isAllowedHost(host: string) {
+  if (!ALLOWED_HOSTS.size) return true;
+  return ALLOWED_HOSTS.has(host);
+}
+
+function getRemoteIp(info: Deno.ServeHandlerInfo) {
+  const addr = info.remoteAddr;
+  if ("hostname" in addr) return addr.hostname;
+  if ("path" in addr) return addr.path;
+  return "anon";
+}
+
+function getForwardedIp(req: Request) {
+  const raw = req.headers.get("x-forwarded-for") ?? req.headers.get("cf-connecting-ip");
+  if (!raw) return null;
+  const first = raw.split(",")[0]?.trim();
+  if (!first || !IP_RE.test(first)) return null;
+  return first;
+}
+
+function getClientIp(req: Request, info: Deno.ServeHandlerInfo) {
+  const remote = getRemoteIp(info);
+  if (TRUSTED_PROXY_IPS.has(remote)) {
+    return getForwardedIp(req) ?? remote;
+  }
+  return remote;
+}
+
+function publicOrigin(url: URL) {
+  return CANONICAL_ORIGIN || url.origin;
+}
+
 export function startServer() {
-  Deno.serve(async (req) => {
+  Deno.serve(async (req, info) => {
     const url = new URL(req.url);
+    if (!isAllowedHost(url.host)) {
+      const headers = withSecurity({ "Content-Type": "text/plain; charset=utf-8" });
+      return new Response("Bad Request", { status: 400, headers });
+    }
 
     // Health
     if (req.method === "GET" && url.pathname === "/health") {
-      const { setCookie } = getOrSetSessionId(req);
+      const { setCookie } = await getOrSetSessionId(req);
       const headers = withSecurity({ "Content-Type": "application/json" });
       const h = new Headers(headers);
       if (setCookie) h.append("Set-Cookie", setCookie);
@@ -27,20 +73,16 @@ export function startServer() {
 
     // Sitemap + robots (templated with request origin)
     if (req.method === "GET" && url.pathname === "/sitemap.xml") {
-      return await serveTextTemplate("public/sitemap.xml", "application/xml; charset=utf-8", url.origin);
+      return await serveTextTemplate("public/sitemap.xml", "application/xml; charset=utf-8", publicOrigin(url));
     }
     if (req.method === "GET" && url.pathname === "/robots.txt") {
-      return await serveTextTemplate("public/robots.txt", "text/plain; charset=utf-8", url.origin);
+      return await serveTextTemplate("public/robots.txt", "text/plain; charset=utf-8", publicOrigin(url));
     }
 
     // Chat
     if (req.method === "POST" && url.pathname === "/chat") {
-      const { id: sessionId, setCookie } = getOrSetSessionId(req);
-
-      const ip =
-        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-        req.headers.get("cf-connecting-ip") ??
-        "anon";
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const ip = getClientIp(req, info);
 
       if (!allow(ip) || !allowSession(sessionId)) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
@@ -83,7 +125,7 @@ export function startServer() {
 
         // Build request to model
         const recent = history.slice(-12);
-        const messagesToSend = [...recent, steer, { role: "user", content: message }];
+        const messagesToSend = [...recent, steer, { role: "user" as const, content: message }];
 
         // Call model
         pushAndClamp(sessionId, { role: "user", content: message });
@@ -96,7 +138,10 @@ export function startServer() {
       } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
-        const safe = redact(String(err?.message ?? err));
+        if (err instanceof HttpError) {
+          return new Response(JSON.stringify({ error: err.message }), { status: err.status, headers: h });
+        }
+        const safe = redact(String((err as Error)?.message ?? err));
         console.warn("[chat] error:", safe);
         return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
       }

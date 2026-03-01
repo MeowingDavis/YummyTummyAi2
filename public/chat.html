@@ -13,7 +13,7 @@
 
   <!-- Sanitizer + Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@13.0.3/marked.min.js"></script>
 
   <!-- Syntax highlight -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
@@ -161,7 +161,7 @@
           class="stack-surface w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-            <button onclick="renderSavedChats()"
+            <button id="refreshSavedBtn" type="button"
               class="text-xs text-slate-400 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded-md px-2 py-1">
               Refresh
             </button>
@@ -279,7 +279,7 @@
                   placeholder="Ask a recipe question..."></textarea>
 
                 <div class="flex items-center justify-end gap-2 shrink-0">
-                  <button id="saveBtn" onclick="saveChat()" class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
+                  <button id="saveBtn" type="button" class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
          ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
          focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
                     title="Save chat" aria-label="Save chat">
@@ -303,7 +303,7 @@
                     </svg>
                   </button>
 
-                  <button id="sendBtn" onclick="send()" class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 md:px-5 h-12 md:h-11
+                  <button id="sendBtn" type="button" class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 md:px-5 h-12 md:h-11
                            text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600
                            focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99]
                            transition disabled:opacity-50 disabled:cursor-not-allowed" title="Send"

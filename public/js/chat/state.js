@@ -13,6 +13,7 @@ export const refs = {
   sendBtn: null,
   newChatBtn: null,
   saveBtn: null,
+  refreshSavedBtn: null,
   mobileBtn: null,
   mobileBg: null,
   mobileModal: null,

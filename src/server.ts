@@ -12,19 +12,42 @@ import { detectMode, steerForMode } from "./chat/modes.ts";
 import { groqChat } from "./chat/groq.ts";
 import { redact } from "./redact.ts";
 
+const NODE_ENV = Deno.env.get("NODE_ENV")?.trim().toLowerCase() ?? "";
+const IS_PRODUCTION = NODE_ENV === "production";
 const CANONICAL_ORIGIN = Deno.env.get("CANONICAL_ORIGIN")?.trim() ?? "";
-const ALLOWED_HOSTS = new Set(parseCsv(Deno.env.get("ALLOWED_HOSTS")));
+const ALLOWED_HOSTS = new Set(parseCsv(Deno.env.get("ALLOWED_HOSTS")).map(h => h.toLowerCase()));
 const TRUSTED_PROXY_IPS = new Set(parseCsv(Deno.env.get("TRUSTED_PROXY_IPS")));
 const IP_RE = /^[0-9a-fA-F:.]+$/;
+const CANONICAL_URL = parseCanonicalOrigin(CANONICAL_ORIGIN);
+
+if (IS_PRODUCTION) {
+  if (!CANONICAL_URL) {
+    throw new Error("Missing or invalid CANONICAL_ORIGIN in production");
+  }
+  if (!ALLOWED_HOSTS.size) {
+    throw new Error("ALLOWED_HOSTS must be set in production");
+  }
+}
 
 function parseCsv(value: string | undefined) {
   if (!value) return [];
   return value.split(",").map(v => v.trim()).filter(Boolean);
 }
 
+function parseCanonicalOrigin(value: string) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
 function isAllowedHost(host: string) {
   if (!ALLOWED_HOSTS.size) return true;
-  return ALLOWED_HOSTS.has(host);
+  return ALLOWED_HOSTS.has(host.toLowerCase());
 }
 
 function getRemoteIp(info: Deno.ServeHandlerInfo) {
@@ -51,7 +74,7 @@ function getClientIp(req: Request, info: Deno.ServeHandlerInfo) {
 }
 
 function publicOrigin(url: URL) {
-  return CANONICAL_ORIGIN || url.origin;
+  return CANONICAL_URL?.origin || url.origin;
 }
 
 export function startServer() {

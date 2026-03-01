@@ -272,7 +272,7 @@ pre,
 .np-invert h2,
 .np-invert h3,
 .np-invert p,
-.np-invert a,
+.np-invert a:not(.np-btn),
 .np-invert span {
   color: var(--np-invert-fg) !important;
 }
@@ -285,7 +285,7 @@ pre,
 
 .np-invert .np-btn-secondary {
   background: var(--np-invert-fg);
-  color: var(--np-invert-bg);
+  color: var(--np-invert-bg) !important;
   border-color: var(--np-invert-fg);
 }
 

@@ -25,12 +25,12 @@
 </head>
 
 <body class="min-h-[100svh] bg-newsprint-paper text-newsprint-ink antialiased newsprint-texture">
-  <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-    <div class="flex gap-4">
+  <div class="np-wrap np-container-wide py-4 sm:py-6">
+    <div class="flex gap-5">
       <!-- Sidebar (desktop only; unchanged except nav links) -->
       <aside class="hidden md:flex md:w-72 shrink-0">
         <div
-          class="stack-surface np-surface w-full h-full flex flex-col p-4">
+          class="stack-surface np-surface w-full h-full flex flex-col np-card-pad">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
             <button id="refreshSavedBtn" type="button"
@@ -56,7 +56,7 @@
                     grid grid-rows-[auto,1fr] min-h-[calc(100svh-2rem)] md:min-h-0">
           <!-- Header -->
           <header
-            class="sticky md:static top-0 z-30 px-4 sm:px-8 py-3 md:pt-6 md:pb-4 border-b border-slate-800/60
+            class="sticky md:static top-0 z-30 px-4 sm:px-6 py-4 md:pt-5 md:pb-4 border-b border-slate-800/60
                    bg-slate-900/70 md:bg-transparent backdrop-blur supports-[backdrop-filter]:bg-slate-900/50 md:supports-[backdrop-filter]:bg-transparent">
             <div class="flex items-center justify-between gap-2">
               <h1 class="text-2xl sm:text-4xl md:text-4xl font-bold tracking-tight">
@@ -77,9 +77,9 @@
           <!-- CONTENT ROW (fills remaining height) -->
           <section class="relative flex flex-col min-h-0 md:h-[75vh]">
             <!-- Local-only storage notice -->
-            <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div id="privacyNotice" class="hidden np-wrap np-container-wide">
               <div
-                class="stack-surface np-surface stack-compact mt-3 p-3 sm:p-4 flex items-start gap-3">
+                class="stack-surface np-surface stack-compact np-section-tight np-card-pad flex items-start gap-3">
                 <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
@@ -105,7 +105,7 @@
 
             <!-- Messages (NOTE: removed scroll-smooth to avoid fight with JS pinning) -->
             <div id="chatbox"
-              class="flex-1 min-h-0 overflow-y-auto px-3 md:px-5 lg:px-8 py-4 md:py-5 space-y-3 md:space-y-4">
+              class="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4 md:py-5 space-y-4">
             </div>
 
             <!-- Jump-to-latest (appears only when user scrolled up) -->
@@ -114,7 +114,7 @@
             </button>
 
             <!-- Typing indicator -->
-            <div id="typing" class="hidden px-3 md:px-8">
+            <div id="typing" class="hidden px-4 md:px-6">
               <div
                 class="inline-flex items-center gap-2 np-surface px-3 py-2 text-slate-300">
                 <span>Chef is typing</span>
@@ -127,7 +127,7 @@
             </div>
 
             <!-- Attachments preview tray -->
-            <div id="previewTray" class="px-3 md:px-8 hidden">
+            <div id="previewTray" class="px-4 md:px-6 hidden">
               <div class="flex gap-2 flex-wrap py-2"></div>
             </div>
 
@@ -135,7 +135,7 @@
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
             <!-- Composer -->
-            <div class="stack-surface stack-compact composer-safe sticky bottom-0 px-3 md:px-8 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2 md:pt-3
+            <div class="stack-surface stack-compact composer-safe sticky bottom-0 px-4 md:px-6 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 md:pt-3
                         bg-slate-900/70 md:bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
               <div class="flex flex-col md:flex-row md:items-end gap-2">
                 <label for="input" class="sr-only">Your message</label>

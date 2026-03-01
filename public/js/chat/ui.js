@@ -42,7 +42,7 @@ function makeActions({ onCopy, onDelete }){
 
 export function appendMessage(sender, text) {
   const wrapper = document.createElement("div");
-  wrapper.className = "msg np-surface relative p-4";
+  wrapper.className = "msg np-surface np-card-pad relative";
 
   const senderEl = document.createElement("div");
   senderEl.className = "mb-1 np-label text-emerald-400";
@@ -65,7 +65,7 @@ export function appendMessage(sender, text) {
 
 export function appendMarkdown(sender, markdown) {
   const wrapper = document.createElement("div");
-  wrapper.className = "msg np-surface relative p-4";
+  wrapper.className = "msg np-surface np-card-pad relative";
   const safe = renderMarkdown(markdown);
   wrapper.innerHTML = `<div class="mb-2 np-label text-emerald-400">${sender}</div><div class="prose max-w-none">${safe}</div>`;
   const acts = makeActions({
@@ -88,7 +88,7 @@ export function renderEmptyState(){
   box.className = "grid gap-2 sm:grid-cols-2";
   picks.forEach(q => {
     const b = document.createElement('button');
-    b.className = "text-left np-surface hard-shadow-hover px-4 py-3";
+    b.className = "text-left np-surface hard-shadow-hover np-card-pad";
     b.textContent = q;
     b.onclick = () => {
       refs.input.value = q;

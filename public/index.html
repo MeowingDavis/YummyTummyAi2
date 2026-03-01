@@ -23,8 +23,8 @@
 <body class="min-h-[100svh] bg-newsprint-paper text-newsprint-ink antialiased newsprint-texture">
 
   <!-- Header -->
-  <header class="px-4 sm:px-6 lg:px-8 py-4">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+  <header class="np-wrap np-header">
+    <div class="np-container-wide flex items-center justify-between gap-3">
       <a href="/" class="inline-flex items-center gap-2">
         <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
         <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
@@ -42,8 +42,8 @@
   </section>
 
   <!-- Notice: responsive design in progress -->
-  <div id="notice" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="glass np-surface mt-3 p-3 sm:p-4 flex items-start gap-3">
+  <div id="notice" class="np-wrap np-container-wide">
+    <div class="glass np-surface np-section-tight np-card-pad flex items-start gap-3">
       <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
       </svg>
@@ -58,8 +58,8 @@
   </div>
 
   <!-- Privacy notice (acknowledge to enable saving) -->
-  <div id="privacyNoticeHome" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="glass np-surface mt-3 p-3 sm:p-4 flex items-start gap-3">
+  <div id="privacyNoticeHome" class="np-wrap np-container-wide">
+    <div class="glass np-surface np-section-tight np-card-pad flex items-start gap-3">
       <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
       </svg>
@@ -76,8 +76,8 @@
   </div>
 
   <!-- Hero -->
-  <section class="px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-6 md:gap-10 items-center">
+  <section class="np-wrap np-section-tight">
+    <div class="np-container-wide grid md:grid-cols-2 gap-6 md:gap-10 items-center">
       <div class="order-2 md:order-1">
         <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
           Turn your <span class="text-emerald-400">ingredients</span> into dinner.
@@ -133,19 +133,19 @@
   </section>
 
   <!-- How it works -->
-  <section id="how" class="px-4 sm:px-6 lg:px-8 mt-12">
-    <div class="max-w-7xl mx-auto grid md:grid-cols-3 news-grid">
-      <div class="glass np-surface p-5">
+  <section id="how" class="np-wrap np-section">
+    <div class="np-container-wide grid md:grid-cols-3 news-grid">
+      <div class="glass np-surface np-card-pad-lg">
         <div class="np-label">Step 1</div>
         <h3 class="text-lg font-semibold mt-1">Tell it what you have</h3>
         <p class="mt-2 text-slate-300">Type or paste your ingredients and any preferences.</p>
       </div>
-      <div class="glass np-surface p-5">
+      <div class="glass np-surface np-card-pad-lg">
         <div class="np-label">Step 2</div>
         <h3 class="text-lg font-semibold mt-1">Chat through options</h3>
         <p class="mt-2 text-slate-300">Get substitutions, dietary tweaks, and timings as you cook.</p>
       </div>
-      <div class="glass np-surface p-5">
+      <div class="glass np-surface np-card-pad-lg">
         <div class="np-label">Step 3</div>
         <h3 class="text-lg font-semibold mt-1">Save your favourites</h3>
         <p class="mt-2 text-slate-300">Save favorite recipes now, with account and cloud storage support coming.</p>
@@ -154,19 +154,19 @@
   </section>
 
   <!-- Feature grid -->
-  <section class="px-4 sm:px-6 lg:px-8 mt-12">
-    <div class="max-w-7xl mx-auto grid md:grid-cols-3 news-grid">
-      <div class="glass np-surface p-5">
+  <section class="np-wrap np-section">
+    <div class="np-container-wide grid md:grid-cols-3 news-grid">
+      <div class="glass np-surface np-card-pad-lg">
         <h3 class="font-semibold">Responsive design (in progress)</h3>
         <p class="mt-2 text-slate-300">
           Works today on phones and desktop; we’re actively polishing the layout and interactions.
         </p>
       </div>
-      <div class="glass np-surface p-5">
+      <div class="glass np-surface np-card-pad-lg">
         <h3 class="font-semibold">Privacy-friendly</h3>
         <p class="mt-2 text-slate-300">Your chats stay on your device. Clear your browser to wipe them.</p>
       </div>
-      <div class="glass np-surface p-5">
+      <div class="glass np-surface np-card-pad-lg">
         <h3 class="font-semibold">Clear recipe formatting</h3>
         <p class="mt-2 text-slate-300">
           Messages support clean formatting - steps, lists, and links - so recipes stay easy to follow.
@@ -176,8 +176,8 @@
   </section>
 
   <!-- CTA strip -->
-  <section class="px-4 sm:px-6 lg:px-8 mt-12 mb-10">
-    <div class="max-w-7xl mx-auto glass np-surface np-invert p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+  <section class="np-wrap np-section mb-10">
+    <div class="np-container-wide glass np-surface np-invert np-card-pad-lg flex flex-col md:flex-row items-center justify-between gap-4">
       <div>
         <h3 class="text-xl font-semibold">Ready to cook smarter?</h3>
         <p class="text-slate-300 mt-1">Open the chat and ask away.</p>
@@ -189,8 +189,8 @@
   </section>
 
   <!-- Footer -->
-  <footer class="px-4 sm:px-6 lg:px-8 pb-8">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400">
+  <footer class="np-wrap pb-8">
+    <div class="np-container-wide flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400">
       <div>© <span id="year"></span> Yummy Tummy AI</div>
       <div class="flex gap-4">
         <a href="/about.html" class="np-link">About</a>

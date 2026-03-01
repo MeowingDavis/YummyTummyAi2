@@ -104,28 +104,36 @@
       <!-- Glass mock “phone” preview -->
       <div class="order-1 md:order-2">
         <div class="mx-auto max-w-sm glass np-surface p-4">
-          <div class="h-8 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-center text-xs text-slate-300">
-            Yummy Tummy AI
+          <div class="h-8 np-surface flex items-center justify-center text-xs text-slate-300">
+            Live Chat Preview
           </div>
 
-          <!-- Chat preview: assistant LEFT, user RIGHT -->
+          <!-- Preview aligned with actual chat message cards -->
           <div class="mt-4 flex flex-col gap-3 text-[15px] leading-6">
-            <!-- USER (right) -->
-            <div class="self-end max-w-[85%] rounded-2xl bg-slate-800/60 border border-slate-700/60 p-3">
-              I’ve got spinach, feta, and eggs - ideas?
+            <div class="msg np-surface np-card-pad">
+              <div class="mb-1 np-label text-emerald-400">You</div>
+              <div class="text-slate-200 whitespace-pre-wrap leading-relaxed">
+                I’ve got spinach, feta, and eggs. Any quick idea?
+              </div>
             </div>
-            <!-- ASSISTANT (left) -->
-            <div class="self-start max-w-[85%] rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-3">
-              Try a <span class="text-emerald-300 font-medium">Spinach &amp; Feta Frittata</span>: whisk eggs, sauté spinach, fold in feta, bake 12–15 min. Want a 2-pan version?
+
+            <div class="msg np-surface np-card-pad">
+              <div class="mb-1 np-label text-emerald-400">Chef</div>
+              <div class="text-slate-200 whitespace-pre-wrap leading-relaxed">
+                Try a <span class="text-emerald-300 font-medium">spinach + feta frittata</span>: sauté spinach, whisk eggs, fold in feta, then bake 12-15 min.
+              </div>
             </div>
-            <!-- USER (right) -->
-            <div class="self-end max-w-[85%] rounded-2xl bg-slate-800/60 border border-slate-700/60 p-3">
-              Yes, and add potatoes?
+
+            <div class="msg np-surface np-card-pad">
+              <div class="mb-1 np-label text-emerald-400">You</div>
+              <div class="text-slate-200 whitespace-pre-wrap leading-relaxed">
+                Great, add potatoes too.
+              </div>
             </div>
           </div>
 
-          <div class="mt-4 h-12 rounded-2xl bg-slate-800/60 border border-slate-700/60 flex items-center px-3 text-slate-400">
-            Type a message…
+          <div class="mt-4 np-surface flex items-center px-3 h-12 text-slate-400">
+            Ask a recipe question...
           </div>
         </div>
       </div>

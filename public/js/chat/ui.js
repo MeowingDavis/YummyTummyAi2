@@ -85,7 +85,7 @@ export function renderEmptyState(){
   if (refs.chatbox.children.length) return;
   const picks = sample(SUGGESTIONS, 4);
   const box = document.createElement('div');
-  box.className = "grid gap-2 sm:grid-cols-2";
+  box.className = "grid gap-3 sm:grid-cols-2";
   picks.forEach(q => {
     const b = document.createElement('button');
     b.className = "text-left skeuo-surface skeuo-interactive skeuo-card-pad";

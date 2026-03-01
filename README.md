@@ -32,18 +32,6 @@ export GROQ_API_KEY="your_groq_api_key"
 export MODEL="llama-3.1-8b-instant"
 ```
 
-Production security env requirements:
-
-```bash
-export NODE_ENV="production"
-export SESSION_SECRET="a_long_random_secret_value"
-export COOKIE_SECURE="1"
-export CANONICAL_ORIGIN="https://your-domain.example"
-export ALLOWED_HOSTS="your-domain.example"
-# optional if you run behind trusted proxies and use forwarded client IP
-export TRUSTED_PROXY_IPS="127.0.0.1"
-```
-
 2. Run the app:
 
 ```bash

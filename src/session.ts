@@ -2,12 +2,21 @@
 
 const COOKIE_NAME = "yt_sid";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
-const SESSION_SECRET = Deno.env.get("SESSION_SECRET")?.trim() ?? "";
+const SESSION_SECRET_ENV = Deno.env.get("SESSION_SECRET")?.trim() ?? "";
+const NODE_ENV = Deno.env.get("NODE_ENV")?.trim().toLowerCase() ?? "";
+const IS_PRODUCTION = NODE_ENV === "production";
+// Keep dev usable without extra env setup while requiring explicit secrets in production.
+const SESSION_SECRET = SESSION_SECRET_ENV || (IS_PRODUCTION ? "" : crypto.randomUUID());
 const COOKIE_SECURE = Deno.env.get("COOKIE_SECURE") === "1";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const encoder = new TextEncoder();
 
-let signingKeyPromise: Promise<CryptoKey | null> | null = null;
+if (IS_PRODUCTION) {
+  if (!SESSION_SECRET_ENV) throw new Error("Missing SESSION_SECRET in production");
+  if (!COOKIE_SECURE) throw new Error("COOKIE_SECURE must be set to 1 in production");
+}
+
+let signingKeyPromise: Promise<CryptoKey> | null = null;
 
 function timingSafeEqual(a: string, b: string) {
   if (a.length !== b.length) return false;
@@ -43,7 +52,6 @@ function shouldSetSecureCookie(req: Request) {
 }
 
 async function getSigningKey() {
-  if (!SESSION_SECRET) return null;
   if (!signingKeyPromise) {
     signingKeyPromise = crypto.subtle.importKey(
       "raw",
@@ -58,7 +66,6 @@ async function getSigningKey() {
 
 async function signSessionId(id: string) {
   const key = await getSigningKey();
-  if (!key) return "";
   const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(id));
   return toBase64Url(new Uint8Array(sig));
 }
@@ -66,22 +73,18 @@ async function signSessionId(id: string) {
 async function hasValidSignature(id: string, sig: string) {
   if (!sig) return false;
   const expected = await signSessionId(id);
-  if (!expected) return false;
   return timingSafeEqual(expected, sig);
 }
 
 export async function getOrSetSessionId(req: Request) {
   const parsed = parseCookieValue(req);
-  if (parsed && UUID_RE.test(parsed.id)) {
-    const key = await getSigningKey();
-    if (!key || await hasValidSignature(parsed.id, parsed.sig)) {
-      return { id: parsed.id, setCookie: null };
-    }
+  if (parsed && UUID_RE.test(parsed.id) && await hasValidSignature(parsed.id, parsed.sig)) {
+    return { id: parsed.id, setCookie: null };
   }
 
   const id = crypto.randomUUID();
   const sig = await signSessionId(id);
-  const value = sig ? `${id}.${sig}` : id;
+  const value = `${id}.${sig}`;
   const secure = shouldSetSecureCookie(req) ? "; Secure" : "";
   const cookieVal =
     `${COOKIE_NAME}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}${secure}`;

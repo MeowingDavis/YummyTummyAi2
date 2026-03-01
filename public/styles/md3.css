@@ -1,0 +1,303 @@
+:root {
+  --md-bg: #fffbfe;
+  --md-on-bg: #1c1b1f;
+  --md-primary: #6750a4;
+  --md-on-primary: #ffffff;
+  --md-secondary-container: #e8def8;
+  --md-on-secondary-container: #1d192b;
+  --md-tertiary: #7d5260;
+  --md-surface: #f3edf7;
+  --md-surface-low: #e7e0ec;
+  --md-outline: #79747e;
+  --md-on-surface-variant: #49454f;
+  --md-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Roboto", sans-serif;
+  color: var(--md-on-bg);
+  background-color: var(--md-bg);
+}
+
+body {
+  min-height: 100svh;
+  background-image:
+    radial-gradient(circle at 90% -10%, rgba(103, 80, 164, 0.22), transparent 40%),
+    radial-gradient(circle at -10% 40%, rgba(125, 82, 96, 0.18), transparent 34%),
+    radial-gradient(circle at 55% 120%, rgba(232, 222, 248, 0.9), transparent 45%);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  color: var(--md-on-bg);
+}
+
+p,
+li,
+span,
+label,
+summary {
+  color: var(--md-on-surface-variant);
+}
+
+a,
+button,
+input,
+textarea,
+summary {
+  transition: all 300ms var(--md-ease);
+}
+
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--md-primary), 0 0 0 4px rgba(255, 251, 254, 0.95);
+}
+
+.brand-accent {
+  color: var(--md-primary);
+}
+
+.organic-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.organic-layer::before,
+.organic-layer::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(64px);
+}
+
+.organic-layer::before {
+  width: 340px;
+  height: 340px;
+  right: -110px;
+  top: -110px;
+  background: rgba(103, 80, 164, 0.24);
+}
+
+.organic-layer::after {
+  width: 300px;
+  height: 300px;
+  left: -120px;
+  bottom: -120px;
+  background: rgba(125, 82, 96, 0.2);
+}
+
+.glass,
+.stack-surface,
+.stack-card,
+.stack-drawer,
+.msg,
+#savedChats > li,
+#mobileSavedChats > li,
+#privacyNotice > div {
+  position: relative;
+  background: rgba(243, 237, 247, 0.94) !important;
+  border: 1px solid rgba(121, 116, 126, 0.28) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 1px 2px rgba(28, 27, 31, 0.12), 0 8px 20px rgba(103, 80, 164, 0.1) !important;
+  backdrop-filter: blur(10px);
+}
+
+.glass:hover,
+.stack-surface:hover,
+.stack-card:hover,
+.msg:hover,
+#savedChats > li:hover,
+#mobileSavedChats > li:hover {
+  box-shadow: 0 2px 8px rgba(28, 27, 31, 0.14), 0 12px 28px rgba(103, 80, 164, 0.14) !important;
+}
+
+button,
+a[class*="rounded-full"],
+#sendBtn,
+#newChatBtn,
+#saveBtn,
+#mobileMenuBtn,
+#mobileCloseBtn,
+#noticeDismiss,
+#privacyDismiss,
+#privacyDismissHome {
+  border-radius: 9999px !important;
+}
+
+button,
+a[class*="inline-flex"] {
+  min-height: 40px;
+}
+
+button:active,
+a[class*="inline-flex"]:active {
+  transform: scale(0.95);
+}
+
+#sendBtn,
+#cta,
+#cta2,
+#privacyDismiss,
+#privacyDismissHome,
+a[href="/chat.html"].sm\:hidden {
+  background: var(--md-primary) !important;
+  color: var(--md-on-primary) !important;
+  border: 0 !important;
+}
+
+#sendBtn:hover,
+#cta:hover,
+#cta2:hover,
+#privacyDismiss:hover,
+#privacyDismissHome:hover,
+a[href="/chat.html"].sm\:hidden:hover {
+  filter: brightness(0.95);
+  box-shadow: 0 10px 24px rgba(103, 80, 164, 0.28) !important;
+}
+
+#newChatBtn,
+#saveBtn,
+#mobileMenuBtn,
+#mobileCloseBtn,
+#jumpLatest,
+#refreshSavedBtn {
+  background: var(--md-secondary-container) !important;
+  color: var(--md-on-secondary-container) !important;
+  border: 0 !important;
+}
+
+#input {
+  background: var(--md-surface-low) !important;
+  color: var(--md-on-bg) !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--md-outline) !important;
+  border-radius: 12px 12px 0 0 !important;
+  box-shadow: inset 0 1px 1px rgba(28, 27, 31, 0.06) !important;
+}
+
+#input::placeholder {
+  color: rgba(73, 69, 79, 0.6) !important;
+}
+
+#input:focus {
+  border-bottom-color: var(--md-primary) !important;
+}
+
+#chatbox {
+  scroll-padding-bottom: 104px;
+}
+
+.msg .mb-2,
+.msg .mb-1 {
+  color: var(--md-primary) !important;
+}
+
+.msg .prose,
+.msg .prose :where(p, li, span, code, pre, strong, em),
+.msg .text-slate-200,
+.msg .whitespace-pre-wrap {
+  color: var(--md-on-bg) !important;
+}
+
+.msg-actions button {
+  background: var(--md-secondary-container) !important;
+  color: var(--md-on-secondary-container) !important;
+  border: 0 !important;
+  border-radius: 9999px !important;
+}
+
+.prose {
+  color: var(--md-on-bg);
+}
+
+#chatbox button {
+  background: rgba(232, 222, 248, 0.78);
+  color: var(--md-on-secondary-container);
+  border: 1px solid rgba(121, 116, 126, 0.2);
+}
+
+#previewTray > div > div {
+  border-radius: 12px;
+  border: 1px solid rgba(121, 116, 126, 0.28);
+}
+
+#previewTray button {
+  background: var(--md-tertiary);
+  color: var(--md-on-primary);
+}
+
+.text-slate-100,
+.text-slate-200,
+.text-slate-300,
+.text-slate-400,
+.text-slate-500,
+.text-emerald-300,
+.text-emerald-400 {
+  color: var(--md-on-surface-variant) !important;
+}
+
+.text-white {
+  color: var(--md-on-primary) !important;
+}
+
+.stack-surface [class*="bg-slate"],
+.stack-surface [class*="bg-emerald"],
+.glass [class*="bg-slate"],
+.glass [class*="bg-emerald"],
+.stack-drawer [class*="bg-slate"],
+.stack-drawer [class*="bg-emerald"] {
+  background: rgba(231, 224, 236, 0.72) !important;
+  border-color: rgba(121, 116, 126, 0.26) !important;
+}
+
+.stack-surface [class*="ring-slate"],
+.stack-surface [class*="ring-emerald"],
+.glass [class*="ring-slate"],
+.glass [class*="ring-emerald"],
+.stack-drawer [class*="ring-slate"],
+.stack-drawer [class*="ring-emerald"] {
+  --tw-ring-color: rgba(121, 116, 126, 0.3) !important;
+}
+
+header[class*="sticky"] {
+  border-bottom: 1px solid rgba(121, 116, 126, 0.24);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .glass,
+  .stack-surface,
+  .stack-card,
+  .stack-drawer,
+  .msg {
+    border-radius: 20px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  button:active,
+  a[class*="inline-flex"]:active {
+    transform: none;
+  }
+}

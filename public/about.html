@@ -1,100 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>About - Yummy Tummy AI</title>
   <link rel="manifest" href="/manifest.webmanifest" />
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
-
-  <style>
-    :root {
-      --bg: #141a27;
-      --text: #e6e9ef;
-      --muted: #a7b1c1;
-      --card: #1b2435;
-      --card2: #202a3e;
-      --card3: #242f45;
-      --border: rgba(226, 232, 240, 0.22);
-      --shadow: none;
-      --radius: 0px;
-      --space-1: 8px;
-      --space-2: 12px;
-      --space-3: 16px;
-      --space-4: 20px;
-      --space-5: 24px;
-      --space-6: 32px;
-    }
-
-    body {
-      color: var(--text);
-      background: var(--bg) !important;
-      background-image: linear-gradient(135deg, #1a2232 0%, #141a27 50%, #1d2638 100%) !important;
-    }
-
-    :where(.stack-surface, .stack-card, .glass) {
-      --stack-offset-1: 3px;
-      --stack-offset-2: 6px;
-      position: relative;
-      isolation: isolate;
-      z-index: 0;
-      background: var(--card) !important;
-      border: 1px solid var(--border) !important;
-      border-radius: var(--radius) !important;
-      box-shadow: none !important;
-      backdrop-filter: none !important;
-    }
-    :where(.stack-surface, .stack-card, .glass)::before,
-    :where(.stack-surface, .stack-card, .glass)::after {
-      content: none;
-      display: none;
-      position: absolute;
-      inset: 0;
-      border: 1px solid var(--border);
-      border-radius: inherit;
-      pointer-events: none;
-      z-index: -1;
-    }
-    :where(.stack-surface, .stack-card, .glass)::before {
-      background: var(--card2);
-      transform: translate(var(--stack-offset-1), var(--stack-offset-1));
-    }
-    :where(.stack-surface, .stack-card, .glass)::after {
-      background: var(--card3);
-      transform: translate(var(--stack-offset-2), var(--stack-offset-2));
-      z-index: -2;
-      box-shadow: none;
-    }
-
-    .stack-card { padding: var(--space-4); }
-    button,
-    [role="button"],
-    a[class*="rounded"] {
-      border-radius: 0 !important;
-    }
-
-    :where([class*="shadow"]) {
-      box-shadow: none !important;
-    }
-
-    :where([class*="drop-shadow"]) {
-      filter: none !important;
-    }
-
-    :where(a, button, input, textarea, select, summary):focus-visible {
-      outline: 2px solid #34d399;
-      outline-offset: 3px;
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      *{animation:none!important;transition:none!important;}
-      :where(.stack-surface, .stack-card, .glass){transform:none!important;}
-    }
-  </style>
+  <link rel="stylesheet" href="/styles/md3.css" />
 </head>
-<body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
+<body class="antialiased">
 
   <!-- Header -->
   <header class="px-4 sm:px-6 lg:px-8 py-4">
@@ -137,7 +57,8 @@
   </section>
 
   <!-- Content -->
-  <main class="px-4 sm:px-6 lg:px-8 mt-8 mb-14">
+  <main class="px-4 sm:px-6 lg:px-8 mt-8 mb-14 relative">
+    <div class="organic-layer" aria-hidden="true"></div>
     <div class="max-w-4xl mx-auto grid gap-6">
 
       <!-- What it is -->

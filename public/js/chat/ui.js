@@ -30,7 +30,7 @@ function makeActions({ onCopy, onDelete }){
   bar.className = "msg-actions opacity-0 transition-opacity absolute top-2 right-2 inline-flex gap-1";
   const mk = (label, cb) => {
     const b = document.createElement('button');
-    b.className = "rounded-md bg-slate-800/80 text-slate-200 text-xs px-2 py-1 ring-1 ring-slate-700 hover:bg-slate-700";
+    b.className = "text-xs px-3 py-1.5";
     b.textContent = label;
     b.onclick = cb;
     return b;
@@ -42,14 +42,14 @@ function makeActions({ onCopy, onDelete }){
 
 export function appendMessage(sender, text) {
   const wrapper = document.createElement("div");
-  wrapper.className = "msg relative rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
+  wrapper.className = "msg relative p-4";
 
   const senderEl = document.createElement("div");
-  senderEl.className = "mb-1 text-emerald-400 font-semibold";
+  senderEl.className = "mb-1 font-medium";
   senderEl.textContent = sender;
 
   const textEl = document.createElement("div");
-  textEl.className = "text-slate-200 whitespace-pre-wrap leading-relaxed";
+  textEl.className = "whitespace-pre-wrap leading-relaxed";
   textEl.textContent = text;
 
   wrapper.appendChild(senderEl);
@@ -65,9 +65,9 @@ export function appendMessage(sender, text) {
 
 export function appendMarkdown(sender, markdown) {
   const wrapper = document.createElement("div");
-  wrapper.className = "msg relative rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-4";
+  wrapper.className = "msg relative p-4";
   const safe = renderMarkdown(markdown);
-  wrapper.innerHTML = `<div class="mb-2 text-emerald-400 font-semibold">${sender}</div><div class="prose prose-invert max-w-none">${safe}</div>`;
+  wrapper.innerHTML = `<div class="mb-2 font-medium">${sender}</div><div class="prose max-w-none">${safe}</div>`;
   const acts = makeActions({
     onCopy: () => navigator.clipboard.writeText(markdown),
     onDelete: () => wrapper.remove()
@@ -88,7 +88,7 @@ export function renderEmptyState(){
   box.className = "grid gap-2 sm:grid-cols-2";
   picks.forEach(q => {
     const b = document.createElement('button');
-    b.className = "text-left rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3 hover:bg-slate-800/60";
+    b.className = "text-left px-4 py-3";
     b.textContent = q;
     b.onclick = () => {
       refs.input.value = q;
@@ -106,14 +106,14 @@ export function renderTray(){
   state.pendingFiles.forEach((f, i) => {
     const url = URL.createObjectURL(f);
     const card = document.createElement('div');
-    card.className = "relative w-20 h-20 rounded-lg overflow-hidden ring-1 ring-slate-700";
+    card.className = "relative w-20 h-20 overflow-hidden";
 
     const img = document.createElement("img");
     img.src = url;
     img.className = "w-full h-full object-cover";
 
     const removeBtn = document.createElement("button");
-    removeBtn.className = "absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-6 h-6 text-xs";
+    removeBtn.className = "absolute -top-2 -right-2 w-6 h-6 text-xs";
     removeBtn.type = "button";
     removeBtn.textContent = "×";
     removeBtn.onclick = () => {

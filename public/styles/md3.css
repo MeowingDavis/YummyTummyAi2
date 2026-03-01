@@ -45,14 +45,6 @@ h6 {
   color: var(--md-on-bg);
 }
 
-p,
-li,
-span,
-label,
-summary {
-  color: var(--md-on-surface-variant);
-}
-
 a,
 button,
 input,
@@ -127,7 +119,6 @@ summary {
 }
 
 button,
-a[class*="rounded-full"],
 #sendBtn,
 #newChatBtn,
 #saveBtn,
@@ -140,12 +131,17 @@ a[class*="rounded-full"],
 }
 
 button,
-a[class*="inline-flex"] {
+a.inline-flex,
+#sendBtn,
+#newChatBtn,
+#saveBtn,
+#mobileMenuBtn,
+#mobileCloseBtn {
   min-height: 40px;
 }
 
 button:active,
-a[class*="inline-flex"]:active {
+a.inline-flex:active {
   transform: scale(0.95);
 }
 
@@ -225,10 +221,16 @@ a[href="/chat.html"].sm\:hidden:hover {
   color: var(--md-on-bg);
 }
 
-#chatbox button {
+#chatbox > .grid button {
   background: rgba(232, 222, 248, 0.78);
   color: var(--md-on-secondary-container);
   border: 1px solid rgba(121, 116, 126, 0.2);
+  border-radius: 9999px;
+}
+
+#chatbox > .grid button:hover {
+  background: rgba(232, 222, 248, 0.92);
+  box-shadow: 0 6px 16px rgba(103, 80, 164, 0.14);
 }
 
 #previewTray > div > div {
@@ -241,42 +243,25 @@ a[href="/chat.html"].sm\:hidden:hover {
   color: var(--md-on-primary);
 }
 
-.text-slate-100,
-.text-slate-200,
-.text-slate-300,
-.text-slate-400,
-.text-slate-500,
-.text-emerald-300,
-.text-emerald-400 {
-  color: var(--md-on-surface-variant) !important;
-}
-
-.text-white {
-  color: var(--md-on-primary) !important;
-}
-
-.stack-surface [class*="bg-slate"],
-.stack-surface [class*="bg-emerald"],
-.glass [class*="bg-slate"],
-.glass [class*="bg-emerald"],
-.stack-drawer [class*="bg-slate"],
-.stack-drawer [class*="bg-emerald"] {
-  background: rgba(231, 224, 236, 0.72) !important;
-  border-color: rgba(121, 116, 126, 0.26) !important;
-}
-
-.stack-surface [class*="ring-slate"],
-.stack-surface [class*="ring-emerald"],
-.glass [class*="ring-slate"],
-.glass [class*="ring-emerald"],
-.stack-drawer [class*="ring-slate"],
-.stack-drawer [class*="ring-emerald"] {
-  --tw-ring-color: rgba(121, 116, 126, 0.3) !important;
-}
-
 header[class*="sticky"] {
   border-bottom: 1px solid rgba(121, 116, 126, 0.24);
   backdrop-filter: blur(10px);
+}
+
+.text-emerald-400,
+.text-emerald-300 {
+  color: var(--md-primary) !important;
+}
+
+.text-slate-100,
+.text-slate-200 {
+  color: var(--md-on-bg) !important;
+}
+
+.text-slate-300,
+.text-slate-400,
+.text-slate-500 {
+  color: var(--md-on-surface-variant) !important;
 }
 
 @media (max-width: 768px) {
@@ -297,7 +282,7 @@ header[class*="sticky"] {
   }
 
   button:active,
-  a[class*="inline-flex"]:active {
+  a.inline-flex:active {
     transform: none;
   }
 }

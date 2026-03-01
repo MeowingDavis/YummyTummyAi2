@@ -5,7 +5,7 @@
   --np-ink: #f3f6fb;
   --np-muted: #1f2d42;
   --np-accent: #34d399;
-  --np-subtle: #b7c1d3;
+  --np-subtle: #cfd8e6;
   --np-border: rgba(226, 232, 240, 0.34);
   --np-invert-bg: #e6e9ef;
   --np-invert-fg: #141a27;
@@ -199,13 +199,15 @@ pre,
 }
 
 .np-btn-primary {
-  background: var(--np-accent);
-  color: #0f172a;
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
 }
 
 .np-btn-secondary {
-  background: #24344c;
-  color: var(--np-ink);
+  background: #152238;
+  color: #ffffff;
+  border-color: #7f91ad;
 }
 
 .np-btn-danger {
@@ -225,11 +227,13 @@ pre,
 }
 
 .np-btn-primary:hover {
-  background: #2fc391;
+  background: #0ea472;
+  border-color: #0ea472;
 }
 
 .np-btn-secondary:hover {
-  background: #2a3b56;
+  background: #1b2b45;
+  border-color: #9db0cd;
 }
 
 .news-grid {
@@ -375,12 +379,20 @@ strong, b {
   color: var(--np-ink);
 }
 
-.np-btn,
 .np-link,
 button,
 label,
 summary {
   color: var(--np-ink);
+}
+
+.np-btn-primary,
+.np-btn-danger {
+  color: #ffffff !important;
+}
+
+.np-btn-secondary {
+  color: #ffffff !important;
 }
 
 /* Chat-specific behavior retained from previous inline styles */

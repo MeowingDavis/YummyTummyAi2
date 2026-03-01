@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
@@ -7,130 +7,47 @@
   <link rel="manifest" href="/manifest.webmanifest" />
 
   <!-- Tailwind -->
+<<<<<<< HEAD
+  <script src="/industrial-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/industrial.css" />
+=======
+  <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
+>>>>>>> parent of 6a2fe8d (ok)
 
-  <style>
-    :root {
-      --bg: #141a27;
-      --text: #e6e9ef;
-      --muted: #a7b1c1;
-      --card: #1b2435;
-      --card2: #202a3e;
-      --card3: #242f45;
-      --border: rgba(226, 232, 240, 0.22);
-      --shadow: none;
-      --radius: 0px;
-      --space-1: 8px;
-      --space-2: 12px;
-      --space-3: 16px;
-      --space-4: 20px;
-      --space-5: 24px;
-      --space-6: 32px;
-    }
-
-    body {
-      color: var(--text);
-      background: var(--bg) !important;
-      background-image: linear-gradient(135deg, #1a2232 0%, #141a27 50%, #1d2638 100%) !important;
-    }
-
-    :where(.stack-surface, .stack-card, .glass) {
-      --stack-offset-1: 3px;
-      --stack-offset-2: 6px;
-      position: relative;
-      isolation: isolate;
-      z-index: 0;
-      background: var(--card) !important;
-      border: 1px solid var(--border) !important;
-      border-radius: var(--radius) !important;
-      box-shadow: none !important;
-      backdrop-filter: none !important;
-      transition: transform 180ms ease;
-    }
-    :where(.stack-surface, .stack-card, .glass)::before,
-    :where(.stack-surface, .stack-card, .glass)::after {
-      content: none;
-      display: none;
-      position: absolute;
-      inset: 0;
-      border: 1px solid var(--border);
-      border-radius: inherit;
-      pointer-events: none;
-      z-index: -1;
-    }
-    :where(.stack-surface, .stack-card, .glass)::before {
-      background: var(--card2);
-      transform: translate(var(--stack-offset-1), var(--stack-offset-1));
-    }
-    :where(.stack-surface, .stack-card, .glass)::after {
-      background: var(--card3);
-      transform: translate(var(--stack-offset-2), var(--stack-offset-2));
-      z-index: -2;
-      box-shadow: none;
-    }
-
-    .stack-card { padding: var(--space-4); }
-    :where(.stack-surface, .stack-card, .glass):hover,
-    :where(.stack-surface, .stack-card, .glass):focus-within {
-      transform: translateY(-2px);
-    }
-
-    button,
-    [role="button"],
-    a[class*="rounded"] {
-      border-radius: 0 !important;
-    }
-
-    :where([class*="shadow"]) {
-      box-shadow: none !important;
-    }
-
-    :where([class*="drop-shadow"]) {
-      filter: none !important;
-    }
-
-    :where(a, button, input, textarea, select, summary):focus-visible {
-      outline: 2px solid #34d399;
-      outline-offset: 3px;
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      *{animation:none!important;transition:none!important;}
-      :where(.stack-surface, .stack-card, .glass){transform:none!important;}
-    }
-  </style>
+  
 </head>
-<body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
+<body class="min-h-[100svh] bg-industrial-chassis text-industrial-text antialiased industrial-texture">
 
   <!-- Header -->
-  <header class="px-4 sm:px-6 lg:px-8 py-4">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
-      <a href="/" class="inline-flex items-center gap-2">
+  <header class="skeuo-wrap skeuo-header">
+    <div class="skeuo-container-wide flex items-center justify-between gap-4">
+      <a href="/" class="inline-flex items-center gap-3">
         <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
         <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
       </a>
-      <nav class="hidden sm:flex items-center gap-2">
-        <a href="/chat.html" class="text-sm text-slate-300 hover:text-emerald-300">Open Chat</a>
-        <a href="/" class="text-sm text-slate-300 hover:text-emerald-300">Home</a>
+      <nav class="hidden sm:flex items-center gap-4">
+        <a href="/chat.html" class="skeuo-link">Open Chat</a>
+        <a href="/" class="skeuo-link">Home</a>
       </nav>
-      <a href="/chat.html" class="sm:hidden inline-flex items-center rounded-full bg-emerald-500 px-4 h-10 text-white font-medium shadow ring-1 ring-emerald-400/40">Open Chat</a>
+      <a href="/chat.html" class="sm:hidden skeuo-btn skeuo-btn-primary skeuo-interactive">Open Chat</a>
     </div>
   </header>
 
   <!-- Page heading -->
-  <section class="px-4 sm:px-6 lg:px-8">
-    <div class="max-w-4xl mx-auto">
+  <section class="skeuo-wrap skeuo-section-tight">
+    <div class="skeuo-container-narrow">
       <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight">About</h1>
-      <p class="mt-3 text-slate-300 text-lg leading-relaxed">
+      <p class="mt-4 text-slate-300 text-lg leading-relaxed">
         Yummy Tummy AI helps you turn the ingredients you have into dinner ideas - via a simple, private chat.
       </p>
     </div>
   </section>
 
   <!-- Notice: responsive in progress -->
-  <section class="px-4 sm:px-6 lg:px-8 mt-4">
-    <div class="max-w-4xl mx-auto">
-      <div class="glass rounded-2xl border border-slate-800/70 p-3 sm:p-4 flex items-start gap-3">
+  <section class="skeuo-wrap skeuo-section-tight">
+    <div class="skeuo-container-narrow">
+      <div class="glass skeuo-surface skeuo-card-pad flex items-start gap-3">
         <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
         </svg>
@@ -143,43 +60,43 @@
   </section>
 
   <!-- Content -->
-  <main class="px-4 sm:px-6 lg:px-8 mt-8 mb-14">
-    <div class="max-w-4xl mx-auto grid gap-6">
+  <main class="skeuo-wrap skeuo-section mb-14">
+    <div class="skeuo-container-narrow grid gap-6">
 
       <!-- What it is -->
-      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+      <section class="glass skeuo-surface skeuo-card-pad-lg">
         <h2 class="text-xl font-semibold">What is it?</h2>
-        <p class="mt-2 text-slate-300">
+        <p class="mt-3 text-slate-300">
           A lightweight web chat that suggests recipes, ingredient swaps, and step-by-step guidance based on what you type.
-          No accounts. No tracking pixels. Just a simple chat.
+          No account required today. Account login and cloud sync are planned.
         </p>
       </section>
 
       <!-- How it works -->
-      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+      <section class="glass skeuo-surface skeuo-card-pad-lg">
         <h2 class="text-xl font-semibold">How it works</h2>
-        <ul class="mt-3 space-y-2 text-slate-300 list-disc list-inside">
+        <ul class="mt-3 space-y-3 text-slate-300 list-disc list-inside">
           <li>Type or paste what you’ve got and what you feel like cooking.</li>
           <li>Your message is sent securely to an AI service and the reply is sent back to the site.</li>
-          <li>Saved chats live only in your browser; there’s no server-side database for your history.</li>
+          <li>Saved chats are currently local to your browser; account-based cloud storage is planned.</li>
         </ul>
       </section>
 
       <!-- Privacy -->
-      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+      <section class="glass skeuo-surface skeuo-card-pad-lg">
         <h2 class="text-xl font-semibold">Privacy</h2>
         <div class="mt-3 grid sm:grid-cols-2 gap-4">
           <div>
             <h3 class="font-medium">Local storage</h3>
-            <p class="mt-1 text-slate-300">
-              Saved chats are stored in <span class="font-mono text-slate-200">localStorage</span> on this device (e.g., key
+            <p class="mt-2 text-slate-300">
+              Saved chats are currently stored in <span class="font-mono text-slate-200">localStorage</span> on this device (e.g., key
               <span class="font-mono text-emerald-300">yt_ai_draft</span> for drafts). Clearing your browser data removes them.
-              The live conversation is held temporarily in memory on the server to keep context and is not persisted.
+              The live conversation is held temporarily in memory on the server to keep context. Account-based cloud history is planned.
             </p>
           </div>
           <div>
             <h3 class="font-medium">What’s sent</h3>
-            <p class="mt-1 text-slate-300">
+            <p class="mt-2 text-slate-300">
               When you press <em>Send</em>, your message is processed by an AI service over HTTPS. This server keeps a short in-memory session history for context and does not persist it to a database.
             </p>
           </div>
@@ -190,9 +107,9 @@
       </section>
 
       <!-- Current limitations -->
-      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+      <section class="glass skeuo-surface skeuo-card-pad-lg">
         <h2 class="text-xl font-semibold">Current limitations</h2>
-        <ul class="mt-3 space-y-2 text-slate-300 list-disc list-inside">
+        <ul class="mt-3 space-y-3 text-slate-300 list-disc list-inside">
           <li>Image attachments are not processed yet (text-only responses).</li>
           <li>Responsive design is being refined; behavior may vary by device/browser.</li>
           <li>Suggestions are informational - always check allergies and doneness to your preference.</li>
@@ -200,7 +117,7 @@
       </section>
 
       <!-- FAQ -->
-      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+      <section class="glass skeuo-surface skeuo-card-pad-lg">
         <h2 class="text-xl font-semibold">FAQ</h2>
         <div class="mt-4 space-y-4">
           <details class="group">
@@ -209,7 +126,7 @@
               <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
             </summary>
             <p class="mt-2 text-slate-300">
-              Saved chats are in your browser’s local storage on this device. Live session context is temporary and held in server memory.
+              Saved chats are currently in your browser’s local storage on this device. Account and cloud chat history support is planned.
             </p>
           </details>
           <details class="group">
@@ -241,9 +158,9 @@
       </section>
 
       <!-- Roadmap -->
-      <section class="glass rounded-2xl border border-slate-800/70 p-6">
+      <section class="glass skeuo-surface skeuo-card-pad-lg">
         <h2 class="text-xl font-semibold">Roadmap</h2>
-        <ul class="mt-3 space-y-2 text-slate-300 list-disc list-inside">
+        <ul class="mt-3 space-y-3 text-slate-300 list-disc list-inside">
           <li>Polish responsive layout & mobile interactions.</li>
           <li>Better saved-chat management and export.</li>
           <li>Optional offline/PWA support.</li>
@@ -252,16 +169,16 @@
       </section>
 
       <!-- CTA -->
-      <section class="glass rounded-2xl border border-slate-800/70 p-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <section class="glass skeuo-surface skeuo-card-pad-lg flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h3 class="text-lg font-semibold">Ready to try it?</h3>
           <p class="text-slate-300">Open the chat and ask away.</p>
         </div>
-        <div class="flex gap-2">
-          <a href="/chat.html" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 h-11 text-white font-semibold shadow-lg ring-1 ring-emerald-400/40 hover:bg-emerald-600">
+        <div class="flex gap-3">
+          <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">
             Open Chat
           </a>
-          <a href="/" class="inline-flex items-center justify-center rounded-full px-5 h-11 ring-1 ring-slate-700 bg-slate-900/60 hover:bg-slate-800/60">
+          <a href="/" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">
             Home
           </a>
         </div>
@@ -271,18 +188,16 @@
   </main>
 
   <!-- Footer -->
-  <footer class="px-4 sm:px-6 lg:px-8 pb-8">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400">
+  <footer class="skeuo-wrap pb-8">
+    <div class="skeuo-container-wide flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-400">
       <div>© <span id="year"></span> Yummy Tummy AI</div>
       <div class="flex gap-4">
-        <a href="/" class="hover:text-emerald-300">Home</a>
-        <a href="/chat.html" class="hover:text-emerald-300">Open Chat</a>
+        <a href="/" class="skeuo-link">Home</a>
+        <a href="/chat.html" class="skeuo-link">Open Chat</a>
       </div>
     </div>
   </footer>
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
+  <script src="/js/about.js"></script>
 </body>
 </html>

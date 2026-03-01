@@ -102,6 +102,26 @@ export function startServer() {
       return await serveTextTemplate("public/robots.txt", "text/plain; charset=utf-8", publicOrigin(url));
     }
 
+    // Friendly route aliases
+    if (req.method === "GET" && (url.pathname === "/chat" || url.pathname === "/chat/")) {
+      return new Response(null, {
+        status: 307,
+        headers: withSecurity({
+          "Location": "/chat.html",
+          "Cache-Control": "no-store",
+        }),
+      });
+    }
+    if (req.method === "GET" && (url.pathname === "/about" || url.pathname === "/about/")) {
+      return new Response(null, {
+        status: 307,
+        headers: withSecurity({
+          "Location": "/about.html",
+          "Cache-Control": "no-store",
+        }),
+      });
+    }
+
     // Chat
     if (req.method === "POST" && url.pathname === "/chat") {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);

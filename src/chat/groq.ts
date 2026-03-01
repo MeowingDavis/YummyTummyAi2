@@ -1,10 +1,14 @@
 // src/chat/groq.ts
 import type { Msg } from "./history.ts";
 
-const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-if (!GROQ_API_KEY) throw new Error("Missing GROQ_API_KEY");
+function getGroqApiKey() {
+  const key = Deno.env.get("GROQ_API_KEY")?.trim();
+  if (!key) throw new Error("Missing GROQ_API_KEY");
+  return key;
+}
 
 export async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ?? "llama-3.1-8b-instant") {
+  const GROQ_API_KEY = getGroqApiKey();
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {

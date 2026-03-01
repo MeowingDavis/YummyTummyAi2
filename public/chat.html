@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
@@ -9,7 +9,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
 
   <!-- Tailwind -->
+  <script src="/newsprint-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/newsprint.css" />
 
   <!-- Sanitizer + Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
@@ -19,150 +21,20 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
 
-  <style>
-    :root {
-      --bg: #141a27;
-      --text: #e6e9ef;
-      --muted: #a7b1c1;
-      --card: #1b2435;
-      --card2: #202a3e;
-      --card3: #242f45;
-      --border: rgba(226, 232, 240, 0.22);
-      --shadow: none;
-      --radius: 0px;
-      --space-1: 8px;
-      --space-2: 12px;
-      --space-3: 16px;
-      --space-4: 20px;
-      --space-5: 24px;
-      --space-6: 32px;
-    }
-
-    body {
-      color: var(--text);
-      background: var(--bg) !important;
-      background-image: linear-gradient(135deg, #1a2232 0%, #141a27 50%, #1d2638 100%) !important;
-    }
-
-    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div) {
-      --stack-offset-1: 3px;
-      --stack-offset-2: 6px;
-      position: relative;
-      isolation: isolate;
-      z-index: 0;
-      background: var(--card) !important;
-      border: 1px solid var(--border) !important;
-      border-radius: var(--radius) !important;
-      box-shadow: none !important;
-      backdrop-filter: none !important;
-    }
-    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::before,
-    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::after {
-      content: none;
-      display: none;
-      position: absolute;
-      inset: 0;
-      border: 1px solid var(--border);
-      border-radius: inherit;
-      pointer-events: none;
-      z-index: -1;
-    }
-    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::before {
-      background: var(--card2);
-      transform: translate(var(--stack-offset-1), var(--stack-offset-1));
-    }
-    :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div)::after {
-      background: var(--card3);
-      transform: translate(var(--stack-offset-2), var(--stack-offset-2));
-      z-index: -2;
-      box-shadow: none;
-    }
-
-    .stack-card { padding: var(--space-4); }
-    .stack-compact {
-      --stack-offset-1: 2px;
-      --stack-offset-2: 4px;
-    }
-    button,
-    [role="button"],
-    a[class*="rounded"] {
-      border-radius: 0 !important;
-    }
-
-    :where([class*="shadow"]) {
-      box-shadow: none !important;
-    }
-
-    :where([class*="drop-shadow"]) {
-      filter: none !important;
-    }
-
-    :where(a, button, input, textarea, select, summary):focus-visible {
-      outline: 2px solid #34d399;
-      outline-offset: 3px;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        animation: none !important;
-        transition: none !important;
-      }
-      :where(.stack-surface, .stack-card, .msg, #savedChats > li, #mobileSavedChats > li, .stack-drawer, #privacyNotice > div) {
-        transform: none !important;
-      }
-    }
-
-    .msg:hover .msg-actions {
-      opacity: 1;
-    }
-
-    @media (hover: none) {
-      .msg-actions {
-        opacity: 1;
-      }
-    }
-
-    @supports(padding: max(0px)) {
-      .composer-safe {
-        padding-bottom: max(1rem, env(safe-area-inset-bottom));
-      }
-    }
-
-    /* Mobile typography bump (desktop unchanged) */
-    .prose :where(p, li) {
-      font-size: 15px;
-      line-height: 1.6;
-    }
-
-    @media (min-width:640px) {
-      .prose :where(p, li) {
-        font-size: 1rem;
-        line-height: 1.75;
-      }
-    }
-
-    /* Keep newest message visible above sticky composer on phones */
-    @media (max-width: 767px) {
-      #chatbox {
-        scroll-padding-bottom: 96px;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
-      }
-    }
-  </style>
+  
 </head>
 
-<body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
+<body class="min-h-[100svh] bg-newsprint-paper text-newsprint-ink antialiased newsprint-texture">
   <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
     <div class="flex gap-4">
       <!-- Sidebar (desktop only; unchanged except nav links) -->
       <aside class="hidden md:flex md:w-72 shrink-0">
         <div
-          class="stack-surface w-full h-full flex flex-col rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-xl p-4">
+          class="stack-surface np-surface w-full h-full flex flex-col p-4">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
             <button id="refreshSavedBtn" type="button"
-              class="text-xs text-slate-400 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 rounded-md px-2 py-1">
+              class="np-btn np-btn-secondary hard-shadow-hover px-2 py-1">
               Refresh
             </button>
           </div>
@@ -170,10 +42,9 @@
           <div class="flex-1"></div>
 
           <!-- Home + About links -->
-          <nav class="mt-4 text-sm">
-            <a href="/" class="text-emerald-400 hover:underline">Home</a>
-            <span class="mx-2 text-slate-500">•</span>
-            <a href="/about.html" class="text-emerald-400 hover:underline">About</a>
+          <nav class="mt-4 text-sm flex items-center gap-4">
+            <a href="/" class="np-link">Home</a>
+            <a href="/about.html" class="np-link">About</a>
           </nav>
         </div>
       </aside>
@@ -181,7 +52,7 @@
       <!-- Main column -->
       <main class="flex-1">
         <!-- CARD: grid rows (header / content). Mobile fills screen; desktop unchanged -->
-        <div class="stack-surface rounded-2xl border border-slate-800/70 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-visible
+        <div class="stack-surface np-surface overflow-visible
                     grid grid-rows-[auto,1fr] min-h-[calc(100svh-2rem)] md:min-h-0">
           <!-- Header -->
           <header
@@ -193,9 +64,7 @@
               </h1>
 
               <!-- Mobile hamburger (desktop hidden) -->
-              <button id="mobileMenuBtn" aria-controls="mobileSavedModal" aria-expanded="false" class="md:hidden inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800/80
-                       px-0 text-emerald-400 shadow-md ring-1 ring-inset ring-slate-700 hover:bg-slate-700
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+              <button id="mobileMenuBtn" aria-controls="mobileSavedModal" aria-expanded="false" class="md:hidden np-btn np-btn-secondary hard-shadow-hover h-12 w-12 px-0"
                 aria-label="Show saved chats">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
@@ -210,7 +79,7 @@
             <!-- Local-only storage notice -->
             <div id="privacyNotice" class="hidden mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div
-                class="stack-surface stack-compact mt-3 rounded-xl border border-emerald-700/30 bg-emerald-900/30 text-emerald-50 backdrop-blur p-3 sm:p-4 flex items-start gap-3">
+                class="stack-surface np-surface stack-compact mt-3 p-3 sm:p-4 flex items-start gap-3">
                 <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
@@ -224,7 +93,7 @@
                     class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
                 </div>
                 <button id="privacyDismiss"
-                  class="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm ring-1 ring-inset ring-emerald-500 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+                  class="ml-auto np-btn np-btn-danger hard-shadow-hover"
                   aria-label="Dismiss privacy notice">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor" stroke-width="2">
@@ -240,15 +109,14 @@
             </div>
 
             <!-- Jump-to-latest (appears only when user scrolled up) -->
-            <button id="jumpLatest" class="hidden md:hidden absolute right-4 bottom-24 rounded-full bg-slate-800/95 text-emerald-300
-                     ring-1 ring-slate-700 shadow px-3 py-1.5 text-sm">
+            <button id="jumpLatest" class="hidden md:hidden absolute right-4 bottom-24 np-btn np-btn-secondary hard-shadow-hover text-sm">
               Jump to latest ↓
             </button>
 
             <!-- Typing indicator -->
             <div id="typing" class="hidden px-3 md:px-8">
               <div
-                class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-slate-300">
+                class="inline-flex items-center gap-2 np-surface px-3 py-2 text-slate-300">
                 <span>Chef is typing</span>
                 <span class="inline-flex gap-1">
                   <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
@@ -279,9 +147,7 @@
                   placeholder="Ask a recipe question..."></textarea>
 
                 <div class="flex items-center justify-end gap-2 shrink-0">
-                  <button id="saveBtn" type="button" class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
-         ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
-         focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 active:scale-[0.98] transition"
+                  <button id="saveBtn" type="button" class="h-12 w-12 md:h-11 md:w-11 np-btn np-btn-secondary hard-shadow-hover"
                     title="Save chat" aria-label="Save chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                       stroke="currentColor">
@@ -293,9 +159,7 @@
 
 
                   <button id="newChatBtn"
-                    class="h-12 w-12 md:h-11 md:w-11 inline-flex items-center justify-center rounded-full bg-slate-900/70
-                           ring-1 ring-inset ring-slate-700/80 text-slate-300 hover:text-slate-100 hover:bg-slate-800/70
-                           transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98]"
+                    class="h-12 w-12 md:h-11 md:w-11 np-btn np-btn-secondary hard-shadow-hover"
                     title="New Chat" aria-label="New Chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
                       stroke="currentColor" stroke-width="2">
@@ -303,10 +167,8 @@
                     </svg>
                   </button>
 
-                  <button id="sendBtn" type="button" class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 md:px-5 h-12 md:h-11
-                           text-white font-semibold shadow-lg ring-1 ring-inset ring-emerald-400/40 hover:bg-emerald-600
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.99]
-                           transition disabled:opacity-50 disabled:cursor-not-allowed" title="Send"
+                  <button id="sendBtn" type="button" class="np-btn np-btn-primary hard-shadow-hover px-4 md:px-5 h-12 md:h-11
+                           disabled:opacity-50 disabled:cursor-not-allowed" title="Send"
                     aria-label="Send message" disabled>
                     <span class="hidden md:inline">Send</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
@@ -326,13 +188,11 @@
 
   <!-- Mobile Saved Chats Modal -->
   <div class="fixed inset-0 z-40 hidden bg-black/70 sm:bg-black/60" id="mobileSavedModalBg"></div>
-  <div class="stack-drawer stack-compact fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] sm:w-[82vw] max-w-xs overflow-y-auto
-              rounded-r-2xl border border-slate-800 bg-slate-900/95 sm:bg-slate-900/90 backdrop-blur-md p-5"
+  <div class="stack-drawer stack-compact np-surface fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] sm:w-[82vw] max-w-xs overflow-y-auto p-5"
     id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
     <div class="mb-3 flex items-center justify-between">
       <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-      <button class="rounded-full w-10 h-10 flex items-center justify-center text-slate-300 hover:bg-slate-800
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50" aria-label="Close"
+      <button class="np-btn np-btn-secondary hard-shadow-hover w-10 h-10" aria-label="Close"
         id="mobileCloseBtn">✕</button>
     </div>
     <ul id="mobileSavedChats" class="space-y-2 text-sm"></ul>
@@ -340,8 +200,8 @@
 
     <!-- Home + About links (mobile) -->
     <div class="flex items-center gap-4">
-      <a href="/" class="text-sm text-emerald-400 hover:underline">Home</a>
-      <a href="/about.html" class="text-sm text-emerald-400 hover:underline">About</a>
+      <a href="/" class="np-link">Home</a>
+      <a href="/about.html" class="np-link">About</a>
     </div>
   </div>
 

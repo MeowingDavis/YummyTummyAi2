@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
@@ -14,99 +14,13 @@
   <link rel="manifest" href="/manifest.webmanifest" />
 
   <!-- Tailwind -->
+  <script src="/newsprint-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/newsprint.css" />
 
-  <style>
-    :root {
-      --bg: #141a27;
-      --text: #e6e9ef;
-      --muted: #a7b1c1;
-      --card: #1b2435;
-      --card2: #202a3e;
-      --card3: #242f45;
-      --border: rgba(226, 232, 240, 0.22);
-      --shadow: none;
-      --radius: 0px;
-      --space-1: 8px;
-      --space-2: 12px;
-      --space-3: 16px;
-      --space-4: 20px;
-      --space-5: 24px;
-      --space-6: 32px;
-    }
-
-    body {
-      color: var(--text);
-      background: var(--bg) !important;
-      background-image: linear-gradient(135deg, #1a2232 0%, #141a27 50%, #1d2638 100%) !important;
-    }
-
-    :where(.stack-surface, .stack-card, .glass) {
-      --stack-offset-1: 3px;
-      --stack-offset-2: 6px;
-      position: relative;
-      isolation: isolate;
-      z-index: 0;
-      background: var(--card) !important;
-      border: 1px solid var(--border) !important;
-      border-radius: var(--radius) !important;
-      box-shadow: none !important;
-      backdrop-filter: none !important;
-    }
-    :where(.stack-surface, .stack-card, .glass)::before,
-    :where(.stack-surface, .stack-card, .glass)::after {
-      content: none;
-      display: none;
-      position: absolute;
-      inset: 0;
-      border: 1px solid var(--border);
-      border-radius: inherit;
-      pointer-events: none;
-      z-index: -1;
-    }
-    :where(.stack-surface, .stack-card, .glass)::before {
-      background: var(--card2);
-      transform: translate(var(--stack-offset-1), var(--stack-offset-1));
-    }
-    :where(.stack-surface, .stack-card, .glass)::after {
-      background: var(--card3);
-      transform: translate(var(--stack-offset-2), var(--stack-offset-2));
-      z-index: -2;
-      box-shadow: none;
-    }
-
-    .stack-card { padding: var(--space-4); }
-    button,
-    [role="button"],
-    a[class*="rounded"] {
-      border-radius: 0 !important;
-    }
-
-    :where([class*="shadow"]) {
-      box-shadow: none !important;
-    }
-
-    :where([class*="drop-shadow"]) {
-      filter: none !important;
-    }
-
-    #notice,
-    #privacyNoticeHome {
-      margin-bottom: var(--space-4);
-    }
-
-    :where(a, button, input, textarea, select, summary):focus-visible {
-      outline: 2px solid #34d399;
-      outline-offset: 3px;
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      *{animation:none!important;transition:none!important;}
-      :where(.stack-surface, .stack-card, .glass){transform:none!important;}
-    }
-  </style>
+  
 </head>
-<body class="min-h-[100svh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 antialiased">
+<body class="min-h-[100svh] bg-newsprint-paper text-newsprint-ink antialiased newsprint-texture">
 
   <!-- Header -->
   <header class="px-4 sm:px-6 lg:px-8 py-4">
@@ -115,17 +29,21 @@
         <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
         <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
       </a>
-      <nav class="hidden sm:flex items-center gap-2">
-        <a href="/about.html" class="text-sm text-slate-300 hover:text-emerald-300">About</a>
-        <a href="/chat.html" class="text-sm text-slate-300 hover:text-emerald-300">Open Chat</a>
+      <nav class="hidden sm:flex items-center gap-4">
+        <a href="/about.html" class="np-link">About</a>
+        <a href="/chat.html" class="np-link">Open Chat</a>
       </nav>
-      <a href="/chat.html" class="sm:hidden inline-flex items-center rounded-full bg-emerald-500 px-4 h-10 text-white font-medium shadow ring-1 ring-emerald-400/40">Open Chat</a>
+      <a href="/chat.html" class="sm:hidden np-btn np-btn-primary hard-shadow-hover">Open Chat</a>
     </div>
   </header>
 
+  <section class="np-ticker" aria-label="Announcements">
+    <div class="np-ticker-track">Yummy Tummy AI • No account required • Local-first saved chats • Ingredient-first recipe assistant • </div>
+  </section>
+
   <!-- Notice: responsive design in progress -->
   <div id="notice" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="glass mt-3 rounded-2xl border border-slate-800/70 p-3 sm:p-4 flex items-start gap-3">
+    <div class="glass np-surface mt-3 p-3 sm:p-4 flex items-start gap-3">
       <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
       </svg>
@@ -141,7 +59,7 @@
 
   <!-- Privacy notice (acknowledge to enable saving) -->
   <div id="privacyNoticeHome" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="glass mt-3 rounded-2xl border border-emerald-800/50 bg-emerald-950/30 p-3 sm:p-4 flex items-start gap-3">
+    <div class="glass np-surface mt-3 p-3 sm:p-4 flex items-start gap-3">
       <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
       </svg>
@@ -150,7 +68,7 @@
         Saved chats are stored locally on this device. Acknowledge this notice to enable saving.
       </div>
       <button id="privacyDismissHome"
-              class="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm ring-1 ring-inset ring-emerald-500 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 transition"
+              class="ml-auto np-btn np-btn-danger hard-shadow-hover"
               aria-label="Acknowledge privacy notice">
         Acknowledge
       </button>
@@ -170,11 +88,10 @@
         </p>
 
         <div class="mt-6 flex flex-col sm:flex-row gap-3">
-          <a id="cta" href="/chat.html"
-             class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 h-12 text-white font-semibold shadow-lg ring-1 ring-emerald-400/40 hover:bg-emerald-600">
+          <a id="cta" href="/chat.html" class="np-btn np-btn-primary hard-shadow-hover">
             Start chatting
           </a>
-          <a href="#how" class="inline-flex items-center justify-center rounded-full px-5 h-12 ring-1 ring-slate-700 bg-slate-900/60 hover:bg-slate-800/60">
+          <a href="#how" class="np-btn np-btn-secondary hard-shadow-hover">
             How it works
           </a>
         </div>
@@ -186,7 +103,7 @@
 
       <!-- Glass mock “phone” preview -->
       <div class="order-1 md:order-2">
-        <div class="mx-auto max-w-sm glass rounded-3xl border border-slate-800/70 shadow-2xl p-4">
+        <div class="mx-auto max-w-sm glass np-surface p-4">
           <div class="h-8 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-center text-xs text-slate-300">
             Yummy Tummy AI
           </div>
@@ -217,19 +134,19 @@
 
   <!-- How it works -->
   <section id="how" class="px-4 sm:px-6 lg:px-8 mt-12">
-    <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-4">
-      <div class="glass rounded-2xl border border-slate-800/70 p-5">
-        <div class="text-sm text-slate-400">Step 1</div>
+    <div class="max-w-7xl mx-auto grid md:grid-cols-3 news-grid">
+      <div class="glass np-surface p-5">
+        <div class="np-label">Step 1</div>
         <h3 class="text-lg font-semibold mt-1">Tell it what you have</h3>
         <p class="mt-2 text-slate-300">Type or paste your ingredients and any preferences.</p>
       </div>
-      <div class="glass rounded-2xl border border-slate-800/70 p-5">
-        <div class="text-sm text-slate-400">Step 2</div>
+      <div class="glass np-surface p-5">
+        <div class="np-label">Step 2</div>
         <h3 class="text-lg font-semibold mt-1">Chat through options</h3>
         <p class="mt-2 text-slate-300">Get substitutions, dietary tweaks, and timings as you cook.</p>
       </div>
-      <div class="glass rounded-2xl border border-slate-800/70 p-5">
-        <div class="text-sm text-slate-400">Step 3</div>
+      <div class="glass np-surface p-5">
+        <div class="np-label">Step 3</div>
         <h3 class="text-lg font-semibold mt-1">Save your favourites</h3>
         <p class="mt-2 text-slate-300">Save favorite recipes locally. No logins, no tracking.</p>
       </div>
@@ -238,18 +155,18 @@
 
   <!-- Feature grid -->
   <section class="px-4 sm:px-6 lg:px-8 mt-12">
-    <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-4">
-      <div class="glass rounded-2xl border border-slate-800/70 p-5">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-3 news-grid">
+      <div class="glass np-surface p-5">
         <h3 class="font-semibold">Responsive design (in progress)</h3>
         <p class="mt-2 text-slate-300">
           Works today on phones and desktop; we’re actively polishing the layout and interactions.
         </p>
       </div>
-      <div class="glass rounded-2xl border border-slate-800/70 p-5">
+      <div class="glass np-surface p-5">
         <h3 class="font-semibold">Privacy-friendly</h3>
         <p class="mt-2 text-slate-300">Your chats stay on your device. Clear your browser to wipe them.</p>
       </div>
-      <div class="glass rounded-2xl border border-slate-800/70 p-5">
+      <div class="glass np-surface p-5">
         <h3 class="font-semibold">Clear recipe formatting</h3>
         <p class="mt-2 text-slate-300">
           Messages support clean formatting - steps, lists, and links - so recipes stay easy to follow.
@@ -260,13 +177,12 @@
 
   <!-- CTA strip -->
   <section class="px-4 sm:px-6 lg:px-8 mt-12 mb-10">
-    <div class="max-w-7xl mx-auto glass rounded-2xl border border-slate-800/70 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto glass np-surface np-invert p-6 flex flex-col md:flex-row items-center justify-between gap-4">
       <div>
         <h3 class="text-xl font-semibold">Ready to cook smarter?</h3>
         <p class="text-slate-300 mt-1">Open the chat and ask away.</p>
       </div>
-      <a id="cta2" href="/chat.html"
-         class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 h-12 text-white font-semibold shadow-lg ring-1 ring-emerald-400/40 hover:bg-emerald-600">
+      <a id="cta2" href="/chat.html" class="np-btn np-btn-secondary hard-shadow-hover">
         Start chatting
       </a>
     </div>
@@ -277,8 +193,8 @@
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400">
       <div>© <span id="year"></span> Yummy Tummy AI</div>
       <div class="flex gap-4">
-        <a href="/about.html" class="hover:text-emerald-300">About</a>
-        <a href="/chat.html" class="hover:text-emerald-300">Open Chat</a>
+        <a href="/about.html" class="np-link">About</a>
+        <a href="/chat.html" class="np-link">Open Chat</a>
       </div>
     </div>
   </footer>

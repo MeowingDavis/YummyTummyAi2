@@ -15,3 +15,5 @@ coverage/
 
 # Editor
 .vscode/
+
+security_best_practices_report.md/

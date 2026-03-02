@@ -66,7 +66,6 @@ async function supabaseRequest(path: string, options: RequestInit) {
     ...options,
     headers: {
       apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       "Content-Type": "application/json",
       ...(options.headers ?? {}),
     },

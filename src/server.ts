@@ -196,10 +196,13 @@ export function startServer() {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
         const msg = String((err as Error)?.message ?? err);
-        if (msg === "EMAIL_TAKEN") {
+        if (
+          msg === "EMAIL_TAKEN" ||
+          /already (registered|in use)|already exists|duplicate|unique/i.test(msg)
+        ) {
           return new Response(JSON.stringify({ error: "Email already in use" }), { status: 409, headers: h });
         }
-        return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
+        return new Response(JSON.stringify({ error: msg || "Server error" }), { status: 500, headers: h });
       }
     }
     if (req.method === "POST" && url.pathname === "/auth/login") {
@@ -218,10 +221,11 @@ export function startServer() {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
         return new Response(JSON.stringify({ user }), { headers: h });
-      } catch {
+      } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
-        return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
+        const msg = String((err as Error)?.message ?? err);
+        return new Response(JSON.stringify({ error: msg || "Server error" }), { status: 500, headers: h });
       }
     }
     if (req.method === "POST" && url.pathname === "/auth/logout") {

@@ -79,3 +79,18 @@ export function loadDraft() {
   }
   return localStorage.getItem(KEYS.DRAFT) || "";
 }
+
+export function getSelectedModel() {
+  try {
+    return localStorage.getItem(KEYS.MODEL) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveSelectedModel(model) {
+  try {
+    if (!model) return;
+    localStorage.setItem(KEYS.MODEL, model);
+  } catch {}
+}

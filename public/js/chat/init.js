@@ -1,6 +1,6 @@
 // public/js/chat/init.js
 import { refs } from "./state.js";
-import { hasPrivacyAck, loadDraft } from "./storage.js";
+import { getSelectedModel, hasPrivacyAck, loadDraft, saveSelectedModel } from "./storage.js";
 import { renderSavedChats, renderMobileSavedChats } from "./savedChats.js";
 import { renderEmptyState } from "./ui.js";
 import { wireDrawer } from "./drawer.js";
@@ -17,6 +17,7 @@ export function initCore() {
     refs.newChatBtn = document.getElementById('newChatBtn');
     refs.saveBtn  = document.getElementById('saveBtn');
     refs.refreshSavedBtn = document.getElementById('refreshSavedBtn');
+    refs.modelSelect = document.getElementById('modelSelect');
 
     refs.newChatBtn?.addEventListener('click', window.newChat);
     refs.sendBtn?.addEventListener('click', window.send);
@@ -24,6 +25,9 @@ export function initCore() {
     refs.refreshSavedBtn?.addEventListener('click', () => {
       renderSavedChats();
       renderMobileSavedChats();
+    });
+    refs.modelSelect?.addEventListener("change", () => {
+      saveSelectedModel(refs.modelSelect.value);
     });
 
     if (hasPrivacyAck()) {
@@ -36,6 +40,7 @@ export function initCore() {
     }
 
     wireComposer();
+    initModelPicker();
     renderSavedChats();
     renderMobileSavedChats();
     renderEmptyState();
@@ -44,6 +49,31 @@ export function initCore() {
   } catch (e) {
     console.error("[initCore] failed:", e);
   }
+}
+
+async function initModelPicker() {
+  if (!refs.modelSelect) return;
+  try {
+    const res = await fetch("/chat-models");
+    if (!res.ok) return;
+    const data = await res.json();
+    const models = Array.isArray(data?.models) ? data.models : [];
+    const defaultModel = typeof data?.defaultModel === "string" ? data.defaultModel : "";
+    if (!models.length) return;
+
+    refs.modelSelect.innerHTML = "";
+    for (const model of models) {
+      const opt = document.createElement("option");
+      opt.value = model;
+      opt.textContent = model;
+      refs.modelSelect.appendChild(opt);
+    }
+
+    const saved = getSelectedModel();
+    const selected = models.includes(saved) ? saved : (models.includes(defaultModel) ? defaultModel : models[0]);
+    refs.modelSelect.value = selected;
+    saveSelectedModel(selected);
+  } catch {}
 }
 
 export function boot() {

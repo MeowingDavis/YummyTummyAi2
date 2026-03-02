@@ -31,6 +31,8 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 export GROQ_API_KEY="your_groq_api_key"
 # optional
 export MODEL="llama-3.1-8b-instant"
+# optional: models shown in the UI picker (comma-separated)
+export GROQ_MODELS="llama-3.1-8b-instant,llama-3.3-70b-versatile"
 # optional recipe corpus location
 export RECIPES_DB_PATH="data/recipes.json"
 ```
@@ -50,6 +52,8 @@ export TRUSTED_PROXY_IPS="127.0.0.1"
 2. Run the app:
 
 ```bash
+deno task dev
+# or
 deno task run
 ```
 
@@ -65,6 +69,7 @@ http://localhost:8000
   - `--allow-net`
   - `--allow-read`
   - `--allow-env`
+- `deno task dev` -> starts the server and loads variables from `.env` via `--env-file=.env`
 - `deno task ingest-recipes <path>` -> merges recipes into `data/recipes.json` (or `RECIPES_DB_PATH`) with:
   - `--allow-read`
   - `--allow-write`

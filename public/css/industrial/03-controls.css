@@ -1,0 +1,85 @@
+.skeuo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-light);
+  padding: 0.65rem 1.1rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: var(--shadow-base);
+  transition:
+    transform 160ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 160ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.skeuo-interactive {
+  transition:
+    transform 160ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 160ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.skeuo-btn:hover,
+.skeuo-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-floating);
+}
+
+.skeuo-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border-light));
+}
+
+.skeuo-btn:active,
+.skeuo-interactive:active {
+  transform: translateY(2px);
+  box-shadow: var(--shadow-pressed);
+}
+
+.skeuo-btn-primary {
+  background: linear-gradient(180deg, #64e6bc 0%, #34c99a 100%);
+  color: #0b1320 !important;
+  border-color: #5bdcb4;
+}
+
+.skeuo-btn-primary:hover {
+  background: linear-gradient(180deg, #72ecc6 0%, #3bd2a3 100%);
+}
+
+.skeuo-btn-secondary {
+  background: linear-gradient(180deg, #27384f 0%, #1f2d42 100%);
+  color: var(--text-primary) !important;
+  border-color: rgba(184, 203, 227, 0.45);
+}
+
+.skeuo-btn-ghost {
+  background: transparent;
+  color: var(--text-primary) !important;
+  border-color: rgba(184, 203, 227, 0.34);
+  box-shadow: none;
+}
+
+.skeuo-btn-danger {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+  color: #fff !important;
+  border-color: #f87171;
+}
+
+.skeuo-input {
+  min-height: 48px;
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, #162235 0%, #111b2b 100%);
+  border: 1px solid rgba(184, 203, 227, 0.35);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-pressed);
+}
+
+.skeuo-input::placeholder {
+  color: var(--text-muted);
+}

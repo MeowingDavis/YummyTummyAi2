@@ -1,0 +1,149 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Playfair+Display:wght@600;700;800&display=swap");
+
+:root {
+  --chassis: #0e1622;
+  --panel: #1b2737;
+  --recessed: #142033;
+  --text-primary: #eaf0f8;
+  --text-muted: #aebbd0;
+  --accent: #4fd1a5;
+  --border-light: rgba(255, 255, 255, 0.12);
+  --border-shadow: rgba(5, 10, 20, 0.72);
+  --focus: #4fd1a5;
+
+  --shadow-base:
+    0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px rgba(3, 8, 18, 0.45);
+  --shadow-floating:
+    0 1px 0 rgba(255, 255, 255, 0.1), 0 16px 30px rgba(3, 8, 18, 0.5);
+  --shadow-pressed:
+    inset 0 2px 5px rgba(3, 8, 18, 0.55), inset 0 -1px 0 rgba(
+    255,
+    255,
+    255,
+    0.05
+  );
+
+  --skeuo-space-1: 0.5rem;
+  --skeuo-space-2: 0.75rem;
+  --skeuo-space-3: 1rem;
+  --skeuo-space-4: 1.25rem;
+  --skeuo-space-5: 1.5rem;
+  --skeuo-space-6: 2rem;
+  --skeuo-space-7: 3rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--chassis);
+  color: var(--text-primary);
+  line-height: 1.65;
+}
+
+a {
+  color: inherit;
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Playfair Display", serif;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+button,
+input,
+textarea,
+select,
+summary,
+label,
+nav,
+[data-ui],
+.skeuo-ui {
+  font-family: "Inter", sans-serif;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+[class*="drop-shadow"] {
+  filter: none !important;
+}
+
+.industrial-texture {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(130, 154, 184, 0.08) 1px,
+    transparent 0
+  );
+  background-size: 22px 22px;
+}
+
+.skeuo-wrap {
+  padding-left: var(--skeuo-space-3);
+  padding-right: var(--skeuo-space-3);
+}
+
+@media (min-width: 640px) {
+  .skeuo-wrap {
+    padding-left: var(--skeuo-space-5);
+    padding-right: var(--skeuo-space-5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .skeuo-wrap {
+    padding-left: var(--skeuo-space-6);
+    padding-right: var(--skeuo-space-6);
+  }
+}
+
+.skeuo-container-wide {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.skeuo-container-narrow {
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.skeuo-header {
+  padding-top: var(--skeuo-space-4);
+  padding-bottom: var(--skeuo-space-4);
+}
+
+.skeuo-section {
+  margin-top: var(--skeuo-space-7);
+}
+.skeuo-section-tight {
+  margin-top: var(--skeuo-space-5);
+}
+.skeuo-card-pad {
+  padding: var(--skeuo-space-4);
+}
+.skeuo-card-pad-lg {
+  padding: var(--skeuo-space-5);
+}

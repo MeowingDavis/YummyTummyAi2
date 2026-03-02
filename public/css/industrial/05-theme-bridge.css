@@ -1,0 +1,79 @@
+.skeuo-invert {
+  background: linear-gradient(180deg, #dbe5f2 0%, #cdd9ea 100%) !important;
+  color: #132033 !important;
+  border: 1px solid rgba(6, 16, 30, 0.16);
+}
+
+.skeuo-invert h1,
+.skeuo-invert h2,
+.skeuo-invert h3,
+.skeuo-invert p,
+.skeuo-invert a:not(.skeuo-btn),
+.skeuo-invert span,
+.skeuo-invert [class*="text-slate-"],
+.skeuo-invert [class*="text-emerald-"] {
+  color: #132033 !important;
+}
+
+.skeuo-invert .skeuo-btn-secondary {
+  background: #132033;
+  color: #eaf0f8 !important;
+  border-color: #132033;
+}
+
+/* Tailwind utility harmonization */
+[class*="bg-gradient-to-"],
+[class*="from-slate-"],
+[class*="via-slate-"],
+[class*="to-slate-"] {
+  background-image: none !important;
+}
+
+[class*="bg-slate-"] {
+  background-color: var(--panel) !important;
+}
+
+[class*="text-slate-"] {
+  color: var(--text-muted) !important;
+}
+
+[class*="border-slate-"],
+[class*="ring-slate-"] {
+  border-color: var(--border-light) !important;
+}
+
+[class*="bg-emerald-"] {
+  background-color: var(--accent) !important;
+  color: #0b1320 !important;
+}
+
+[class*="text-emerald-"] {
+  color: var(--accent) !important;
+}
+
+[class*="border-emerald-"],
+[class*="ring-emerald-"] {
+  border-color: var(--accent) !important;
+}
+
+[class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+}
+
+p,
+li,
+small {
+  color: var(--text-muted);
+}
+
+strong,
+b {
+  color: var(--text-primary);
+}
+
+.skeuo-link,
+button,
+label,
+summary {
+  color: var(--text-primary);
+}

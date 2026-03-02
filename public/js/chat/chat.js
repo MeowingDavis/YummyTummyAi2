@@ -18,6 +18,7 @@ export function autoresize() {
 export async function send(){
   const message = refs.input.value.trim();
   if (!message) return;
+  const model = refs.modelSelect?.value || undefined;
 
   refs.sendBtn.disabled = true;
 
@@ -44,7 +45,7 @@ export async function send(){
 
   showTyping();
   try {
-    const data = await postJSON("/chat", { message, attachments });
+    const data = await postJSON("/chat", { message, attachments, model });
     const md = data?.markdown ?? data?.reply ?? "";
     if (md) {
       appendMarkdown("Chef", md);
@@ -69,7 +70,7 @@ export function newChat(){
   refreshSendState();
   renderEmptyState();
   refs.input.focus();
-  postJSON("/chat", { message: "Let's start a new chat!", newChat: true }).catch(() => {});
+  postJSON("/chat", { message: "Let's start a new chat!", newChat: true, model: refs.modelSelect?.value || undefined }).catch(() => {});
 }
 
 export function wireComposer(){

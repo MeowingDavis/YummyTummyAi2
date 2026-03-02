@@ -1,0 +1,39 @@
+.skeuo-panel,
+.skeuo-surface,
+.skeuo-card,
+.stack-surface,
+.stack-card,
+.glass,
+.msg,
+.stack-drawer,
+#savedChats > li,
+#mobileSavedChats > li,
+#privacyNotice > div {
+  background: linear-gradient(180deg, #202e41 0%, var(--panel) 100%) !important;
+  border: 1px solid var(--border-light) !important;
+  box-shadow: var(--shadow-base);
+  border-radius: 0.75rem;
+  backdrop-filter: none !important;
+}
+
+.skeuo-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.skeuo-link {
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.skeuo-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

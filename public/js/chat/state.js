@@ -3,6 +3,7 @@
 export const KEYS = {
   DRAFT: "yt_ai_draft",
   PRIVACY_ACK: "yt_privacy_notice_dismissed_v1",
+  MODEL: "yt_ai_model_v1",
 };
 
 export const refs = {
@@ -14,6 +15,7 @@ export const refs = {
   newChatBtn: null,
   saveBtn: null,
   refreshSavedBtn: null,
+  modelSelect: null,
   mobileBtn: null,
   mobileBg: null,
   mobileModal: null,

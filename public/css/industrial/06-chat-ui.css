@@ -1,0 +1,42 @@
+.msg:hover .msg-actions {
+  opacity: 1;
+}
+@media (hover: none) {
+  .msg-actions {
+    opacity: 1;
+  }
+}
+
+.msg-actions .skeuo-btn {
+  min-height: 30px;
+  border-radius: 0.55rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+}
+
+@supports (padding: max(0px)) {
+  .composer-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+.prose :where(p, li) {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+@media (min-width: 640px) {
+  .prose :where(p, li) {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+}
+
+@media (max-width: 767px) {
+  #chatbox {
+    scroll-padding-bottom: 96px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}

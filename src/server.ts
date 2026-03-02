@@ -18,6 +18,12 @@ const IS_PRODUCTION = NODE_ENV === "production";
 const CANONICAL_ORIGIN = Deno.env.get("CANONICAL_ORIGIN")?.trim() ?? "";
 const ALLOWED_HOSTS = new Set(parseCsv(Deno.env.get("ALLOWED_HOSTS")).map(h => h.toLowerCase()));
 const TRUSTED_PROXY_IPS = new Set(parseCsv(Deno.env.get("TRUSTED_PROXY_IPS")));
+const DEFAULT_MODEL = Deno.env.get("MODEL")?.trim() || "llama-3.1-8b-instant";
+const ALLOWED_MODELS = (() => {
+  const csv = parseCsv(Deno.env.get("GROQ_MODELS"));
+  const models = csv.length ? csv : [DEFAULT_MODEL];
+  return new Set(models);
+})();
 const IP_RE = /^[0-9a-fA-F:.]+$/;
 const CANONICAL_URL = parseCanonicalOrigin(CANONICAL_ORIGIN);
 
@@ -95,6 +101,17 @@ export function startServer() {
       return new Response(JSON.stringify({ ok: true }), { headers: h });
     }
 
+    // Available chat models for the UI model picker
+    if (req.method === "GET" && url.pathname === "/chat-models") {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      return new Response(JSON.stringify({
+        defaultModel: DEFAULT_MODEL,
+        models: [...ALLOWED_MODELS],
+      }), { headers: h });
+    }
+
     // Sitemap + robots (templated with request origin)
     if (req.method === "GET" && url.pathname === "/sitemap.xml") {
       return await serveTextTemplate("public/sitemap.xml", "application/xml; charset=utf-8", publicOrigin(url));
@@ -135,8 +152,9 @@ export function startServer() {
       }
 
       try {
-        const body = await readJson<{ message?: string; newChat?: boolean }>(req);
+        const body = await readJson<{ message?: string; newChat?: boolean; model?: string }>(req);
         const message = (body.message ?? "").trim();
+        const chosenModel = (body.model ?? "").trim() || DEFAULT_MODEL;
 
         // Validation
         if (!message) {
@@ -148,6 +166,11 @@ export function startServer() {
           const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
           if (setCookie) h.append("Set-Cookie", setCookie);
           return new Response(JSON.stringify({ error: "Message too long (max 1000 chars)" }), { status: 413, headers: h });
+        }
+        if (!ALLOWED_MODELS.has(chosenModel)) {
+          const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+          if (setCookie) h.append("Set-Cookie", setCookie);
+          return new Response(JSON.stringify({ error: "Unsupported model" }), { status: 400, headers: h });
         }
 
         if (body.newChat) clearHistory(sessionId);
@@ -190,7 +213,7 @@ export function startServer() {
 
         // Call model
         pushAndClamp(sessionId, { role: "user", content: message });
-        const reply = await groqChat(messagesToSend);
+        const reply = await groqChat(messagesToSend, chosenModel);
         pushAndClamp(sessionId, { role: "assistant", content: reply });
 
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));

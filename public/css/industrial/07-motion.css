@@ -1,0 +1,12 @@
+@media (prefers-reduced-motion: reduce) {
+  .skeuo-ticker-track {
+    animation: none;
+    padding-left: 0;
+  }
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

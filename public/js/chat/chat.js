@@ -2,7 +2,7 @@
 import { refs, state } from "./state.js";
 import { appendMessage, appendMarkdown, showTyping, hideTyping, renderEmptyState, onFiles } from "./ui.js";
 import { postJSON } from "./network.js";
-import { saveDraft, clearDraft } from "./storage.js";
+import { saveDraft, clearDraft, saveSelectedModel } from "./storage.js";
 import { uploadAll } from "./uploads.js";
 
 export function refreshSendState() {
@@ -47,6 +47,10 @@ export async function send(){
   try {
     const data = await postJSON("/chat", { message, attachments, model });
     const md = data?.markdown ?? data?.reply ?? "";
+    if (data?.modelUsed && refs.modelSelect && refs.modelSelect.value !== data.modelUsed) {
+      refs.modelSelect.value = data.modelUsed;
+      saveSelectedModel(data.modelUsed);
+    }
     if (md) {
       appendMarkdown("Chef", md);
       state.chatHistory.push({ role: "assistant", content: md });

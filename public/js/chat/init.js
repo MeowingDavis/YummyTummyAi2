@@ -49,11 +49,11 @@ async function initModelPicker() {
   if (!refs.modelSelect) return;
   try {
     const res = await fetch("/chat-models");
-    if (!res.ok) return;
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const models = Array.isArray(data?.models) ? data.models : [];
     const defaultModel = typeof data?.defaultModel === "string" ? data.defaultModel : "";
-    if (!models.length) return;
+    if (!models.length) throw new Error("No models configured");
 
     refs.modelSelect.innerHTML = "";
     for (const model of models) {
@@ -67,7 +67,18 @@ async function initModelPicker() {
     const selected = models.includes(saved) ? saved : (models.includes(defaultModel) ? defaultModel : models[0]);
     refs.modelSelect.value = selected;
     saveSelectedModel(selected);
-  } catch {}
+  } catch {
+    if (!refs.modelSelect.options.length) {
+      const fallback = getSelectedModel() || "llama-3.1-8b-instant";
+      refs.modelSelect.innerHTML = "";
+      const opt = document.createElement("option");
+      opt.value = fallback;
+      opt.textContent = fallback;
+      refs.modelSelect.appendChild(opt);
+      refs.modelSelect.value = fallback;
+      saveSelectedModel(fallback);
+    }
+  }
 }
 
 export function boot() {

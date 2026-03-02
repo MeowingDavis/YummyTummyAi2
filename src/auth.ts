@@ -1,3 +1,5 @@
+import { getAppKv } from "./kv.ts";
+
 export type UserProfile = {
   dietaryRequirements?: string[];
   allergies?: string[];
@@ -25,8 +27,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") ?? "").trim().replace(/\/$/, "");
 const SUPABASE_ANON_KEY = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
 
-let kvPromise: Promise<Deno.Kv> | null = null;
-
 function assertSupabaseEnv() {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     throw new Error("Missing Supabase env: SUPABASE_URL and SUPABASE_ANON_KEY are required");
@@ -34,8 +34,7 @@ function assertSupabaseEnv() {
 }
 
 async function getKv() {
-  if (!kvPromise) kvPromise = Deno.openKv();
-  return await kvPromise;
+  return await getAppKv();
 }
 
 function normalizeEmail(email: string) {

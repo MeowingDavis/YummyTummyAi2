@@ -1,3 +1,4 @@
+import { getAppKv } from "../kv.ts";
 export type Msg = { role: "system" | "user" | "assistant"; content: string };
 
 type SessionHistory = {
@@ -8,11 +9,8 @@ type SessionHistory = {
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const HISTORY_KEY = "chatHistory";
 
-let kvPromise: Promise<Deno.Kv> | null = null;
-
 async function getKv() {
-  if (!kvPromise) kvPromise = Deno.openKv();
-  return await kvPromise;
+  return await getAppKv();
 }
 
 function isExpired(updatedAt: number) {

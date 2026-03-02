@@ -31,3 +31,7 @@ SAFETY:
 export const OFF_TOPIC_REPLY =
   "I’m your food buddy, so I’ll keep us in kitchen mode. Tell me what you’re craving or what ingredients you have and I’ll make it easy.\n\n" +
   "Try: **“I’m craving a burger — give me 3 fun versions.”**";
+
+export const INJECTION_REPLY =
+  "I can’t follow instruction-override or system-probing requests. I’ll stay focused on food and cooking.\n\n" +
+  "Try: **“I have carrots, rice, and eggs. What can I make?”**";

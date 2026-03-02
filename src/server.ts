@@ -5,14 +5,16 @@ import { serveErrorPage, serveTextTemplate, wantsHtml } from "./templates.ts";
 import { getOrSetSessionId } from "./session.ts";
 import { HttpError, readJson } from "./http.ts";
 import { allow, allowSession } from "./rateLimit.ts";
-import { SYSTEM_PROMPT, OFF_TOPIC_REPLY } from "./chat/prompts.ts";
+import { SYSTEM_PROMPT, OFF_TOPIC_REPLY, INJECTION_REPLY } from "./chat/prompts.ts";
 import { ensureHistory, getHistory, pushAndClamp, clearHistory } from "./chat/history.ts";
 import { isCookingQuery } from "./chat/guard.ts";
 import { detectMode, steerForMode } from "./chat/modes.ts";
-import { groqChat } from "./chat/groq.ts";
+import { groqChat, listGroqModels } from "./chat/groq.ts";
+import { detectPromptInjection } from "./chat/injection.ts";
 import { redact } from "./redact.ts";
 import { buildRecipeContext, hasStrongRecipeMatch, retrieveRecipes } from "./rag/retrieve.ts";
 import type { Msg } from "./chat/history.ts";
+import { getAppKv } from "./kv.ts";
 import {
   authenticateUser,
   getUserForSession,
@@ -29,15 +31,18 @@ const CANONICAL_ORIGIN = Deno.env.get("CANONICAL_ORIGIN")?.trim() ?? "";
 const ALLOWED_HOSTS = new Set(parseCsv(Deno.env.get("ALLOWED_HOSTS")).map(h => h.toLowerCase()));
 const TRUSTED_PROXY_IPS = new Set(parseCsv(Deno.env.get("TRUSTED_PROXY_IPS")));
 const DEFAULT_MODEL = Deno.env.get("MODEL")?.trim() || "llama-3.1-8b-instant";
-const ALLOWED_MODELS = (() => {
+const CONFIGURED_MODELS = (() => {
   const csv = parseCsv(Deno.env.get("GROQ_MODELS"));
-  const models = csv.length ? csv : [DEFAULT_MODEL];
-  return new Set(models);
+  return csv.length ? csv : [DEFAULT_MODEL];
 })();
 const IP_RE = /^[0-9a-fA-F:.]+$/;
 const CANONICAL_URL = parseCanonicalOrigin(CANONICAL_ORIGIN);
 const MAX_SAVED_CHATS = 50;
 const MAX_CHAT_TITLE = 120;
+const MODELS_REFRESH_MS = 5 * 60 * 1000;
+const CHAT_WINDOW_MS = 24 * 60 * 60 * 1000;
+const GUEST_DAILY_CHAT_LIMIT = 15;
+const USER_DAILY_CHAT_LIMIT = 40;
 
 type SavedChat = {
   id: string;
@@ -47,7 +52,12 @@ type SavedChat = {
   updatedAt: number;
 };
 
-let kvPromise: Promise<Deno.Kv> | null = null;
+type ChatQuotaState = {
+  timestamps: number[];
+  updatedAt: number;
+};
+
+let modelResolutionCache: { at: number; models: string[]; defaultModel: string } | null = null;
 
 if (IS_PRODUCTION) {
   if (!CANONICAL_URL) {
@@ -61,6 +71,27 @@ if (IS_PRODUCTION) {
 function parseCsv(value: string | undefined) {
   if (!value) return [];
   return value.split(",").map(v => v.trim()).filter(Boolean);
+}
+
+async function resolveAllowedModels() {
+  const now = Date.now();
+  if (modelResolutionCache && now - modelResolutionCache.at < MODELS_REFRESH_MS) {
+    return modelResolutionCache;
+  }
+
+  let models = [...CONFIGURED_MODELS];
+  try {
+    const available = new Set(await listGroqModels());
+    const filtered = models.filter(m => available.has(m));
+    if (filtered.length) models = filtered;
+  } catch (err) {
+    console.warn("[models] live model fetch failed, using configured list:", redact(String((err as Error)?.message ?? err)));
+  }
+
+  const defaultModel = models.includes(DEFAULT_MODEL) ? DEFAULT_MODEL : models[0] || DEFAULT_MODEL;
+  const resolved = { at: now, models, defaultModel };
+  modelResolutionCache = resolved;
+  return resolved;
 }
 
 function parseCanonicalOrigin(value: string) {
@@ -111,8 +142,7 @@ function chatOwnerKey(sessionId: string, userId?: string) {
 }
 
 async function getKv() {
-  if (!kvPromise) kvPromise = Deno.openKv();
-  return await kvPromise;
+  return await getAppKv();
 }
 
 function sanitizeHistory(input: unknown): Msg[] {
@@ -139,6 +169,43 @@ async function listSavedChats(ownerKey: string) {
   return items;
 }
 
+function limitForUser(userId?: string) {
+  return userId ? USER_DAILY_CHAT_LIMIT : GUEST_DAILY_CHAT_LIMIT;
+}
+
+function isControlNewChat(message: string, newChat?: boolean) {
+  if (!newChat) return false;
+  return /^let'?s start a new chat!?$/i.test(message.trim());
+}
+
+async function consumeDailyChatQuota(sessionId: string, userId?: string) {
+  const kv = await getKv();
+  const quotaOwner = userId ? `user:${userId}` : `session:${sessionId}`;
+  const key = ["chatQuota", quotaOwner];
+  const now = Date.now();
+  const limit = limitForUser(userId);
+
+  const row = await kv.get<ChatQuotaState>(key);
+  const prior = Array.isArray(row.value?.timestamps)
+    ? row.value.timestamps.filter((ts): ts is number => Number.isFinite(ts) && ts > 0)
+    : [];
+  const kept = prior
+    .filter(ts => now - ts < CHAT_WINDOW_MS)
+    .sort((a, b) => a - b)
+    .slice(-limit);
+
+  if (kept.length >= limit) {
+    await kv.set(key, { timestamps: kept, updatedAt: now });
+    const oldest = kept[0] ?? now;
+    const retryAfterSec = Math.max(1, Math.ceil((CHAT_WINDOW_MS - (now - oldest)) / 1000));
+    return { allowed: false as const, limit, remaining: 0, retryAfterSec };
+  }
+
+  kept.push(now);
+  await kv.set(key, { timestamps: kept, updatedAt: now });
+  return { allowed: true as const, limit, remaining: Math.max(0, limit - kept.length), retryAfterSec: 0 };
+}
+
 export function startServer() {
   Deno.serve(async (req, info) => {
     const url = new URL(req.url);
@@ -161,9 +228,10 @@ export function startServer() {
       const { setCookie } = await getOrSetSessionId(req);
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
+      const resolved = await resolveAllowedModels();
       return new Response(JSON.stringify({
-        defaultModel: DEFAULT_MODEL,
-        models: [...ALLOWED_MODELS],
+        defaultModel: resolved.defaultModel,
+        models: resolved.models,
       }), { headers: h });
     }
 
@@ -392,7 +460,13 @@ export function startServer() {
       try {
         const body = await readJson<{ message?: string; newChat?: boolean; model?: string }>(req);
         const message = (body.message ?? "").trim();
-        const chosenModel = (body.model ?? "").trim() || DEFAULT_MODEL;
+        const selectedModel = (body.model ?? "").trim();
+        const isNewChatControl = isControlNewChat(message, body.newChat);
+        const resolvedModels = await resolveAllowedModels();
+        const allowedModels = new Set(resolvedModels.models);
+        const chosenModel = selectedModel && allowedModels.has(selectedModel)
+          ? selectedModel
+          : resolvedModels.defaultModel;
 
         // Validation
         if (!message) {
@@ -405,10 +479,35 @@ export function startServer() {
           if (setCookie) h.append("Set-Cookie", setCookie);
           return new Response(JSON.stringify({ error: "Message too long (max 1000 chars)" }), { status: 413, headers: h });
         }
-        if (!ALLOWED_MODELS.has(chosenModel)) {
+        if (!isNewChatControl) {
+          const quota = await consumeDailyChatQuota(sessionId, user?.id);
+          if (!quota.allowed) {
+            const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+            if (setCookie) h.append("Set-Cookie", setCookie);
+            h.set("Retry-After", String(quota.retryAfterSec));
+            const error = user
+              ? `Daily chat limit reached (${quota.limit}/24h). Please try again later.`
+              : `Daily guest chat limit reached (${quota.limit}/24h). Sign up to unlock ${USER_DAILY_CHAT_LIMIT}/24h.`;
+            return new Response(JSON.stringify({
+              error,
+              limit: quota.limit,
+              remaining: quota.remaining,
+              retryAfterSec: quota.retryAfterSec,
+            }), { status: 429, headers: h });
+          }
+        }
+
+        // Prompt-injection guard
+        const injection = await detectPromptInjection(message);
+        if (injection.violation === 1) {
           const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
           if (setCookie) h.append("Set-Cookie", setCookie);
-          return new Response(JSON.stringify({ error: "Unsupported model" }), { status: 400, headers: h });
+          return new Response(JSON.stringify({
+            reply: INJECTION_REPLY,
+            markdown: INJECTION_REPLY,
+            blocked: true,
+            blockReason: injection.category,
+          }), { headers: h });
         }
 
         if (body.newChat) await clearHistory(ownerKey);
@@ -466,7 +565,12 @@ export function startServer() {
 
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
-        return new Response(JSON.stringify({ reply, markdown: reply }), { headers: h });
+        return new Response(JSON.stringify({
+          reply,
+          markdown: reply,
+          modelUsed: chosenModel,
+          modelFallback: !!selectedModel && selectedModel !== chosenModel,
+        }), { headers: h });
       } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
@@ -500,15 +604,11 @@ export function startServer() {
       const ct = h.get("content-type") || "";
       if (ct.includes("text/html")) {
         h.set("Cache-Control", "no-store");
-      } else if (
-        ct.includes("javascript") ||
-        ct.includes("css") ||
-        ct.includes("image") ||
-        ct.includes("font") ||
-        ct.includes("json") ||
-        ct.includes("webmanifest")
-      ) {
-        h.set("Cache-Control", "public, max-age=31536000, immutable");
+      } else if (ct.includes("javascript") || ct.includes("css") || ct.includes("json")) {
+        // Assets are not fingerprinted; avoid long-lived immutable caching.
+        h.set("Cache-Control", "public, max-age=60, must-revalidate");
+      } else if (ct.includes("image") || ct.includes("font") || ct.includes("webmanifest")) {
+        h.set("Cache-Control", "public, max-age=86400");
       }
 
       return new Response(res.body, { status: res.status, headers: h });

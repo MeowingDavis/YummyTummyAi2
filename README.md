@@ -5,6 +5,7 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 ## Features
 
 - Ingredient-aware recipe help and cooking Q&A
+- Local recipe RAG context (retrieves matching recipes from `data/recipes.json`)
 - Off-topic guard that steers conversation back to food
 - Session-based chat history on the server
 - Local-only saved chats in the browser (after privacy acknowledgment)
@@ -30,6 +31,8 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 export GROQ_API_KEY="your_groq_api_key"
 # optional
 export MODEL="llama-3.1-8b-instant"
+# optional recipe corpus location
+export RECIPES_DB_PATH="data/recipes.json"
 ```
 
 Production security env requirements:
@@ -62,6 +65,10 @@ http://localhost:8000
   - `--allow-net`
   - `--allow-read`
   - `--allow-env`
+- `deno task ingest-recipes <path>` -> merges recipes into `data/recipes.json` (or `RECIPES_DB_PATH`) with:
+  - `--allow-read`
+  - `--allow-write`
+  - `--allow-env`
 
 ## API Routes
 
@@ -88,3 +95,41 @@ http://localhost:8000
 - `GROQ_API_KEY` is required at startup.
 - If `MODEL` is unset, the app defaults to `llama-3.1-8b-instant`.
 - Rate limit state and chat history are in-memory and reset when the process restarts.
+- If RAG finds strong recipe matches, the assistant uses those titles/details.
+- If no strong RAG match exists, the assistant still generates a fresh recipe.
+
+## Recipe RAG: Adding New Recipes
+
+Recipe storage is a local JSON database:
+
+- Default: `data/recipes.json`
+- Override with `RECIPES_DB_PATH`
+
+### Supported import formats
+
+- `.json` as either:
+  - an array of recipe objects, or
+  - an object with `recipes: []`
+- `.jsonl` with one recipe object per line
+
+Each recipe object should include:
+
+```json
+{
+  "id": "optional-unique-id",
+  "title": "Crispy Chicken Tacos",
+  "ingredients": ["1 lb chicken thighs", "8 tortillas", "1 lime"],
+  "instructions": ["Season chicken", "Cook in skillet", "Assemble tacos"],
+  "tags": ["tacos", "weeknight"],
+  "cuisine": "Mexican-inspired",
+  "source": "https://example.com/recipe"
+}
+```
+
+### Add recipes to RAG
+
+```bash
+deno task ingest-recipes ./my_new_recipes.json
+```
+
+The script merges by `id` (or title fallback), updates duplicates, and rewrites the DB file.

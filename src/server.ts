@@ -11,6 +11,7 @@ import { isCookingQuery } from "./chat/guard.ts";
 import { detectMode, steerForMode } from "./chat/modes.ts";
 import { groqChat } from "./chat/groq.ts";
 import { redact } from "./redact.ts";
+import { buildRecipeContext, hasStrongRecipeMatch, retrieveRecipes } from "./rag/retrieve.ts";
 
 const NODE_ENV = Deno.env.get("NODE_ENV")?.trim().toLowerCase() ?? "";
 const IS_PRODUCTION = NODE_ENV === "production";
@@ -166,9 +167,26 @@ export function startServer() {
         const mode = detectMode(message, lastAssistant);
         const steer = steerForMode(mode);
 
+        // Retrieve recipe context (RAG-lite from local recipe corpus)
+        const recipeHits = await retrieveRecipes(message, 3);
+        const recipeContext = buildRecipeContext(recipeHits);
+        const strongRecipeMatch = hasStrongRecipeMatch(recipeHits);
+        const ragSteer = {
+          role: "system" as const,
+          content: strongRecipeMatch
+            ? "Use the recipe library context when it fits the request. Prefer those recipes and mention recipe title(s) used."
+            : "No strong recipe-library match found. You may create a fresh recipe while following user constraints.",
+        };
+
         // Build request to model
         const recent = history.slice(-12);
-        const messagesToSend = [...recent, steer, { role: "user" as const, content: message }];
+        const messagesToSend = [
+          ...recent,
+          steer,
+          ...(recipeContext ? [{ role: "system" as const, content: recipeContext }] : []),
+          ragSteer,
+          { role: "user" as const, content: message },
+        ];
 
         // Call model
         pushAndClamp(sessionId, { role: "user", content: message });

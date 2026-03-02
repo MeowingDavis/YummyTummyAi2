@@ -44,12 +44,28 @@
 
           <div>
             <label class="skeuo-label" for="password">Password</label>
-            <input id="password" type="password" required class="skeuo-input w-full px-3 py-2 mt-1" autocomplete="current-password" />
+            <div class="mt-1 flex items-center gap-2">
+              <input id="password" type="password" required class="skeuo-input w-full px-3 py-2" autocomplete="current-password" />
+              <button id="togglePassword" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive px-3 py-2 text-[10px]">Show</button>
+            </div>
+            <div id="passwordGuidance" class="mt-2 text-xs text-slate-300 hidden">
+              <div class="mb-1">Password strength: <span id="passwordStrength" class="font-semibold text-slate-200">Weak</span></div>
+              <ul class="space-y-1">
+                <li id="pwLen">• At least 8 characters</li>
+                <li id="pwLower">• Lowercase letter</li>
+                <li id="pwUpper">• Uppercase letter</li>
+                <li id="pwDigit">• Number</li>
+                <li id="pwSymbol">• Special character</li>
+              </ul>
+            </div>
           </div>
 
           <div id="confirmWrap">
             <label class="skeuo-label" for="confirmPassword">Confirm password</label>
-            <input id="confirmPassword" type="password" class="skeuo-input w-full px-3 py-2 mt-1" autocomplete="new-password" />
+            <div class="mt-1 flex items-center gap-2">
+              <input id="confirmPassword" type="password" class="skeuo-input w-full px-3 py-2" autocomplete="new-password" />
+              <button id="toggleConfirmPassword" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive px-3 py-2 text-[10px]">Show</button>
+            </div>
           </div>
 
           <p id="authError" class="text-red-300 text-sm hidden"></p>

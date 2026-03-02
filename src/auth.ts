@@ -4,16 +4,6 @@ export type UserProfile = {
   dislikes?: string[];
 };
 
-export type UserRecord = {
-  id: string;
-  email: string;
-  name?: string;
-  passwordHash: string;
-  createdAt: number;
-  updatedAt: number;
-  profile?: UserProfile;
-};
-
 export type PublicUser = {
   id: string;
   email: string;
@@ -23,13 +13,24 @@ export type PublicUser = {
   profile?: UserProfile;
 };
 
+type StoredUser = {
+  id: string;
+  email: string;
+  name?: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const HASH_ITERATIONS = 210_000;
+const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") ?? "").trim().replace(/\/$/, "");
+const SUPABASE_ANON_KEY = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
 
 let kvPromise: Promise<Deno.Kv> | null = null;
 
-function now() {
-  return Date.now();
+function assertSupabaseEnv() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error("Missing Supabase env: SUPABASE_URL and SUPABASE_ANON_KEY are required");
+  }
 }
 
 async function getKv() {
@@ -41,75 +42,66 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-function toBase64Url(bytes: Uint8Array) {
-  let binary = "";
-  for (const b of bytes) binary += String.fromCharCode(b);
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+function parseSupabaseTime(value: unknown) {
+  const ms = new Date(String(value ?? "")).getTime();
+  return Number.isFinite(ms) ? ms : Date.now();
 }
 
-function fromBase64Url(input: string) {
-  const b64 = input.replaceAll("-", "+").replaceAll("_", "/") + "===".slice((input.length + 3) % 4);
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-
-function timingSafeEqual(a: string, b: string) {
-  if (a.length !== b.length) return false;
-  let mismatch = 0;
-  for (let i = 0; i < a.length; i++) mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return mismatch === 0;
-}
-
-async function pbkdf2(password: string, saltBytes: Uint8Array, iterations: number) {
-  const salt = saltBytes.buffer.slice(
-    saltBytes.byteOffset,
-    saltBytes.byteOffset + saltBytes.byteLength,
-  ) as ArrayBuffer;
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      hash: "SHA-256",
-      salt,
-      iterations,
-    },
-    key,
-    256,
-  );
-  return new Uint8Array(bits);
-}
-
-async function hashPassword(password: string) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const hash = await pbkdf2(password, salt, HASH_ITERATIONS);
-  return `${HASH_ITERATIONS}$${toBase64Url(salt)}$${toBase64Url(hash)}`;
-}
-
-async function verifyPassword(password: string, encoded: string) {
-  const [itersRaw, saltRaw, hashRaw] = encoded.split("$");
-  const iterations = Number(itersRaw);
-  if (!Number.isFinite(iterations) || !saltRaw || !hashRaw) return false;
-  const salt = fromBase64Url(saltRaw);
-  const hash = await pbkdf2(password, salt, iterations);
-  return timingSafeEqual(hashRaw, toBase64Url(hash));
-}
-
-function toPublicUser(user: UserRecord): PublicUser {
+function toStoredUserFromSupabase(raw: any): StoredUser {
+  const id = String(raw?.id ?? "").trim();
+  const email = normalizeEmail(String(raw?.email ?? ""));
+  const name = raw?.user_metadata?.name ? String(raw.user_metadata.name).trim() : undefined;
   return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-    profile: user.profile,
+    id,
+    email,
+    name,
+    createdAt: parseSupabaseTime(raw?.created_at),
+    updatedAt: parseSupabaseTime(raw?.updated_at),
+  };
+}
+
+async function supabaseRequest(path: string, options: RequestInit) {
+  assertSupabaseEnv();
+  const res = await fetch(`${SUPABASE_URL}${path}`, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message = data?.msg || data?.error_description || data?.error || `Supabase auth error (${res.status})`;
+    throw new Error(String(message));
+  }
+  return data;
+}
+
+async function upsertUser(user: StoredUser) {
+  if (!user.id || !user.email) throw new Error("Invalid Supabase user payload");
+  const kv = await getKv();
+  await kv.set(["users", user.id], user);
+}
+
+async function getStoredUser(userId: string): Promise<StoredUser | null> {
+  const kv = await getKv();
+  const row = await kv.get<StoredUser>(["users", userId]);
+  return row.value ?? null;
+}
+
+async function getProfile(userId: string): Promise<UserProfile | undefined> {
+  const kv = await getKv();
+  const row = await kv.get<UserProfile>(["profiles", userId]);
+  return row.value ?? undefined;
+}
+
+async function toPublicUser(stored: StoredUser): Promise<PublicUser> {
+  return {
+    ...stored,
+    profile: await getProfile(stored.id),
   };
 }
 
@@ -122,54 +114,41 @@ export function validateCredentials(email: string, password: string) {
 }
 
 export async function registerUser(email: string, password: string, name?: string): Promise<PublicUser> {
-  const normalized = normalizeEmail(email);
-  const kv = await getKv();
-
-  const existing = await kv.get<string>(["usersByEmail", normalized]);
-  if (existing.value) throw new Error("EMAIL_TAKEN");
-
-  const id = crypto.randomUUID();
-  const createdAt = now();
-  const record: UserRecord = {
-    id,
-    email: normalized,
-    name: name?.trim() || undefined,
-    passwordHash: await hashPassword(password),
-    createdAt,
-    updatedAt: createdAt,
-    profile: {},
+  const payload: Record<string, unknown> = {
+    email: normalizeEmail(email),
+    password,
   };
+  if (name?.trim()) payload.data = { name: name.trim() };
 
-  const res = await kv.atomic()
-    .check({ key: ["usersByEmail", normalized], versionstamp: null })
-    .set(["usersByEmail", normalized], id)
-    .set(["users", id], record)
-    .commit();
+  const data = await supabaseRequest("/auth/v1/signup", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 
-  if (!res.ok) throw new Error("EMAIL_TAKEN");
-  return toPublicUser(record);
+  const rawUser = data?.user;
+  if (!rawUser) throw new Error("Supabase did not return a user");
+  const stored = toStoredUserFromSupabase(rawUser);
+  await upsertUser(stored);
+  return await toPublicUser(stored);
 }
 
 export async function authenticateUser(email: string, password: string): Promise<PublicUser | null> {
-  const normalized = normalizeEmail(email);
-  const kv = await getKv();
-  const idx = await kv.get<string>(["usersByEmail", normalized]);
-  if (!idx.value) return null;
+  const data = await supabaseRequest("/auth/v1/token?grant_type=password", {
+    method: "POST",
+    body: JSON.stringify({ email: normalizeEmail(email), password }),
+  });
 
-  const row = await kv.get<UserRecord>(["users", idx.value]);
-  const user = row.value;
-  if (!user) return null;
-
-  const ok = await verifyPassword(password, user.passwordHash);
-  if (!ok) return null;
-  return toPublicUser(user);
+  const rawUser = data?.user;
+  if (!rawUser) return null;
+  const stored = toStoredUserFromSupabase(rawUser);
+  await upsertUser(stored);
+  return await toPublicUser(stored);
 }
 
 export async function getUserById(id: string): Promise<PublicUser | null> {
-  const kv = await getKv();
-  const row = await kv.get<UserRecord>(["users", id]);
-  if (!row.value) return null;
-  return toPublicUser(row.value);
+  const stored = await getStoredUser(id);
+  if (!stored) return null;
+  return await toPublicUser(stored);
 }
 
 export async function linkSessionToUser(sessionId: string, userId: string) {
@@ -190,19 +169,16 @@ export async function getUserForSession(sessionId: string): Promise<PublicUser |
 }
 
 export async function updateUserProfile(userId: string, patch: UserProfile): Promise<PublicUser | null> {
-  const kv = await getKv();
-  const row = await kv.get<UserRecord>(["users", userId]);
-  if (!row.value) return null;
+  const stored = await getStoredUser(userId);
+  if (!stored) return null;
 
-  const next: UserRecord = {
-    ...row.value,
-    profile: {
-      ...(row.value.profile ?? {}),
-      ...(patch ?? {}),
-    },
-    updatedAt: now(),
+  const current = (await getProfile(userId)) ?? {};
+  const next: UserProfile = {
+    ...current,
+    ...patch,
   };
 
-  await kv.set(["users", userId], next);
-  return toPublicUser(next);
+  const kv = await getKv();
+  await kv.set(["profiles", userId], next);
+  return await toPublicUser(stored);
 }

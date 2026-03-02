@@ -1,11 +1,12 @@
 // public/js/chat/init.js
 import { refs } from "./state.js";
-import { getSelectedModel, hasPrivacyAck, loadDraft, saveSelectedModel } from "./storage.js";
+import { getSelectedModel, loadDraft, saveSelectedModel } from "./storage.js";
 import { renderSavedChats, renderMobileSavedChats } from "./savedChats.js";
 import { renderEmptyState } from "./ui.js";
 import { wireDrawer } from "./drawer.js";
 import { wireComposer, autoresize, refreshSendState } from "./chat.js";
 import { initPrivacy } from "./privacy.js";
+import { initAuth } from "./auth.js";
 
 export function initCore() {
   try {
@@ -22,22 +23,15 @@ export function initCore() {
     refs.newChatBtn?.addEventListener('click', window.newChat);
     refs.sendBtn?.addEventListener('click', window.send);
     refs.saveBtn?.addEventListener('click', window.saveChat);
-    refs.refreshSavedBtn?.addEventListener('click', () => {
-      renderSavedChats();
-      renderMobileSavedChats();
+    refs.refreshSavedBtn?.addEventListener('click', async () => {
+      await renderSavedChats();
+      await renderMobileSavedChats();
     });
     refs.modelSelect?.addEventListener("change", () => {
       saveSelectedModel(refs.modelSelect.value);
     });
 
-    if (hasPrivacyAck()) {
-      refs.input.value = loadDraft();
-    }
-    if (refs.saveBtn && !hasPrivacyAck()) {
-      refs.saveBtn.disabled = true;
-      refs.saveBtn.title = "Acknowledge the privacy notice to enable saving.";
-      refs.saveBtn.classList.add("opacity-50", "cursor-not-allowed");
-    }
+    refs.input.value = loadDraft();
 
     wireComposer();
     initModelPicker();
@@ -81,11 +75,13 @@ export function boot() {
     document.addEventListener("DOMContentLoaded", () => {
       initCore();
       initPrivacy();
+      initAuth();
       wireDrawer();
     }, { once: true });
   } else {
     initCore();
     initPrivacy();
+    initAuth();
     wireDrawer();
   }
 }

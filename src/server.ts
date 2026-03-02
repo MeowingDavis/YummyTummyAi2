@@ -12,6 +12,16 @@ import { detectMode, steerForMode } from "./chat/modes.ts";
 import { groqChat } from "./chat/groq.ts";
 import { redact } from "./redact.ts";
 import { buildRecipeContext, hasStrongRecipeMatch, retrieveRecipes } from "./rag/retrieve.ts";
+import type { Msg } from "./chat/history.ts";
+import {
+  authenticateUser,
+  getUserForSession,
+  linkSessionToUser,
+  registerUser,
+  unlinkSession,
+  updateUserProfile,
+  validateCredentials,
+} from "./auth.ts";
 
 const NODE_ENV = Deno.env.get("NODE_ENV")?.trim().toLowerCase() ?? "";
 const IS_PRODUCTION = NODE_ENV === "production";
@@ -26,6 +36,18 @@ const ALLOWED_MODELS = (() => {
 })();
 const IP_RE = /^[0-9a-fA-F:.]+$/;
 const CANONICAL_URL = parseCanonicalOrigin(CANONICAL_ORIGIN);
+const MAX_SAVED_CHATS = 50;
+const MAX_CHAT_TITLE = 120;
+
+type SavedChat = {
+  id: string;
+  title: string;
+  history: Msg[];
+  createdAt: number;
+  updatedAt: number;
+};
+
+let kvPromise: Promise<Deno.Kv> | null = null;
 
 if (IS_PRODUCTION) {
   if (!CANONICAL_URL) {
@@ -84,6 +106,39 @@ function publicOrigin(url: URL) {
   return CANONICAL_URL?.origin || url.origin;
 }
 
+function chatOwnerKey(sessionId: string, userId?: string) {
+  return userId ? `user:${userId}` : `session:${sessionId}`;
+}
+
+async function getKv() {
+  if (!kvPromise) kvPromise = Deno.openKv();
+  return await kvPromise;
+}
+
+function sanitizeHistory(input: unknown): Msg[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((row) => {
+      if (!row || typeof row !== "object") return null;
+      const role = (row as { role?: string }).role;
+      const content = (row as { content?: unknown }).content;
+      if ((role !== "system" && role !== "user" && role !== "assistant") || typeof content !== "string") return null;
+      return { role, content: content.trim() } as Msg;
+    })
+    .filter((m): m is Msg => !!m && !!m.content)
+    .slice(-200);
+}
+
+async function listSavedChats(ownerKey: string) {
+  const kv = await getKv();
+  const items: SavedChat[] = [];
+  for await (const e of kv.list<SavedChat>({ prefix: ["savedChats", ownerKey] })) {
+    if (e.value) items.push(e.value);
+  }
+  items.sort((a, b) => b.updatedAt - a.updatedAt);
+  return items;
+}
+
 export function startServer() {
   Deno.serve(async (req, info) => {
     const url = new URL(req.url);
@@ -110,6 +165,174 @@ export function startServer() {
         defaultModel: DEFAULT_MODEL,
         models: [...ALLOWED_MODELS],
       }), { headers: h });
+    }
+
+    // Auth
+    if (req.method === "GET" && url.pathname === "/me") {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const user = await getUserForSession(sessionId);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      return new Response(JSON.stringify({ user }), { headers: h });
+    }
+    if (req.method === "POST" && url.pathname === "/auth/register") {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      try {
+        const body = await readJson<{ email?: string; password?: string; name?: string }>(req);
+        const email = (body.email ?? "").trim();
+        const password = String(body.password ?? "");
+        const err = validateCredentials(email, password);
+        if (err) {
+          const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+          if (setCookie) h.append("Set-Cookie", setCookie);
+          return new Response(JSON.stringify({ error: err }), { status: 400, headers: h });
+        }
+        const user = await registerUser(email, password, body.name);
+        await linkSessionToUser(sessionId, user.id);
+        const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        return new Response(JSON.stringify({ user }), { status: 201, headers: h });
+      } catch (err) {
+        const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        const msg = String((err as Error)?.message ?? err);
+        if (msg === "EMAIL_TAKEN") {
+          return new Response(JSON.stringify({ error: "Email already in use" }), { status: 409, headers: h });
+        }
+        return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
+      }
+    }
+    if (req.method === "POST" && url.pathname === "/auth/login") {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      try {
+        const body = await readJson<{ email?: string; password?: string }>(req);
+        const email = (body.email ?? "").trim();
+        const password = String(body.password ?? "");
+        const user = await authenticateUser(email, password);
+        if (!user) {
+          const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+          if (setCookie) h.append("Set-Cookie", setCookie);
+          return new Response(JSON.stringify({ error: "Invalid credentials" }), { status: 401, headers: h });
+        }
+        await linkSessionToUser(sessionId, user.id);
+        const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        return new Response(JSON.stringify({ user }), { headers: h });
+      } catch {
+        const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
+      }
+    }
+    if (req.method === "POST" && url.pathname === "/auth/logout") {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      await unlinkSession(sessionId);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      return new Response(JSON.stringify({ ok: true }), { headers: h });
+    }
+    if (req.method === "PATCH" && url.pathname === "/me/profile") {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const user = await getUserForSession(sessionId);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      if (!user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
+      }
+      try {
+        const body = await readJson<{ dietaryRequirements?: string[]; allergies?: string[]; dislikes?: string[] }>(req);
+        const toArr = (v: unknown) => Array.isArray(v) ? v.map(x => String(x).trim()).filter(Boolean).slice(0, 30) : [];
+        const updated = await updateUserProfile(user.id, {
+          dietaryRequirements: toArr(body.dietaryRequirements),
+          allergies: toArr(body.allergies),
+          dislikes: toArr(body.dislikes),
+        });
+        return new Response(JSON.stringify({ user: updated }), { headers: h });
+      } catch (err) {
+        if (err instanceof HttpError) {
+          return new Response(JSON.stringify({ error: err.message }), { status: err.status, headers: h });
+        }
+        return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
+      }
+    }
+
+    // Saved chats (session-scoped in Deno KV)
+    if (req.method === "GET" && url.pathname === "/saved-chats") {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      const user = await getUserForSession(sessionId);
+      if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
+      const chats = await listSavedChats(chatOwnerKey(sessionId, user.id));
+      return new Response(JSON.stringify({ chats }), { headers: h });
+    }
+    if (req.method === "POST" && url.pathname === "/saved-chats") {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const user = await getUserForSession(sessionId);
+      const ownerKey = chatOwnerKey(sessionId, user?.id);
+      try {
+        const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        if (!user) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
+        }
+        const body = await readJson<{ title?: string; history?: unknown }>(req);
+        const title = (body.title ?? "").trim().slice(0, MAX_CHAT_TITLE);
+        const history = sanitizeHistory(body.history);
+        if (!title || !history.length) {
+          return new Response(JSON.stringify({ error: "title and history are required" }), { status: 400, headers: h });
+        }
+
+        const kv = await getKv();
+        const existing = await listSavedChats(ownerKey);
+        if (existing.length >= MAX_SAVED_CHATS) {
+          const oldest = existing[existing.length - 1];
+          await kv.delete(["savedChats", ownerKey, oldest.id]);
+        }
+
+        const now = Date.now();
+        const saved: SavedChat = {
+          id: crypto.randomUUID(),
+          title,
+          history,
+          createdAt: now,
+          updatedAt: now,
+        };
+        await kv.set(["savedChats", ownerKey, saved.id], saved);
+        return new Response(JSON.stringify({ chat: saved }), { status: 201, headers: h });
+      } catch (err) {
+        const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        if (err instanceof HttpError) {
+          return new Response(JSON.stringify({ error: err.message }), { status: err.status, headers: h });
+        }
+        return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
+      }
+    }
+    if (req.method === "GET" && url.pathname.startsWith("/saved-chats/")) {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const id = decodeURIComponent(url.pathname.replace("/saved-chats/", ""));
+      const kv = await getKv();
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      const user = await getUserForSession(sessionId);
+      if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
+      const found = await kv.get<SavedChat>(["savedChats", chatOwnerKey(sessionId, user.id), id]);
+      if (!found.value) {
+        return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: h });
+      }
+      return new Response(JSON.stringify({ chat: found.value }), { headers: h });
+    }
+    if (req.method === "DELETE" && url.pathname.startsWith("/saved-chats/")) {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const id = decodeURIComponent(url.pathname.replace("/saved-chats/", ""));
+      const user = await getUserForSession(sessionId);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
+      const kv = await getKv();
+      await kv.delete(["savedChats", chatOwnerKey(sessionId, user.id), id]);
+      return new Response(JSON.stringify({ ok: true }), { headers: h });
     }
 
     // Sitemap + robots (templated with request origin)
@@ -144,6 +367,8 @@ export function startServer() {
     if (req.method === "POST" && url.pathname === "/chat") {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);
       const ip = getClientIp(req, info);
+      const user = await getUserForSession(sessionId);
+      const ownerKey = chatOwnerKey(sessionId, user?.id);
 
       if (!allow(ip) || !allowSession(sessionId)) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
@@ -173,10 +398,10 @@ export function startServer() {
           return new Response(JSON.stringify({ error: "Unsupported model" }), { status: 400, headers: h });
         }
 
-        if (body.newChat) clearHistory(sessionId);
-        ensureHistory(sessionId, SYSTEM_PROMPT);
+        if (body.newChat) await clearHistory(ownerKey);
+        await ensureHistory(ownerKey, SYSTEM_PROMPT);
 
-        const history = getHistory(sessionId);
+        const history = await getHistory(ownerKey);
         const lastAssistant = history.slice().reverse().find(m => m.role === "assistant")?.content ?? "";
 
         // Off-topic guard (context-aware)
@@ -194,6 +419,15 @@ export function startServer() {
         const recipeHits = await retrieveRecipes(message, 3);
         const recipeContext = buildRecipeContext(recipeHits);
         const strongRecipeMatch = hasStrongRecipeMatch(recipeHits);
+        const profile = user?.profile;
+        const profileSteer = profile
+          ? [
+              "Apply user profile preferences when generating food responses:",
+              `dietaryRequirements: ${(profile.dietaryRequirements ?? []).join(", ") || "none"}`,
+              `allergies: ${(profile.allergies ?? []).join(", ") || "none"}`,
+              `dislikes: ${(profile.dislikes ?? []).join(", ") || "none"}`,
+            ].join("\n")
+          : "";
         const ragSteer = {
           role: "system" as const,
           content: strongRecipeMatch
@@ -206,15 +440,16 @@ export function startServer() {
         const messagesToSend = [
           ...recent,
           steer,
+          ...(profileSteer ? [{ role: "system" as const, content: profileSteer }] : []),
           ...(recipeContext ? [{ role: "system" as const, content: recipeContext }] : []),
           ragSteer,
           { role: "user" as const, content: message },
         ];
 
         // Call model
-        pushAndClamp(sessionId, { role: "user", content: message });
+        await pushAndClamp(ownerKey, { role: "user", content: message });
         const reply = await groqChat(messagesToSend, chosenModel);
-        pushAndClamp(sessionId, { role: "assistant", content: reply });
+        await pushAndClamp(ownerKey, { role: "assistant", content: reply });
 
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);

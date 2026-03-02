@@ -64,7 +64,7 @@
         <h2 class="text-xl font-semibold">What is it?</h2>
         <p class="mt-3 text-slate-300">
           A lightweight web chat that suggests recipes, ingredient swaps, and step-by-step guidance based on what you type.
-          No account required today. Account login and cloud sync are planned.
+          Optional account login is now available for persistent saved chats and profile preferences.
         </p>
       </section>
 
@@ -74,7 +74,7 @@
         <ul class="mt-3 space-y-3 text-slate-300 list-disc list-inside">
           <li>Type or paste what you’ve got and what you feel like cooking.</li>
           <li>Your message is sent securely to an AI service and the reply is sent back to the site.</li>
-          <li>Saved chats are currently local to your browser; account-based cloud storage is planned.</li>
+          <li>Login to save chats to your account and keep preferences like dietary requirements.</li>
         </ul>
       </section>
 
@@ -83,17 +83,16 @@
         <h2 class="text-xl font-semibold">Privacy</h2>
         <div class="mt-3 grid sm:grid-cols-2 gap-4">
           <div>
-            <h3 class="font-medium">Local storage</h3>
+            <h3 class="font-medium">Server storage</h3>
             <p class="mt-2 text-slate-300">
-              Saved chats are currently stored in <span class="font-mono text-slate-200">localStorage</span> on this device (e.g., key
-              <span class="font-mono text-emerald-300">yt_ai_draft</span> for drafts). Clearing your browser data removes them.
-              The live conversation is held temporarily in memory on the server to keep context. Account-based cloud history is planned.
+              Saved chats and session chat context are stored on the server using persistent storage.
+              Clearing browser data does not remove server-side chats, but using a different browser/device starts a new session until login is added.
             </p>
           </div>
           <div>
             <h3 class="font-medium">What’s sent</h3>
             <p class="mt-2 text-slate-300">
-              When you press <em>Send</em>, your message is processed by an AI service over HTTPS. This server keeps a short in-memory session history for context and does not persist it to a database.
+              When you press <em>Send</em>, your message is processed by an AI service over HTTPS. This server persists session history and saved chats to support continued conversations.
             </p>
           </div>
         </div>
@@ -122,7 +121,7 @@
               <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
             </summary>
             <p class="mt-2 text-slate-300">
-              Saved chats are currently in your browser’s local storage on this device. Account and cloud chat history support is planned.
+              Saved chats are stored server-side. With login, they are tied to your account for cross-device continuity.
             </p>
           </details>
           <details class="group">

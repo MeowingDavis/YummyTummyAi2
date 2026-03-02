@@ -21,11 +21,6 @@ export function initPrivacy(){
         notice.classList.add("hidden");
         renderSavedChats();
         renderMobileSavedChats();
-        if (refs.saveBtn) {
-          refs.saveBtn.disabled = false;
-          refs.saveBtn.title = "Save chat";
-          refs.saveBtn.classList.remove("opacity-50", "cursor-not-allowed");
-        }
       } catch (e) { console.warn("[privacy] dismiss failed:", e); }
     });
 
@@ -34,10 +29,10 @@ export function initPrivacy(){
       try {
         alert(
           "Where are chats stored?\n\n" +
-          "• Saved chats live in your browser's local storage on this device.\n" +
+          "• Saved chats are stored on the server by your session.\n" +
           "• Messages are sent to the AI service to generate replies.\n" +
-          "• Live chat context is held briefly in server memory to keep the conversation flowing.\n" +
-          "• Clearing site data or using a different browser/device will remove them.\n" +
+          "• Conversation context is persisted server-side to keep chats working across refreshes.\n" +
+          "• Using a different browser/device creates a new session until login is added.\n" +
           "• You can export a chat from the Saved Chats panel at any time."
         );
       } catch (e) { console.warn("[privacy] learn more failed:", e); }

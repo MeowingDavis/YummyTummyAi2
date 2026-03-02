@@ -2,7 +2,7 @@
 import { refs, state } from "./state.js";
 import { appendMessage, appendMarkdown, showTyping, hideTyping, renderEmptyState, onFiles } from "./ui.js";
 import { postJSON } from "./network.js";
-import { saveDraft, clearDraft, hasPrivacyAck } from "./storage.js";
+import { saveDraft, clearDraft } from "./storage.js";
 import { uploadAll } from "./uploads.js";
 
 export function refreshSendState() {
@@ -80,7 +80,7 @@ export function wireComposer(){
   refs.input.addEventListener("input", () => {
     autoresize();
     refreshSendState();
-    if (hasPrivacyAck()) saveDraft(refs.input.value);
+    saveDraft(refs.input.value);
   });
   refs.input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey && !composing) {

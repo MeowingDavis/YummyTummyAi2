@@ -57,6 +57,14 @@
                   class="skeuo-input h-12 md:h-11 px-3 text-xs md:text-sm max-w-[180px]"
                   title="Choose model"></select>
 
+                <span id="authStatus" class="hidden md:inline text-xs text-slate-300"></span>
+                <button id="authRegisterBtn" type="button"
+                  class="skeuo-btn skeuo-btn-secondary skeuo-interactive h-12 md:h-11 px-3 text-[10px] md:text-xs">Register</button>
+                <button id="authLoginBtn" type="button"
+                  class="skeuo-btn skeuo-btn-secondary skeuo-interactive h-12 md:h-11 px-3 text-[10px] md:text-xs">Login</button>
+                <button id="authLogoutBtn" type="button"
+                  class="hidden skeuo-btn skeuo-btn-danger skeuo-interactive h-12 md:h-11 px-3 text-[10px] md:text-xs">Logout</button>
+
                 <button id="mobileMenuBtn" aria-controls="mobileSavedModal" aria-expanded="false"
                   class="md:hidden skeuo-btn skeuo-btn-secondary skeuo-interactive h-12 w-12 px-0"
                   aria-label="Show saved chats">
@@ -78,9 +86,9 @@
                 </svg>
                 <div class="text-sm leading-6">
                   <strong class="font-semibold">Privacy:</strong>
-                  Saved chats are currently stored <span class="font-semibold">locally on this device</span>.
-                  Live chat context is held briefly in server memory to keep the conversation flowing.
-                  Account login and cloud sync are planned. Acknowledging this notice enables saving.
+                  Saved chats are stored <span class="font-semibold">server-side for this session</span>.
+                  Conversation context is persisted online to keep your active chats consistent.
+                  Login ties chats and profile preferences to your account.
                   <button id="privacyLearnMore"
                     class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
                 </div>

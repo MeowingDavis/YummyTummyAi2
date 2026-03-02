@@ -1,11 +1,5 @@
 // public/js/chat/state.js
 
-export const KEYS = {
-  DRAFT: "yt_ai_draft",
-  PRIVACY_ACK: "yt_privacy_notice_dismissed_v1",
-  MODEL: "yt_ai_model_v1",
-};
-
 export const refs = {
   chatbox: null,
   typingEl: null,
@@ -16,6 +10,11 @@ export const refs = {
   saveBtn: null,
   refreshSavedBtn: null,
   modelSelect: null,
+  authStatus: null,
+  authRegisterBtn: null,
+  authLoginBtn: null,
+  authLogoutBtn: null,
+  currentUser: null,
   mobileBtn: null,
   mobileBg: null,
   mobileModal: null,

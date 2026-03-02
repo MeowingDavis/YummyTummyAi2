@@ -1,74 +1,79 @@
-// src/chat/history.ts
-
 export type Msg = { role: "system" | "user" | "assistant"; content: string };
 
 type SessionHistory = {
   messages: Msg[];
-  createdAt: number;
+  updatedAt: number;
 };
 
-const chatHistories = new Map<string, SessionHistory>();
-const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
-const MAX_SESSIONS = 5000;
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const HISTORY_KEY = "chatHistory";
 
-function isExpired(entry: SessionHistory) {
-  return Date.now() - entry.createdAt > SESSION_TTL_MS;
+let kvPromise: Promise<Deno.Kv> | null = null;
+
+async function getKv() {
+  if (!kvPromise) kvPromise = Deno.openKv();
+  return await kvPromise;
 }
 
-function touch(sessionId: string, entry: SessionHistory) {
-  chatHistories.delete(sessionId);
-  chatHistories.set(sessionId, entry);
+function isExpired(updatedAt: number) {
+  return Date.now() - updatedAt > SESSION_TTL_MS;
 }
 
-function pruneExpired() {
-  for (const [key, entry] of chatHistories) {
-    if (isExpired(entry)) chatHistories.delete(key);
-  }
-}
+export async function ensureHistory(sessionId: string, systemPrompt: string) {
+  const kv = await getKv();
+  const key = [HISTORY_KEY, sessionId];
+  const current = await kv.get<SessionHistory>(key);
+  const value = current.value;
 
-function capSessions() {
-  while (chatHistories.size > MAX_SESSIONS) {
-    const oldestKey = chatHistories.keys().next().value;
-    if (!oldestKey) break;
-    chatHistories.delete(oldestKey);
-  }
-}
-
-export function ensureHistory(sessionId: string, systemPrompt: string) {
-  pruneExpired();
-  const existing = chatHistories.get(sessionId);
-  if (!existing || isExpired(existing)) {
-    const entry: SessionHistory = {
+  if (!value || isExpired(value.updatedAt)) {
+    await kv.set(key, {
       messages: [{ role: "system", content: systemPrompt.trim() }],
-      createdAt: Date.now(),
-    };
-    touch(sessionId, entry);
-    capSessions();
+      updatedAt: Date.now(),
+    });
     return;
   }
-  touch(sessionId, existing);
+
+  await kv.set(key, {
+    messages: value.messages,
+    updatedAt: Date.now(),
+  });
 }
 
-export function getHistory(sessionId: string) {
-  const entry = chatHistories.get(sessionId);
-  if (!entry) return [];
-  if (isExpired(entry)) {
-    chatHistories.delete(sessionId);
+export async function getHistory(sessionId: string) {
+  const kv = await getKv();
+  const key = [HISTORY_KEY, sessionId];
+  const current = await kv.get<SessionHistory>(key);
+  const value = current.value;
+
+  if (!value) return [];
+  if (isExpired(value.updatedAt)) {
+    await kv.delete(key);
     return [];
   }
-  touch(sessionId, entry);
-  return entry.messages;
+
+  await kv.set(key, {
+    messages: value.messages,
+    updatedAt: Date.now(),
+  });
+  return value.messages;
 }
 
-export function clearHistory(sessionId: string) {
-  chatHistories.delete(sessionId);
+export async function clearHistory(sessionId: string) {
+  const kv = await getKv();
+  await kv.delete([HISTORY_KEY, sessionId]);
 }
 
-export function pushAndClamp(sessionId: string, msg: Msg, max = 30) {
-  const entry = chatHistories.get(sessionId);
-  if (!entry) return;
-  entry.messages.push(msg);
-  const len = entry.messages.length;
-  if (len > max) entry.messages = entry.messages.slice(len - max);
-  touch(sessionId, entry);
+export async function pushAndClamp(sessionId: string, msg: Msg, max = 30) {
+  const kv = await getKv();
+  const key = [HISTORY_KEY, sessionId];
+  const current = await kv.get<SessionHistory>(key);
+  const value = current.value;
+  if (!value) return;
+
+  const messages = [...value.messages, msg];
+  const next = messages.length > max ? messages.slice(messages.length - max) : messages;
+  await kv.set(key, {
+    messages: next,
+    updatedAt: Date.now(),
+  });
 }

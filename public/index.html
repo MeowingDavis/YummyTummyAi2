@@ -6,7 +6,7 @@
   <title>Yummy Tummy AI - Smart recipe chat</title>
 
   <!-- SEO / Social -->
-  <meta name="description" content="Yummy Tummy AI turns the ingredients you type or paste into delicious meals. Private by default, with accounts and cloud sync planned." />
+  <meta name="description" content="Yummy Tummy AI turns the ingredients you type or paste into delicious meals. Private by default, with account login and server-side saved chats." />
   <meta property="og:title" content="Yummy Tummy AI" />
   <meta property="og:description" content="Turn what you’ve got into dinner. Private by default." />
   <meta property="og:type" content="website" />
@@ -32,13 +32,21 @@
       <nav class="hidden sm:flex items-center gap-4">
         <a href="/about.html" class="skeuo-link">About</a>
         <a href="/chat.html" class="skeuo-link">Open Chat</a>
+        <span id="homeAuthStatus" class="text-xs text-slate-300"></span>
+        <a id="homeRegisterBtn" href="#" class="skeuo-link">Register</a>
+        <a id="homeLoginBtn" href="#" class="skeuo-link">Login</a>
+        <a id="homeLogoutBtn" href="#" class="hidden skeuo-link">Logout</a>
       </nav>
-      <a href="/chat.html" class="sm:hidden skeuo-btn skeuo-btn-primary skeuo-interactive">Open Chat</a>
+      <div class="sm:hidden flex items-center gap-2">
+        <a id="homeLoginBtnMobile" href="#" class="skeuo-link">Login</a>
+        <a id="homeLogoutBtnMobile" href="#" class="hidden skeuo-link">Logout</a>
+        <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Open Chat</a>
+      </div>
     </div>
   </header>
 
   <section class="skeuo-ticker" aria-label="Announcements">
-    <div class="skeuo-ticker-track">Yummy Tummy AI • Accounts + cloud chat sync coming • Private by default • Ingredient-first recipe assistant • </div>
+    <div class="skeuo-ticker-track">Yummy Tummy AI • Account login + saved chats • Private by default • Ingredient-first recipe assistant • </div>
   </section>
 
   <!-- Notice: responsive design in progress -->
@@ -65,7 +73,7 @@
       </svg>
       <div class="text-sm leading-6 text-slate-200">
         <strong class="font-semibold">Privacy:</strong>
-        Saved chats are currently stored on this device. Accounts and cloud sync are planned.
+        Saved chats are persisted server-side. Login ties them to your account.
       </div>
       <button id="privacyDismissHome"
               class="ml-auto skeuo-btn skeuo-btn-danger skeuo-interactive"
@@ -97,7 +105,7 @@
         </div>
 
         <div class="mt-4 text-sm text-emerald-300/90">
-          Private by default. Local save today, account-based cloud sync planned.
+          Private by default. Login-enabled server-side chat history and saved sessions.
         </div>
       </div>
     </div>
@@ -119,7 +127,7 @@
       <div class="glass skeuo-surface skeuo-card-pad-lg">
         <div class="skeuo-label">Step 3</div>
         <h3 class="text-lg font-semibold mt-2">Save your favourites</h3>
-        <p class="mt-3 text-slate-300">Save favorite recipes now, with account and cloud storage support coming.</p>
+        <p class="mt-3 text-slate-300">Save favorite chats with your account and pick up where you left off.</p>
       </div>
     </div>
   </section>
@@ -135,7 +143,7 @@
       </div>
       <div class="glass skeuo-surface skeuo-card-pad-lg">
         <h3 class="font-semibold">Privacy-friendly</h3>
-        <p class="mt-3 text-slate-300">Your chats stay on your device. Clear your browser to wipe them.</p>
+        <p class="mt-3 text-slate-300">Your chats are stored server-side with account-aware access controls.</p>
       </div>
       <div class="glass skeuo-surface skeuo-card-pad-lg">
         <h3 class="font-semibold">Clear recipe formatting</h3>

@@ -7,8 +7,9 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 - Ingredient-aware recipe help and cooking Q&A
 - Local recipe RAG context (retrieves matching recipes from `data/recipes.json`)
 - Off-topic guard that steers conversation back to food
-- Session-based chat history on the server
-- Local-only saved chats in the browser (after privacy acknowledgment)
+- Session-based chat history persisted in Deno KV
+- Saved chats persisted in Deno KV
+- Optional account auth (register/login/logout) with profile fields
 - Basic in-memory rate limiting (IP + session cooldown)
 - Security headers and custom 404/500 pages
 
@@ -68,6 +69,7 @@ http://localhost:8000
 - `deno task run` -> starts the server with:
   - `--allow-net`
   - `--allow-read`
+  - `--allow-write`
   - `--allow-env`
 - `deno task dev` -> starts the server and loads variables from `.env` via `--env-file=.env`
 - `deno task ingest-recipes <path>` -> merges recipes into `data/recipes.json` (or `RECIPES_DB_PATH`) with:
@@ -78,13 +80,23 @@ http://localhost:8000
 ## API Routes
 
 - `GET /health` -> `{ "ok": true }`
+- `GET /chat-models` -> allowed model list for UI picker
+- `GET /me` -> current session user or `null`
+- `POST /auth/register` -> `{ email, password, name? }`
+- `POST /auth/login` -> `{ email, password }`
+- `POST /auth/logout` -> clears session-user link
+- `PATCH /me/profile` -> updates `{ dietaryRequirements, allergies, dislikes }`
 - `POST /chat` -> accepts JSON:
 
 ```json
-{ "message": "I have eggs and spinach", "newChat": false }
+{ "message": "I have eggs and spinach", "newChat": false, "model": "llama-3.1-8b-instant" }
 ```
 
 - `POST /upload` -> currently a stub, returns `[]`
+- `GET /saved-chats` -> session-scope saved chats
+- `POST /saved-chats` -> save chat `{ title, history }`
+- `GET /saved-chats/:id` -> fetch one saved chat
+- `DELETE /saved-chats/:id` -> delete saved chat
 
 ## Project Layout
 
@@ -93,13 +105,15 @@ http://localhost:8000
 - `src/chat/` -> prompt logic, mode detection, guard, history, Groq client
 - `src/security.ts` -> security headers
 - `src/rateLimit.ts` -> in-memory token bucket + session cooldown
+- `src/chat/history.ts` -> Deno KV-backed session chat history
+- `src/auth.ts` -> account auth + profile management in Deno KV
 - `public/` -> static pages and chat UI scripts
 
 ## Notes
 
 - `GROQ_API_KEY` is required at startup.
 - If `MODEL` is unset, the app defaults to `llama-3.1-8b-instant`.
-- Rate limit state and chat history are in-memory and reset when the process restarts.
+- Rate limit state remains in-memory; chat history and saved chats are persisted in Deno KV.
 - If RAG finds strong recipe matches, the assistant uses those titles/details.
 - If no strong RAG match exists, the assistant still generates a fresh recipe.
 

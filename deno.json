@@ -1,7 +1,7 @@
 {
   "tasks": {
-    "dev": "deno run --env-file=.env --allow-net --allow-read --allow-env main.ts",
-    "run": "deno run --allow-net --allow-read --allow-env main.ts",
+    "dev": "deno run --env-file=.env --allow-net --allow-read --allow-write --allow-env main.ts",
+    "run": "deno run --allow-net --allow-read --allow-write --allow-env main.ts",
     "ingest-recipes": "deno run --allow-read --allow-write --allow-env scripts/ingest_recipes.ts"
   }
 }

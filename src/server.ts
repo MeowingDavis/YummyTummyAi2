@@ -362,6 +362,15 @@ export function startServer() {
         }),
       });
     }
+    if (req.method === "GET" && (url.pathname === "/auth" || url.pathname === "/auth/")) {
+      return new Response(null, {
+        status: 307,
+        headers: withSecurity({
+          "Location": "/auth.html",
+          "Cache-Control": "no-store",
+        }),
+      });
+    }
 
     // Chat
     if (req.method === "POST" && url.pathname === "/chat") {

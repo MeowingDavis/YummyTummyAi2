@@ -31,31 +31,9 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function doRegister() {
-    const email = prompt('Email:', '');
-    if (!email) return;
-    const password = prompt('Password (min 8 chars):', '');
-    if (!password) return;
-    const name = prompt('Name (optional):', '') || undefined;
-    await authRequest('/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
-    });
-    await refreshMe();
-  }
-
-  async function doLogin() {
-    const email = prompt('Email:', '');
-    if (!email) return;
-    const password = prompt('Password:', '');
-    if (!password) return;
-    await authRequest('/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    await refreshMe();
+  function goToAuth(mode) {
+    const next = encodeURIComponent(window.location.pathname || '/');
+    window.location.href = `/auth.html?mode=${encodeURIComponent(mode)}&next=${next}`;
   }
 
   async function doLogout() {
@@ -80,15 +58,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('homeRegisterBtn')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    try { await doRegister(); } catch (e2) { alert(e2.message || 'Register failed'); }
+    goToAuth('register');
   });
   document.getElementById('homeLoginBtn')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    try { await doLogin(); } catch (e2) { alert(e2.message || 'Login failed'); }
+    goToAuth('login');
   });
   document.getElementById('homeLoginBtnMobile')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    try { await doLogin(); } catch (e2) { alert(e2.message || 'Login failed'); }
+    goToAuth('login');
   });
   document.getElementById('homeLogoutBtn')?.addEventListener('click', async (e) => {
     e.preventDefault();

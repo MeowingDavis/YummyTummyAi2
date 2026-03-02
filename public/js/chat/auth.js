@@ -39,31 +39,9 @@ async function loadMe() {
   await renderMobileSavedChats();
 }
 
-async function loginFlow() {
-  const email = prompt("Email:", "");
-  if (!email) return;
-  const password = prompt("Password:", "");
-  if (!password) return;
-  await request("/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  await loadMe();
-}
-
-async function registerFlow() {
-  const email = prompt("Email:", "");
-  if (!email) return;
-  const password = prompt("Password (min 8 chars):", "");
-  if (!password) return;
-  const name = prompt("Name (optional):", "") || undefined;
-  await request("/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, name }),
-  });
-  await loadMe();
+function goToAuth(mode) {
+  const next = encodeURIComponent("/chat.html");
+  window.location.href = `/auth.html?mode=${encodeURIComponent(mode)}&next=${next}`;
 }
 
 async function logoutFlow() {
@@ -78,19 +56,11 @@ export async function initAuth() {
   refs.authLogoutBtn = document.getElementById("authLogoutBtn");
 
   refs.authRegisterBtn?.addEventListener("click", async () => {
-    try {
-      await registerFlow();
-    } catch (err) {
-      alert((err && err.message) || "Register failed");
-    }
+    goToAuth("register");
   });
 
   refs.authLoginBtn?.addEventListener("click", async () => {
-    try {
-      await loginFlow();
-    } catch (err) {
-      alert((err && err.message) || "Login failed");
-    }
+    goToAuth("login");
   });
 
   refs.authLogoutBtn?.addEventListener("click", async () => {

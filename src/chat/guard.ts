@@ -14,6 +14,8 @@ export const FOOD_ALLOWLIST = [
   "quinoa","broth","stock","garlic","onion","tomato","tomatoes","ginger","lemon","lime",
   "apple","apples","banana","bananas","carrot","carrots","potato","potatoes","spinach","feta",
   "yogurt","oats","cinnamon","mushroom","mushrooms","broccoli","lettuce","vegetable","vegetables","veggies","fruit",
+  // common foods / cravings
+  "burger","burgers","pizza","taco","tacos","sandwich","sandwiches","fries","ramen","sushi","pancake","pancakes",
   // tools/gear
   "oven","stove","pan","pot","skillet","air fryer","airfryer","knife","cutting board"
 ];
@@ -36,6 +38,11 @@ export function isCookingQuery(s: string, lastAssistant?: string): boolean {
 
   // 2) Obvious food content
   if (mentionsFood) return true;
+
+  // 2b) Food-intent conversational cues (e.g. "i like burger", "i'm craving pasta")
+  if (/\b(i like|i love|i want|i'm craving|im craving|craving)\b/.test(t) && /\b(food|dish|meal|burger|pizza|taco|sandwich|pasta|rice|chicken|beef|fish|salad|soup|snack|dessert)\b/.test(t)) {
+    return true;
+  }
 
   // 3) Ingredient-like
   const ingredientCue = /\b(i have|with|on hand|pantry|fridge|ingredients|leftovers|using)\b/.test(t);

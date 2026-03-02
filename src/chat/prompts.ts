@@ -29,5 +29,5 @@ SAFETY:
 `.trim();
 
 export const OFF_TOPIC_REPLY =
-  "I keep this chat about food and cooking. Tell me what you're craving or what you have on hand.\n\n" +
-  "Try: **“I have chicken, rice, and broccoli — what can I make?”**";
+  "I’m your food buddy, so I’ll keep us in kitchen mode. Tell me what you’re craving or what ingredients you have and I’ll make it easy.\n\n" +
+  "Try: **“I’m craving a burger — give me 3 fun versions.”**";

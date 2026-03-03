@@ -24,13 +24,29 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const params = new URLSearchParams(window.location.search);
   const nextRaw = params.get('next') || '/chat.html';
-  let next = '/chat.html';
-  try {
-    next = decodeURIComponent(nextRaw || '/chat.html');
-  } catch {
-    next = nextRaw || '/chat.html';
+  const DEFAULT_NEXT = '/chat.html';
+
+  function sanitizeNextPath(raw) {
+    if (!raw) return DEFAULT_NEXT;
+    let decoded;
+    try {
+      decoded = decodeURIComponent(raw);
+    } catch {
+      decoded = raw;
+    }
+    if (typeof decoded !== 'string') return DEFAULT_NEXT;
+    decoded = decoded.trim();
+    // must be a same-origin path, not protocol-relative or with backslashes
+    if (!decoded.startsWith('/') || decoded.startsWith('//') || decoded.startsWith('/\\')) {
+      return DEFAULT_NEXT;
+    }
+    // optionally, restrict to a small set of known-safe paths
+    const allowedPrefixes = ['/chat.html', '/'];
+    const isAllowed = allowedPrefixes.some((prefix) => decoded === prefix || decoded.startsWith(prefix + '?'));
+    return isAllowed ? decoded : DEFAULT_NEXT;
   }
-  if (!next || !next.startsWith('/')) next = '/chat.html';
+
+  const next = sanitizeNextPath(nextRaw);
   let mode = params.get('mode') === 'register' ? 'register' : 'login';
   let submitting = false;
 

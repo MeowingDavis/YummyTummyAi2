@@ -367,11 +367,12 @@ export function startServer() {
             message: "Too many attempts. Please wait and try again.",
           }), { status: 429, headers: h });
         }
-        const msg = String((err as Error)?.message ?? err);
+        // Log unexpected errors server-side without exposing internal details to the client.
+        console.error("Unexpected error during /auth/login:", err);
         return new Response(JSON.stringify({
           ok: false,
           code: "LOGIN_FAILED",
-          message: msg || "Server error",
+          message: "Server error",
         }), { status: 500, headers: h });
       }
     }

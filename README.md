@@ -7,6 +7,7 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 - Ingredient-aware recipe help and cooking Q&A
 - Local recipe RAG context (retrieves matching recipes from `data/recipes.json`)
 - Optional API Ninjas recipe enrichment when local matches are weak
+- Recipe Explorer page for manual search + categories (`/recipes.html`)
 - Off-topic guard that steers conversation back to food
 - Session-based chat history persisted in Deno KV
 - Saved chats persisted in Deno KV
@@ -91,6 +92,7 @@ http://localhost:8000
 
 - `GET /health` -> `{ "ok": true }`
 - `GET /chat-models` -> allowed model list for UI picker
+- `GET /recipes/search` -> API Ninjas-backed recipe search (`q`, `category`, `limit`)
 - `GET /me` -> current session user or `null`
 - `POST /auth/register` -> `{ email, password, name? }`
 - `POST /auth/login` -> `{ email, password }`

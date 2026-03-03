@@ -13,7 +13,12 @@ import { groqChat, listGroqModels } from "./chat/groq.ts";
 import { detectPromptInjection } from "./chat/injection.ts";
 import { redact } from "./redact.ts";
 import { buildRecipeContext, hasStrongRecipeMatch, retrieveRecipes } from "./rag/retrieve.ts";
-import { buildApiNinjasContext, fetchApiNinjasRecipes, hasApiNinjasConfigured } from "./rag/apiNinjas.ts";
+import {
+  buildApiNinjasContext,
+  fetchApiNinjasRecipes,
+  hasApiNinjasConfigured,
+  searchApiNinjasRecipes,
+} from "./rag/apiNinjas.ts";
 import type { Msg } from "./chat/history.ts";
 import { getAppKv } from "./kv.ts";
 import {
@@ -253,6 +258,42 @@ export function startServer() {
         defaultModel: resolved.defaultModel,
         models: resolved.models,
       }), { headers: h });
+    }
+    if (req.method === "GET" && url.pathname === "/recipes/search") {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      const q = (url.searchParams.get("q") ?? "").trim();
+      const category = (url.searchParams.get("category") ?? "").trim();
+      const limit = Number(url.searchParams.get("limit") ?? "20");
+      const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(Math.floor(limit), 30)) : 20;
+
+      if (!hasApiNinjasConfigured()) {
+        return new Response(JSON.stringify({
+          ok: false,
+          code: "RECIPES_PROVIDER_NOT_CONFIGURED",
+          message: "Recipe provider is not configured.",
+          recipes: [],
+        }), { status: 503, headers: h });
+      }
+
+      if (!q && !category) {
+        return new Response(JSON.stringify({ ok: true, recipes: [] }), { headers: h });
+      }
+
+      try {
+        const recipes = await searchApiNinjasRecipes(q, category, safeLimit);
+        return new Response(JSON.stringify({ ok: true, recipes }), { headers: h });
+      } catch (err) {
+        const safe = redact(String((err as Error)?.message ?? err));
+        console.warn("[recipes/search] error:", safe);
+        return new Response(JSON.stringify({
+          ok: false,
+          code: "RECIPES_SEARCH_FAILED",
+          message: "Unable to search recipes right now.",
+          recipes: [],
+        }), { status: 502, headers: h });
+      }
     }
 
     // Auth
@@ -709,6 +750,15 @@ export function startServer() {
         status: 307,
         headers: withSecurity({
           "Location": "/about.html",
+          "Cache-Control": "no-store",
+        }),
+      });
+    }
+    if (req.method === "GET" && (url.pathname === "/recipes" || url.pathname === "/recipes/")) {
+      return new Response(null, {
+        status: 307,
+        headers: withSecurity({
+          "Location": "/recipes.html",
           "Cache-Control": "no-store",
         }),
       });

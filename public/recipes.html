@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <title>Recipe Explorer - Yummy Tummy AI</title>
+  <meta name="description" content="Search recipes manually with categories and ingredients in Yummy Tummy Recipe Explorer." />
+  <meta name="theme-color" content="#0e1622" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <script src="/industrial-tailwind.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/industrial.css" />
+</head>
+<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0">
+  <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to content</a>
+
+  <header class="skeuo-wrap skeuo-header sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur-md">
+    <div class="skeuo-container-wide flex min-h-14 items-center justify-between gap-3">
+      <a href="/" class="inline-flex items-center gap-3" aria-label="Yummy Tummy AI home">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20" aria-hidden="true">🍳</span>
+        <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy Tummy <span class="text-emerald-400">AI</span></span>
+      </a>
+      <nav class="hidden items-center gap-4 md:flex" aria-label="Primary">
+        <a href="/" class="skeuo-link">Home</a>
+        <a href="/chat.html" class="skeuo-link">Chat</a>
+        <a href="/recipes.html" class="skeuo-link">Recipes</a>
+        <a href="/about.html" class="skeuo-link">About</a>
+      </nav>
+      <a href="/chat.html" class="md:hidden skeuo-btn skeuo-btn-primary skeuo-btn-sm">Open Chat</a>
+    </div>
+  </header>
+
+  <main id="main-content" class="skeuo-wrap skeuo-section mb-14">
+    <div class="skeuo-container-wide max-w-5xl grid gap-5">
+      <section class="skeuo-section-tight">
+        <h1 class="text-3xl font-extrabold tracking-tight sm:text-5xl">Recipe Explorer</h1>
+        <p class="mt-3 text-slate-200">Search recipes manually and filter by category. Powered by API Ninjas.</p>
+      </section>
+
+      <section class="glass skeuo-surface skeuo-card-pad-lg" aria-labelledby="search-heading">
+        <h2 id="search-heading" class="text-lg font-semibold">Find recipes</h2>
+        <div class="mt-3 grid gap-3 sm:grid-cols-[1fr,auto]">
+          <label for="recipeSearchInput" class="sr-only">Search recipes</label>
+          <input id="recipeSearchInput" type="search" class="skeuo-input w-full px-4 py-3" placeholder="Search by dish, ingredient, or cuisine" autocomplete="off" />
+          <button id="recipeSearchBtn" type="button" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Search</button>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2" id="categoryBar" role="toolbar" aria-label="Recipe categories">
+          <button type="button" class="skeuo-btn skeuo-btn-primary skeuo-btn-sm recipe-category active" data-category="">All</button>
+          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="quick">Quick</button>
+          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="healthy">Healthy</button>
+          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="protein">High Protein</button>
+          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="vegetarian">Vegetarian</button>
+          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="seafood">Seafood</button>
+          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="comfort">Comfort</button>
+          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="dessert">Dessert</button>
+          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="global">Global</button>
+        </div>
+        <p id="searchStatus" class="mt-3 text-sm text-slate-300" aria-live="polite">Type a query to start browsing recipes.</p>
+      </section>
+
+      <section aria-labelledby="results-heading">
+        <h2 id="results-heading" class="sr-only">Recipe results</h2>
+        <div id="recipeResults" class="grid gap-4"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="skeuo-wrap pb-8">
+    <div class="skeuo-container-wide flex flex-col items-start justify-between gap-3 text-sm text-slate-300 sm:flex-row sm:items-center">
+      <p>© <span id="year"></span> Yummy Tummy AI</p>
+      <nav class="flex gap-4" aria-label="Footer">
+        <a href="/" class="skeuo-link">Home</a>
+        <a href="/chat.html" class="skeuo-link">Open Chat</a>
+        <a href="/recipes.html" class="skeuo-link">Recipes</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/js/recipes-page.js" defer></script>
+</body>
+</html>

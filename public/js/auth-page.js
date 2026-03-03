@@ -25,6 +25,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   const nextRaw = params.get('next') || '/chat.html';
   const DEFAULT_NEXT = '/chat.html';
+  const SAFE_NEXT_PATHS = [DEFAULT_NEXT, '/'];
 
   function sanitizeNextPath(raw) {
     if (!raw) return DEFAULT_NEXT;
@@ -40,7 +41,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!decoded.startsWith('/') || decoded.startsWith('//') || decoded.startsWith('/\\')) {
       return DEFAULT_NEXT;
     }
-    // optionally, restrict to a small set of known-safe paths
+    // only allow known-safe paths
+    if (!SAFE_NEXT_PATHS.includes(decoded)) {
+      return DEFAULT_NEXT;
+    }
     return decoded;
   }
 

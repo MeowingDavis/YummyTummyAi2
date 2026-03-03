@@ -44,6 +44,8 @@ export GROQ_MODELS="llama-3.1-8b-instant,llama-3.3-70b-versatile"
 export RECIPES_DB_PATH="data/recipes.json"
 # optional API Ninjas recipe API key (server-side enrichment)
 export API_NINJAS_API_KEY="your_api_ninjas_key"
+# optional debug: include recipe source flags in /chat JSON
+export CHAT_DEBUG_SOURCES="1"
 ```
 
 Production security env requirements:
@@ -130,6 +132,7 @@ http://localhost:8000
 - If RAG finds strong recipe matches, the assistant uses those titles/details.
 - If no strong RAG match exists, the assistant still generates a fresh recipe.
 - If `API_NINJAS_API_KEY` is set, the app also fetches API Ninjas recipe matches when local recipe matches are weak.
+- If `CHAT_DEBUG_SOURCES=1`, `/chat` responses include `recipeSources` debug metadata.
 
 ## Supabase Auth Settings
 

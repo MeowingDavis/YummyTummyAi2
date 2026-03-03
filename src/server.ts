@@ -55,6 +55,7 @@ const MODELS_REFRESH_MS = 5 * 60 * 1000;
 const CHAT_WINDOW_MS = 24 * 60 * 60 * 1000;
 const GUEST_DAILY_CHAT_LIMIT = 15;
 const USER_DAILY_CHAT_LIMIT = 40;
+const CHAT_DEBUG_SOURCES = (Deno.env.get("CHAT_DEBUG_SOURCES") ?? "").trim() === "1";
 
 type SavedChat = {
   id: string;
@@ -837,10 +838,12 @@ export function startServer() {
         const recipeContext = buildRecipeContext(recipeHits);
         const strongRecipeMatch = hasStrongRecipeMatch(recipeHits);
         let apiNinjasContext = "";
+        let apiNinjasUsed = false;
         if (!strongRecipeMatch && hasApiNinjasConfigured()) {
           try {
             const apiNinjasRecipes = await fetchApiNinjasRecipes(message, 2);
             apiNinjasContext = buildApiNinjasContext(apiNinjasRecipes);
+            apiNinjasUsed = apiNinjasRecipes.length > 0;
           } catch (err) {
             const safe = redact(String((err as Error)?.message ?? err));
             console.warn("[api-ninjas] recipe lookup failed:", safe);
@@ -883,12 +886,21 @@ export function startServer() {
 
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
-        return new Response(JSON.stringify({
+        const responsePayload: Record<string, unknown> = {
           reply,
           markdown: reply,
           modelUsed: chosenModel,
           modelFallback: !!selectedModel && selectedModel !== chosenModel,
-        }), { headers: h });
+        };
+        if (CHAT_DEBUG_SOURCES) {
+          responsePayload.recipeSources = {
+            localStrongMatch: strongRecipeMatch,
+            localHits: recipeHits.length,
+            apiNinjasConfigured: hasApiNinjasConfigured(),
+            apiNinjasUsed,
+          };
+        }
+        return new Response(JSON.stringify(responsePayload), { headers: h });
       } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);

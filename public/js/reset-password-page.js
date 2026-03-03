@@ -19,6 +19,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       successEl.textContent = '';
       successEl.classList.add('hidden');
     }
+    newPasswordInput?.setAttribute('aria-invalid', 'true');
+    confirmPasswordInput?.setAttribute('aria-invalid', 'true');
     backToLoginLink?.classList.add('hidden');
   }
 
@@ -31,6 +33,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       errorEl.textContent = '';
       errorEl.classList.add('hidden');
     }
+    newPasswordInput?.setAttribute('aria-invalid', 'false');
+    confirmPasswordInput?.setAttribute('aria-invalid', 'false');
     backToLoginLink?.classList.remove('hidden');
   }
 

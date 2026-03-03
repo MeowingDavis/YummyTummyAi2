@@ -69,7 +69,7 @@ export async function initAuth() {
     try {
       await logoutFlow();
     } catch (err) {
-      alert((err && err.message) || "Logout failed");
+      if (refs.authStatus) refs.authStatus.textContent = (err && err.message) || "Logout failed";
     }
   });
 

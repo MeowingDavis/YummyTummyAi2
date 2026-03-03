@@ -14,6 +14,7 @@ window.addEventListener('DOMContentLoaded', () => {
       successEl.textContent = '';
       successEl.classList.add('hidden');
     }
+    emailInput?.setAttribute('aria-invalid', 'true');
   }
 
   function showSuccess(message) {
@@ -25,6 +26,7 @@ window.addEventListener('DOMContentLoaded', () => {
       errorEl.textContent = '';
       errorEl.classList.add('hidden');
     }
+    emailInput?.setAttribute('aria-invalid', 'false');
   }
 
   function setSubmitting(isBusy) {

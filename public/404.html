@@ -4,29 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#0e1622" />
   <title>Page not found - Yummy Tummy AI</title>
   <script src="/industrial-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/industrial.css" />
-  
 </head>
-<body class="min-h-[100svh] bg-industrial-chassis text-industrial-text antialiased industrial-texture">
-  <main class="min-h-[100svh] skeuo-wrap flex items-center justify-center">
-    <div class="stack-surface skeuo-surface skeuo-card-pad-lg max-w-xl w-full">
-      <div class="skeuo-label">Error 404</div>
-      <h1 class="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">Page not found</h1>
-      <p class="mt-3 text-slate-300">
-        We could not find that page. Try heading back to the home page or open the chat.
-      </p>
-      <div class="mt-6 flex flex-col sm:flex-row gap-3">
-        <a href="/" class="skeuo-btn skeuo-btn-primary skeuo-interactive">
-          Go home
-        </a>
-        <a href="/chat.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">
-          Open chat
-        </a>
+<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis text-industrial-text antialiased industrial-texture">
+  <main class="skeuo-wrap flex min-h-[100svh] items-center justify-center" aria-labelledby="error-title">
+    <section class="stack-surface skeuo-surface w-full max-w-xl skeuo-card-pad-lg">
+      <p class="skeuo-label">Error 404</p>
+      <h1 id="error-title" class="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Page not found</h1>
+      <p class="mt-3 text-slate-200">We could not find that page. Try heading back to the home page or open the chat.</p>
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+        <a href="/" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Go home</a>
+        <a href="/chat.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">Open chat</a>
       </div>
-    </div>
+    </section>
   </main>
 </body>
 </html>

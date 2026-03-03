@@ -27,14 +27,7 @@ export function initPrivacy(){
     learnBtn?.addEventListener("click", (e) => {
       e.preventDefault();
       try {
-        alert(
-          "Where are chats stored?\n\n" +
-          "• Saved chats are stored on the server by your session.\n" +
-          "• Messages are sent to the AI service to generate replies.\n" +
-          "• Conversation context is persisted server-side to keep chats working across refreshes.\n" +
-          "• Using a different browser/device creates a new session until login is added.\n" +
-          "• You can export a chat from the Saved Chats panel at any time."
-        );
+        window.location.href = "/about.html#privacy-section";
       } catch (e) { console.warn("[privacy] learn more failed:", e); }
     });
   } catch (e) {

@@ -88,6 +88,7 @@ export function renderEmptyState(){
   box.className = "grid gap-3 sm:grid-cols-2";
   picks.forEach(q => {
     const b = document.createElement('button');
+    b.type = "button";
     b.className = "text-left skeuo-surface skeuo-interactive skeuo-card-pad";
     b.textContent = q;
     b.onclick = () => {
@@ -102,6 +103,9 @@ export function renderEmptyState(){
 
 export function renderTray(){
   const wrap = refs.tray.firstElementChild;
+  wrap.querySelectorAll("img[data-blob-url]").forEach((img) => {
+    URL.revokeObjectURL(img.dataset.blobUrl);
+  });
   wrap.innerHTML = "";
   state.pendingFiles.forEach((f, i) => {
     const url = URL.createObjectURL(f);
@@ -110,13 +114,18 @@ export function renderTray(){
 
     const img = document.createElement("img");
     img.src = url;
+    img.dataset.blobUrl = url;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.alt = `Image preview ${i + 1}`;
     img.className = "w-full h-full object-cover";
 
     const removeBtn = document.createElement("button");
-    removeBtn.className = "absolute -top-2 -right-2 skeuo-btn skeuo-btn-danger w-6 h-6 text-xs";
+    removeBtn.className = "absolute -top-2 -right-2 skeuo-btn skeuo-btn-danger h-11 w-11 text-xs";
     removeBtn.type = "button";
     removeBtn.textContent = "×";
     removeBtn.onclick = () => {
+      URL.revokeObjectURL(url);
       state.pendingFiles.splice(i, 1);
       renderTray();
       if (!state.pendingFiles.length) hideTray();

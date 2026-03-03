@@ -2,6 +2,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const chatbox = document.getElementById('chatbox');
     const input = document.getElementById('input');
     const jumpBtn = document.getElementById('jumpLatest');
+    if (!chatbox || !input || !jumpBtn) return;
 
     // --- Stick logic
     const THRESHOLD = 64;
@@ -16,7 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function scrollToLatest(immediate = true) {
         const prev = chatbox.style.scrollBehavior;
-        chatbox.style.scrollBehavior = 'auto';
+        chatbox.style.scrollBehavior = immediate ? 'auto' : 'smooth';
         chatbox.scrollTop = chatbox.scrollHeight;
         chatbox.style.scrollBehavior = prev || '';
     }

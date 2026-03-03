@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-  <title>Yummy Tummy AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <title>Yummy Tummy AI Chat</title>
+  <meta name="theme-color" content="#0e1622" />
   <link rel="manifest" href="/manifest.webmanifest" />
 
   <script src="/industrial-tailwind.js"></script>
@@ -14,163 +13,118 @@
 
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked@13.0.3/marked.min.js"></script>
-
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
 </head>
+<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis text-industrial-text antialiased industrial-texture">
+  <a href="#chat-main" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to chat</a>
 
-<body class="min-h-[100svh] bg-industrial-chassis text-industrial-text antialiased industrial-texture">
-  <div class="skeuo-wrap skeuo-container-wide py-4 sm:py-6">
-    <div class="flex gap-5">
-      <aside class="hidden md:flex md:w-72 shrink-0">
-        <div class="stack-surface skeuo-surface w-full h-full flex flex-col skeuo-card-pad">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-            <button id="refreshSavedBtn" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive px-2 py-1">
-              Refresh
-            </button>
+  <div class="skeuo-wrap skeuo-container-wide py-3 sm:py-6">
+    <div class="flex gap-4 lg:gap-5">
+      <aside class="hidden shrink-0 md:flex md:w-72" aria-label="Saved chats panel">
+        <section class="stack-surface skeuo-surface flex h-full w-full flex-col skeuo-card-pad">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-base font-semibold tracking-tight text-emerald-300">Saved Chats</h2>
+            <button id="refreshSavedBtn" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive px-3 py-2 text-xs">Refresh</button>
           </div>
-          <ul id="savedChats" class="mt-3 space-y-2 text-sm"></ul>
+          <ul id="savedChats" class="mt-3 space-y-2 text-sm" aria-label="Saved chats list"></ul>
           <div class="flex-1"></div>
-
-          <nav class="mt-4 text-sm flex items-center gap-4">
+          <nav class="mt-4 flex items-center gap-4 text-sm" aria-label="Secondary">
             <a href="/" class="skeuo-link">Home</a>
             <a href="/about.html" class="skeuo-link">About</a>
           </nav>
-        </div>
+        </section>
       </aside>
 
-      <main class="flex-1">
-        <div class="stack-surface skeuo-surface overflow-visible
-                    grid grid-rows-[auto,1fr] h-[calc(100svh-2rem)] md:h-auto md:min-h-0">
-          <header
-            class="sticky md:static top-0 z-30 px-4 sm:px-6 py-4 md:pt-5 md:pb-4 border-b border-slate-800/60
-                   bg-slate-900/70 md:bg-transparent backdrop-blur supports-[backdrop-filter]:bg-slate-900/50 md:supports-[backdrop-filter]:bg-transparent">
-            <div class="flex items-center justify-between gap-2">
-              <h1 class="text-2xl sm:text-4xl md:text-4xl font-bold tracking-tight">
-                Yummy Tummy <span class="text-emerald-400">AI</span>
-              </h1>
+      <main id="chat-main" class="flex-1">
+        <div class="stack-surface skeuo-surface grid h-[calc(100svh-1.5rem)] grid-rows-[auto,1fr] overflow-visible md:h-auto md:min-h-[80svh]">
+          <header class="sticky top-0 z-30 border-b border-slate-800/60 bg-slate-900/85 px-3 py-3 backdrop-blur md:static md:bg-transparent md:px-6 md:pb-4 md:pt-5 md:backdrop-blur-0">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Yummy Tummy <span class="text-emerald-400">AI</span></h1>
 
               <div class="flex items-center gap-2">
                 <label for="modelSelect" class="sr-only">Model</label>
-                <select id="modelSelect"
-                  class="skeuo-input h-12 md:h-11 px-3 text-xs md:text-sm max-w-[180px]"
-                  title="Choose model"></select>
+                <select id="modelSelect" class="skeuo-input min-h-11 max-w-[170px] px-3 text-xs sm:text-sm" title="Choose model" aria-label="Choose AI model"></select>
 
-                <span id="authStatus" class="hidden md:inline text-xs text-slate-300"></span>
-                <button id="authRegisterBtn" type="button"
-                  class="skeuo-btn skeuo-btn-secondary skeuo-interactive h-12 md:h-11 px-3 text-[10px] md:text-xs">Register</button>
-                <button id="authLoginBtn" type="button"
-                  class="skeuo-btn skeuo-btn-secondary skeuo-interactive h-12 md:h-11 px-3 text-[10px] md:text-xs">Login</button>
-                <button id="authAccountBtn" type="button"
-                  class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive h-12 md:h-11 px-3 text-[10px] md:text-xs">Account</button>
-                <button id="authLogoutBtn" type="button"
-                  class="hidden skeuo-btn skeuo-btn-danger skeuo-interactive h-12 md:h-11 px-3 text-[10px] md:text-xs">Logout</button>
+                <button id="authRegisterBtn" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive min-h-11 px-3 text-[11px]">Register</button>
+                <button id="authLoginBtn" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive min-h-11 px-3 text-[11px]">Login</button>
+                <button id="authAccountBtn" type="button" class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive min-h-11 px-3 text-[11px]">Account</button>
+                <button id="authLogoutBtn" type="button" class="hidden skeuo-btn skeuo-btn-danger skeuo-interactive min-h-11 px-3 text-[11px]">Logout</button>
 
-                <button id="mobileMenuBtn" aria-controls="mobileSavedModal" aria-expanded="false"
-                  class="md:hidden skeuo-btn skeuo-btn-secondary skeuo-interactive h-12 w-12 px-0"
-                  aria-label="Show saved chats">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
+                <button id="mobileMenuBtn" aria-controls="mobileSavedModal" aria-expanded="false" class="skeuo-btn skeuo-btn-secondary skeuo-interactive h-11 w-11 px-0 md:hidden" aria-label="Show saved chats">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
                   </svg>
                 </button>
               </div>
+              <p id="authStatus" class="w-full text-xs text-slate-200" aria-live="polite">Checking login status...</p>
             </div>
           </header>
 
-          <section class="relative flex flex-col min-h-0 h-full md:h-[75vh]">
-            <div id="privacyNotice" class="hidden skeuo-wrap skeuo-container-wide">
-              <div class="stack-surface skeuo-surface stack-compact skeuo-section-tight skeuo-card-pad flex items-start gap-3">
-                <svg class="w-5 h-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+          <section class="relative flex h-full min-h-0 flex-col md:h-[75vh]" aria-label="Chat interface">
+            <div id="privacyNotice" class="hidden px-3 pt-3 md:px-6">
+              <div class="stack-surface skeuo-surface stack-compact skeuo-card-pad flex items-start gap-3">
+                <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                 </svg>
-                <div class="text-sm leading-6">
+                <div class="text-sm leading-6 text-slate-100">
                   <strong class="font-semibold">Privacy:</strong>
-                  Saved chats are stored <span class="font-semibold">server-side for this session</span>.
-                  Conversation context is persisted online to keep your active chats consistent.
-                  Login ties chats and profile preferences to your account.
-                  <button id="privacyLearnMore"
-                    class="ml-1 underline decoration-emerald-300/60 hover:decoration-emerald-200">Learn more</button>
+                  Saved chats are stored server-side for this session and can be tied to your account when logged in.
+                  <button id="privacyLearnMore" class="ml-1 underline decoration-emerald-300/70 hover:decoration-emerald-200">Learn more</button>
                 </div>
-                <button id="privacyDismiss" class="ml-auto skeuo-btn skeuo-btn-danger skeuo-interactive"
-                  aria-label="Dismiss privacy notice">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
+                <button id="privacyDismiss" class="ml-auto skeuo-btn skeuo-btn-danger skeuo-interactive min-h-11 px-3" aria-label="Dismiss privacy notice">Got it</button>
               </div>
             </div>
 
-            <div id="chatbox" class="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4 md:py-5 space-y-4"></div>
+            <div id="chatbox" class="flex-1 min-h-0 space-y-4 overflow-y-auto px-3 py-4 md:px-6 md:py-5" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation"></div>
 
-            <button id="jumpLatest"
-              class="hidden md:hidden absolute right-4 bottom-24 skeuo-btn skeuo-btn-secondary skeuo-interactive text-sm">
-              Jump to latest ↓
-            </button>
+            <button id="jumpLatest" class="hidden absolute bottom-24 right-4 skeuo-btn skeuo-btn-secondary skeuo-interactive text-sm" type="button">Jump to latest ↓</button>
 
-            <div id="typing" class="hidden px-4 md:px-6">
+            <div id="typing" class="hidden px-3 md:px-6" aria-live="polite">
               <div class="inline-flex items-center gap-2 skeuo-surface px-3 py-2 text-slate-300">
                 <span>Chef is typing</span>
-                <span class="inline-flex gap-1">
-                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                <span class="inline-flex gap-1" aria-hidden="true">
+                  <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.2s]"></span>
+                  <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.1s]"></span>
+                  <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400"></span>
                 </span>
               </div>
             </div>
 
-            <div id="previewTray" class="px-4 md:px-6 hidden">
-              <div class="flex gap-2 flex-wrap py-2"></div>
+            <div id="previewTray" class="hidden px-3 md:px-6">
+              <div class="flex flex-wrap gap-2 py-2"></div>
             </div>
 
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
-            <div class="stack-surface stack-compact composer-safe sticky bottom-0 px-4 md:px-6 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 md:pt-3
-                        bg-slate-900/70 md:bg-slate-900/40 backdrop-blur-xl border-t border-slate-800/60">
-              <div class="flex flex-col md:flex-row md:items-end gap-2">
+            <section class="stack-surface stack-compact composer-safe sticky bottom-0 border-t border-slate-800/60 bg-slate-900/80 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl md:px-6 md:pb-[calc(1rem+env(safe-area-inset-bottom))]" aria-label="Message composer">
+              <div class="flex flex-col gap-2 md:flex-row md:items-end">
                 <label for="input" class="sr-only">Your message</label>
-                <textarea id="input" rows="1" enterkeyhint="send" inputmode="text" autocomplete="off"
-                  autocapitalize="sentences" class="skeuo-input w-full md:flex-1 px-3 md:px-4 py-3 text-[15px] md:text-[15px]
-                         outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30
-                         transition resize-none leading-6 md:leading-7 min-h-[52px] md:min-h-[48px] max-h-56"
-                  placeholder="Ask a recipe question..."></textarea>
+                <textarea id="input" rows="1" enterkeyhint="send" inputmode="text" autocomplete="off" autocapitalize="sentences" class="skeuo-input min-h-[52px] max-h-56 w-full resize-none px-3 py-3 text-base leading-6 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 md:flex-1" placeholder="Ask a recipe question..."></textarea>
 
-                <div class="flex items-center justify-end gap-2 shrink-0">
-                  <button id="saveBtn" type="button"
-                    class="h-12 w-12 md:h-11 md:w-11 skeuo-btn skeuo-btn-secondary skeuo-interactive"
-                    title="Save chat" aria-label="Save chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z" />
+                <div class="flex shrink-0 items-center justify-end gap-2">
+                  <button id="saveBtn" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive h-11 w-11" title="Save chat" aria-label="Save chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z" />
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v4h10V3" />
                     </svg>
                   </button>
 
-                  <button id="newChatBtn" class="h-12 w-12 md:h-11 md:w-11 skeuo-btn skeuo-btn-secondary skeuo-interactive"
-                    title="New Chat" aria-label="New Chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor" stroke-width="2">
+                  <button id="newChatBtn" class="skeuo-btn skeuo-btn-secondary skeuo-interactive h-11 w-11" title="New chat" aria-label="Start new chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
                   </button>
 
-                  <button id="sendBtn" type="button"
-                    class="skeuo-btn skeuo-btn-primary skeuo-interactive px-4 md:px-5 h-12 md:h-11 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Send" aria-label="Send message" disabled>
+                  <button id="sendBtn" type="button" class="skeuo-btn skeuo-btn-primary skeuo-interactive h-11 px-4 disabled:cursor-not-allowed disabled:opacity-50" title="Send" aria-label="Send message" disabled>
                     <span class="hidden md:inline">Send</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M5 12l14-7-7 14-2-5-5-2z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z" />
                     </svg>
                   </button>
                 </div>
               </div>
-            </div>
+            </section>
           </section>
         </div>
       </main>
@@ -178,24 +132,21 @@
   </div>
 
   <div class="fixed inset-0 z-40 hidden bg-black/70 sm:bg-black/60" id="mobileSavedModalBg"></div>
-  <div
-    class="stack-drawer stack-compact skeuo-surface fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] sm:w-[82vw] max-w-xs overflow-y-auto p-5"
-    id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
+  <aside class="stack-drawer stack-compact skeuo-surface fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] max-w-xs overflow-y-auto p-5 sm:w-[82vw]" id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
     <div class="mb-3 flex items-center justify-between">
-      <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-400">Saved Chats</h2>
-      <button class="skeuo-btn skeuo-btn-secondary skeuo-interactive w-10 h-10" aria-label="Close" id="mobileCloseBtn">✕</button>
+      <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-300">Saved Chats</h2>
+      <button class="skeuo-btn skeuo-btn-secondary skeuo-interactive h-11 w-11" aria-label="Close" id="mobileCloseBtn" type="button">✕</button>
     </div>
-    <ul id="mobileSavedChats" class="space-y-2 text-sm"></ul>
+    <ul id="mobileSavedChats" class="space-y-2 text-sm" aria-label="Saved chats list"></ul>
     <hr class="my-4 border-slate-800">
 
-    <div class="flex items-center gap-4">
+    <nav class="flex items-center gap-4" aria-label="Mobile drawer navigation">
       <a href="/" class="skeuo-link">Home</a>
       <a href="/about.html" class="skeuo-link">About</a>
-    </div>
-  </div>
+    </nav>
+  </aside>
 
   <script type="module" src="/js/chat/index.js"></script>
   <script src="/stickToBottom.js"></script>
 </body>
-
 </html>

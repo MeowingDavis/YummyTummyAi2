@@ -41,6 +41,7 @@ body {
   background-color: var(--chassis);
   color: var(--text-primary);
   line-height: 1.65;
+  overflow-x: hidden;
 }
 
 a {
@@ -81,9 +82,15 @@ pre,
   font-family: "JetBrains Mono", monospace;
 }
 
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
 :focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(10, 16, 26, 0.9);
 }
 
 [class*="drop-shadow"] {
@@ -146,4 +153,43 @@ pre,
 }
 .skeuo-card-pad-lg {
   padding: var(--skeuo-space-5);
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 0.5rem;
+  z-index: 60;
+  transform: translateY(-160%);
+  transition: transform 160ms ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.mobile-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  border-top: 1px solid var(--border-light);
+  background: rgba(14, 22, 34, 0.95);
+  backdrop-filter: blur(14px);
+  padding: 0.5rem max(0.75rem, env(safe-area-inset-right))
+    calc(0.5rem + env(safe-area-inset-bottom))
+    max(0.75rem, env(safe-area-inset-left));
+}
+
+@media (min-width: 768px) {
+  .mobile-bottom-nav {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

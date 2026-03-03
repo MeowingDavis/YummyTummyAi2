@@ -15,6 +15,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const accountMobile = document.getElementById('homeAccountBtnMobile');
     const loginMobile = document.getElementById('homeLoginBtnMobile');
     const logoutMobile = document.getElementById('homeLogoutBtnMobile');
+    const loginBottom = document.getElementById('homeLoginBtnBottom');
 
     if (status) status.textContent = user ? `Signed in as ${user.email}` : 'Not signed in';
     reg?.classList.toggle('hidden', !!user);
@@ -24,6 +25,7 @@ window.addEventListener('DOMContentLoaded', () => {
     accountMobile?.classList.toggle('hidden', !user);
     loginMobile?.classList.toggle('hidden', !!user);
     logoutMobile?.classList.toggle('hidden', !user);
+    loginBottom?.classList.toggle('hidden', !!user);
   }
 
   function showAccountDeletedMessage() {
@@ -91,11 +93,11 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('homeLogoutBtn')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    try { await doLogout(); } catch (e2) { alert(e2.message || 'Logout failed'); }
+    try { await doLogout(); } catch (e2) { setHomeAuthUI(null); }
   });
   document.getElementById('homeLogoutBtnMobile')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    try { await doLogout(); } catch (e2) { alert(e2.message || 'Logout failed'); }
+    try { await doLogout(); } catch (e2) { setHomeAuthUI(null); }
   });
 
   refreshMe();
@@ -108,7 +110,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const el = document.querySelector(id);
         if (el) {
           e.preventDefault();
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
         }
       }
     });

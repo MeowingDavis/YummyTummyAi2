@@ -4,53 +4,94 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Account - Yummy Tummy AI</title>
+  <meta name="theme-color" content="#0e1622" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <script src="/industrial-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/industrial.css" />
 </head>
-<body class="min-h-[100svh] bg-industrial-chassis text-industrial-text antialiased industrial-texture">
-  <header class="skeuo-wrap skeuo-header">
-    <div class="skeuo-container-wide flex items-center justify-between gap-4">
-      <a href="/" class="inline-flex items-center gap-3">
-        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
-        <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
+<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0">
+  <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to content</a>
+
+  <header class="skeuo-wrap skeuo-header sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur-md">
+    <div class="skeuo-container-wide flex min-h-14 items-center justify-between gap-3">
+      <a href="/" class="inline-flex items-center gap-3" aria-label="Yummy Tummy AI home">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20" aria-hidden="true">🍳</span>
+        <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy Tummy <span class="text-emerald-400">AI</span></span>
       </a>
-      <nav class="flex items-center gap-4">
+      <nav class="flex items-center gap-4" aria-label="Primary">
         <a href="/" class="skeuo-link">Home</a>
         <a href="/chat.html" class="skeuo-link">Open Chat</a>
+        <a data-auth-action="logout" href="#" class="skeuo-link">Logout</a>
       </nav>
     </div>
   </header>
 
-  <main class="skeuo-wrap skeuo-section-tight pb-12">
+  <main id="main-content" class="skeuo-wrap skeuo-section-tight pb-12">
     <div class="skeuo-container-narrow max-w-md space-y-4">
-      <section class="stack-surface skeuo-surface skeuo-card-pad-lg">
-        <h1 class="text-xl font-semibold tracking-tight">Account settings</h1>
-        <p id="accountStatus" class="mt-2 text-sm text-slate-300">Checking session...</p>
+      <section class="stack-surface skeuo-surface skeuo-card-pad-lg" aria-labelledby="account-title">
+        <h1 id="account-title" class="text-xl font-semibold tracking-tight">Account settings</h1>
+        <p id="accountStatus" class="mt-2 text-sm text-slate-200">Checking session...</p>
       </section>
 
-      <section id="deleteSection" class="hidden stack-surface skeuo-surface skeuo-card-pad-lg space-y-3">
-        <h2 class="text-lg font-semibold text-red-200">Delete account</h2>
-        <p class="text-sm text-red-200/80">This action is permanent. Your account cannot be restored.</p>
+      <section id="changePasswordSection" class="hidden stack-surface skeuo-surface skeuo-card-pad-lg space-y-3" aria-labelledby="change-password-title">
+        <h2 id="change-password-title" class="text-lg font-semibold">Change password</h2>
+        <p class="text-sm text-slate-200">Update your password for future logins.</p>
 
-        <form id="deleteForm" class="space-y-3">
+        <form id="changePasswordForm" class="space-y-4" novalidate>
           <div>
-            <label class="skeuo-label" for="password">Confirm password</label>
-            <input id="password" type="password" required class="skeuo-input w-full px-3 py-2 mt-1" autocomplete="current-password" />
+            <label class="skeuo-label" for="currentPassword">Current password</label>
+            <input id="currentPassword" type="password" required class="skeuo-input mt-1 w-full px-3 py-3" autocomplete="current-password" />
           </div>
 
-          <p id="deleteError" class="hidden text-sm text-red-300"></p>
-          <p id="deleteSuccess" class="hidden text-sm text-emerald-300"></p>
+          <div>
+            <label class="skeuo-label" for="newPassword">New password</label>
+            <input id="newPassword" type="password" required class="skeuo-input mt-1 w-full px-3 py-3" autocomplete="new-password" />
+          </div>
 
-          <button id="deleteBtn" type="submit" class="skeuo-btn skeuo-btn-danger skeuo-interactive w-full">
-            Delete account permanently
+          <div>
+            <label class="skeuo-label" for="confirmNewPassword">Confirm new password</label>
+            <input id="confirmNewPassword" type="password" required class="skeuo-input mt-1 w-full px-3 py-3" autocomplete="new-password" />
+          </div>
+
+          <p id="changePasswordError" class="hidden rounded-xl border border-[rgba(248,113,113,0.55)] bg-[rgba(248,113,113,0.12)] p-3 text-sm font-medium text-white" role="alert"></p>
+          <p id="changePasswordSuccess" class="hidden rounded-xl border border-[rgba(79,209,165,0.55)] bg-[rgba(79,209,165,0.14)] p-3 text-sm font-medium text-white" role="status" aria-live="polite"></p>
+
+          <button id="changePasswordBtn" type="submit" class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full">
+            Update password
           </button>
+        </form>
+      </section>
+
+      <section id="deleteSection" class="hidden stack-surface skeuo-surface skeuo-card-pad-lg space-y-3" aria-labelledby="delete-title">
+        <h2 id="delete-title" class="text-lg font-semibold text-red-100">Delete account</h2>
+        <p class="text-sm text-red-100/90">This action is permanent. Your account cannot be restored.</p>
+
+        <form id="deleteForm" class="space-y-4" novalidate>
+          <div>
+            <label class="skeuo-label" for="password">Confirm password</label>
+            <input id="password" type="password" required class="skeuo-input mt-1 w-full px-3 py-3" autocomplete="current-password" />
+          </div>
+
+          <p id="deleteError" class="hidden rounded-xl border border-[rgba(248,113,113,0.55)] bg-[rgba(248,113,113,0.12)] p-3 text-sm font-medium text-white" role="alert"></p>
+          <p id="deleteSuccess" class="hidden rounded-xl border border-[rgba(79,209,165,0.55)] bg-[rgba(79,209,165,0.14)] p-3 text-sm font-medium text-white" role="status" aria-live="polite"></p>
+
+          <button id="deleteBtn" type="submit" class="skeuo-btn skeuo-btn-danger skeuo-interactive w-full">Delete account permanently</button>
         </form>
       </section>
     </div>
   </main>
 
-  <script src="/js/account-page.js"></script>
+  <nav class="mobile-bottom-nav md:hidden" aria-label="Mobile quick navigation">
+    <ul class="mx-auto grid max-w-xl grid-cols-4 gap-2 text-center">
+      <li><a href="/" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Home</a></li>
+      <li><a href="/about.html" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">About</a></li>
+      <li><a href="/chat.html" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Chat</a></li>
+      <li><a href="/account.html" class="skeuo-btn skeuo-btn-primary w-full px-2 text-[11px]">Account</a></li>
+    </ul>
+  </nav>
+
+  <script src="/js/site-auth.js" defer></script>
+  <script src="/js/account-page.js" defer></script>
 </body>
 </html>

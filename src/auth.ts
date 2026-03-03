@@ -275,6 +275,14 @@ export async function verifyPassword(email: string, password: string) {
   }
 }
 
+export async function updateSupabaseUserPassword(userId: string, newPassword: string) {
+  const encodedId = encodeURIComponent(userId);
+  await supabaseRequest(`/auth/v1/admin/users/${encodedId}`, {
+    method: "PUT",
+    body: JSON.stringify({ password: newPassword }),
+  }, true);
+}
+
 export async function deleteSupabaseUser(userId: string) {
   const encodedId = encodeURIComponent(userId);
   try {

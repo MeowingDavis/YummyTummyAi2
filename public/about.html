@@ -4,195 +4,123 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>About - Yummy Tummy AI</title>
+  <meta name="theme-color" content="#0e1622" />
   <link rel="manifest" href="/manifest.webmanifest" />
-
-  <!-- Tailwind -->
   <script src="/industrial-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/industrial.css" />
-
-  
 </head>
-<body class="min-h-[100svh] bg-industrial-chassis text-industrial-text antialiased industrial-texture">
+<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0">
+  <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to content</a>
 
-  <!-- Header -->
-  <header class="skeuo-wrap skeuo-header">
-    <div class="skeuo-container-wide flex items-center justify-between gap-4">
-      <a href="/" class="inline-flex items-center gap-3">
-        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
-        <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
+  <header class="skeuo-wrap skeuo-header sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur-md">
+    <div class="skeuo-container-wide flex min-h-14 items-center justify-between gap-3">
+      <a href="/" class="inline-flex items-center gap-3" aria-label="Yummy Tummy AI home">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20" aria-hidden="true">🍳</span>
+        <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy Tummy <span class="text-emerald-400">AI</span></span>
       </a>
-      <nav class="hidden sm:flex items-center gap-4">
-        <a href="/chat.html" class="skeuo-link">Open Chat</a>
+      <nav class="hidden items-center gap-4 md:flex" aria-label="Primary">
         <a href="/" class="skeuo-link">Home</a>
+        <a href="/chat.html" class="skeuo-link">Open Chat</a>
+        <span data-auth-status class="min-h-6 text-xs text-slate-200" aria-live="polite">Checking login status...</span>
+        <a data-auth="signed-out-only" data-auth-link="login" href="/auth.html?mode=login" class="skeuo-link">Login</a>
+        <a data-auth="signed-in-only" href="/account.html" class="hidden skeuo-link">Account</a>
       </nav>
-      <a href="/chat.html" class="sm:hidden skeuo-btn skeuo-btn-primary skeuo-interactive">Open Chat</a>
+      <a href="/chat.html" class="md:hidden skeuo-btn skeuo-btn-primary skeuo-interactive">Open Chat</a>
     </div>
   </header>
 
-  <!-- Page heading -->
-  <section class="skeuo-wrap skeuo-section-tight">
-    <div class="skeuo-container-narrow">
-      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight">About</h1>
-      <p class="mt-4 text-slate-300 text-lg leading-relaxed">
-        Yummy Tummy AI helps you turn the ingredients you have into dinner ideas - via a simple, private chat.
-      </p>
-    </div>
-  </section>
-
-  <!-- Notice: responsive in progress -->
-  <section class="skeuo-wrap skeuo-section-tight">
-    <div class="skeuo-container-narrow">
-      <div class="glass skeuo-surface skeuo-card-pad flex items-start gap-3">
-        <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
-        </svg>
-        <div class="text-sm leading-6 text-slate-200">
-          <strong class="font-semibold">Responsive design:</strong>
-          It works on phones and desktop today; we’re still polishing layout and interactions.
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Content -->
-  <main class="skeuo-wrap skeuo-section mb-14">
+  <main id="main-content" class="skeuo-wrap skeuo-section mb-14">
     <div class="skeuo-container-narrow grid gap-6">
-
-      <!-- What it is -->
-      <section class="glass skeuo-surface skeuo-card-pad-lg">
-        <h2 class="text-xl font-semibold">What is it?</h2>
-        <p class="mt-3 text-slate-300">
-          A lightweight web chat that suggests recipes, ingredient swaps, and step-by-step guidance based on what you type.
-          Optional account login is now available for persistent saved chats and profile preferences.
+      <section class="skeuo-section-tight">
+        <h1 class="text-3xl font-extrabold tracking-tight sm:text-5xl">About Yummy Tummy AI</h1>
+        <p class="mt-4 text-base leading-relaxed text-slate-200 sm:text-lg">
+          Yummy Tummy AI helps you turn the ingredients you have into dinner ideas through a private, guided recipe chat.
         </p>
       </section>
 
-      <!-- How it works -->
+      <section id="privacy-section" class="glass skeuo-surface skeuo-card-pad-lg">
+        <h2 class="text-xl font-semibold">What it does</h2>
+        <p class="mt-3 text-slate-200">
+          It suggests recipes, ingredient swaps, and step-by-step cooking guidance based on your prompts. Optional account login adds persistent saved chats and profile preferences.
+        </p>
+      </section>
+
       <section class="glass skeuo-surface skeuo-card-pad-lg">
         <h2 class="text-xl font-semibold">How it works</h2>
-        <ul class="mt-3 space-y-3 text-slate-300 list-disc list-inside">
-          <li>Type or paste what you’ve got and what you feel like cooking.</li>
-          <li>Your message is sent securely to an AI service and the reply is sent back to the site.</li>
-          <li>Login to save chats to your account and keep preferences like dietary requirements.</li>
-        </ul>
+        <ol class="mt-3 list-inside list-decimal space-y-3 text-slate-200">
+          <li>Type or paste what you have and what you want to cook.</li>
+          <li>Yummy Tummy AI responds with formatted recipes and alternatives.</li>
+          <li>Login to keep your saved chats and preferences across sessions.</li>
+        </ol>
       </section>
 
-      <!-- Privacy -->
       <section class="glass skeuo-surface skeuo-card-pad-lg">
         <h2 class="text-xl font-semibold">Privacy</h2>
-        <div class="mt-3 grid sm:grid-cols-2 gap-4">
-          <div>
-            <h3 class="font-medium">Server storage</h3>
-            <p class="mt-2 text-slate-300">
-              Saved chats and session chat context are stored on the server using persistent storage.
-              Clearing browser data does not remove server-side chats, but using a different browser/device starts a new session until login is added.
-            </p>
-          </div>
-          <div>
-            <h3 class="font-medium">What’s sent</h3>
-            <p class="mt-2 text-slate-300">
-              When you press <em>Send</em>, your message is processed by an AI service over HTTPS. This server persists session history and saved chats to support continued conversations.
-            </p>
-          </div>
+        <div class="mt-3 grid gap-4 sm:grid-cols-2">
+          <article>
+            <h3 class="font-medium">Storage</h3>
+            <p class="mt-2 text-slate-200">Saved chats and session context are stored server-side to preserve your conversations.</p>
+          </article>
+          <article>
+            <h3 class="font-medium">Data sent</h3>
+            <p class="mt-2 text-slate-200">Messages are processed over HTTPS with model providers to generate responses.</p>
+          </article>
         </div>
-        <p class="mt-3 text-sm text-slate-400">
-          Tip: avoid sharing sensitive personal or payment information in any AI chat.
-        </p>
+        <p class="mt-3 text-sm text-slate-300">Tip: avoid sharing sensitive personal or payment information in prompts.</p>
       </section>
 
-      <!-- Current limitations -->
-      <section class="glass skeuo-surface skeuo-card-pad-lg">
-        <h2 class="text-xl font-semibold">Current limitations</h2>
-        <ul class="mt-3 space-y-3 text-slate-300 list-disc list-inside">
-          <li>Image attachments are not processed yet (text-only responses).</li>
-          <li>Responsive design is being refined; behavior may vary by device/browser.</li>
-          <li>Suggestions are informational - always check allergies and doneness to your preference.</li>
-        </ul>
-      </section>
-
-      <!-- FAQ -->
       <section class="glass skeuo-surface skeuo-card-pad-lg">
         <h2 class="text-xl font-semibold">FAQ</h2>
         <div class="mt-4 space-y-4">
-          <details class="group">
-            <summary class="cursor-pointer select-none flex items-center justify-between">
-              <span>Where are my chats stored?</span>
-              <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
-            </summary>
-            <p class="mt-2 text-slate-300">
-              Saved chats are stored server-side. With login, they are tied to your account for cross-device continuity.
-            </p>
+          <details class="group rounded-xl border border-slate-700/60 p-3">
+            <summary class="flex min-h-11 cursor-pointer items-center justify-between">Where are chats stored?<span class="text-slate-400 group-open:rotate-180 transition">⌄</span></summary>
+            <p class="mt-2 text-slate-200">Saved chats are server-side and tied to your account after login.</p>
           </details>
-          <details class="group">
-            <summary class="cursor-pointer select-none flex items-center justify-between">
-              <span>Does it support photos?</span>
-              <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
-            </summary>
-            <p class="mt-2 text-slate-300">Not yet. You can attach images, but they are currently ignored.</p>
+          <details class="group rounded-xl border border-slate-700/60 p-3">
+            <summary class="flex min-h-11 cursor-pointer items-center justify-between">Does it support photos?<span class="text-slate-400 group-open:rotate-180 transition">⌄</span></summary>
+            <p class="mt-2 text-slate-200">Image attachments are currently not processed.</p>
           </details>
-          <details class="group">
-            <summary class="cursor-pointer select-none flex items-center justify-between">
-              <span>Is it free?</span>
-              <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
-            </summary>
-            <p class="mt-2 text-slate-300">
-              The site itself doesn’t charge. If a third-party AI service is used, usage may incur costs under that provider.
-            </p>
-          </details>
-          <details class="group">
-            <summary class="cursor-pointer select-none flex items-center justify-between">
-              <span>Why are assistant messages on the left?</span>
-              <span class="text-slate-400 group-open:rotate-180 transition">⌄</span>
-            </summary>
-            <p class="mt-2 text-slate-300">
-              To match common messenger patterns: assistant (left), you (right). The landing page preview mirrors the chat.
-            </p>
+          <details class="group rounded-xl border border-slate-700/60 p-3">
+            <summary class="flex min-h-11 cursor-pointer items-center justify-between">Is it free?<span class="text-slate-400 group-open:rotate-180 transition">⌄</span></summary>
+            <p class="mt-2 text-slate-200">The app does not charge directly; external model providers may apply their own pricing.</p>
           </details>
         </div>
       </section>
 
-      <!-- Roadmap -->
-      <section class="glass skeuo-surface skeuo-card-pad-lg">
-        <h2 class="text-xl font-semibold">Roadmap</h2>
-        <ul class="mt-3 space-y-3 text-slate-300 list-disc list-inside">
-          <li>Polish responsive layout & mobile interactions.</li>
-          <li>Better saved-chat management and export.</li>
-          <li>Optional offline/PWA support.</li>
-        </ul>
-        <p class="mt-3 text-sm text-slate-400">Subject to change based on feedback.</p>
-      </section>
-
-      <!-- CTA -->
-      <section class="glass skeuo-surface skeuo-card-pad-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+      <section class="glass skeuo-surface skeuo-card-pad-lg flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h3 class="text-lg font-semibold">Ready to try it?</h3>
-          <p class="text-slate-300">Open the chat and ask away.</p>
+          <h2 class="text-lg font-semibold">Ready to cook?</h2>
+          <p class="text-slate-200">Open chat and start with ingredients you already have.</p>
         </div>
-        <div class="flex gap-3">
-          <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">
-            Open Chat
-          </a>
-          <a href="/" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">
-            Home
-          </a>
+        <div class="flex w-full gap-3 sm:w-auto">
+          <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full sm:w-auto">Open Chat</a>
+          <a href="/" class="skeuo-btn skeuo-btn-secondary skeuo-interactive w-full sm:w-auto">Home</a>
         </div>
       </section>
-
     </div>
   </main>
 
-  <!-- Footer -->
   <footer class="skeuo-wrap pb-8">
-    <div class="skeuo-container-wide flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-400">
-      <div>© <span id="year"></span> Yummy Tummy AI</div>
-      <div class="flex gap-4">
+    <div class="skeuo-container-wide flex flex-col items-start justify-between gap-3 text-sm text-slate-300 sm:flex-row sm:items-center">
+      <p>© <span id="year"></span> Yummy Tummy AI</p>
+      <nav class="flex gap-4" aria-label="Footer">
         <a href="/" class="skeuo-link">Home</a>
         <a href="/chat.html" class="skeuo-link">Open Chat</a>
-      </div>
+      </nav>
     </div>
   </footer>
 
-  <script src="/js/about.js"></script>
+  <nav class="mobile-bottom-nav md:hidden" aria-label="Mobile quick navigation">
+    <ul class="mx-auto grid max-w-xl grid-cols-4 gap-2 text-center">
+      <li><a href="/" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Home</a></li>
+      <li><a href="/about.html" class="skeuo-btn skeuo-btn-primary w-full px-2 text-[11px]">About</a></li>
+      <li><a href="/chat.html" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Chat</a></li>
+      <li><a data-auth="signed-out-only" data-auth-link="login" href="/auth.html?mode=login" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Login</a><a data-auth="signed-in-only" href="/account.html" class="hidden skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Account</a></li>
+    </ul>
+  </nav>
+
+  <script src="/js/site-auth.js" defer></script>
+  <script src="/js/about.js" defer></script>
 </body>
 </html>

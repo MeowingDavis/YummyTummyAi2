@@ -5,192 +5,190 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Yummy Tummy AI - Smart recipe chat</title>
 
-  <!-- SEO / Social -->
   <meta name="description" content="Yummy Tummy AI turns the ingredients you type or paste into delicious meals. Private by default, with account login and server-side saved chats." />
   <meta property="og:title" content="Yummy Tummy AI" />
   <meta property="og:description" content="Turn what you’ve got into dinner. Private by default." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="/og-image.png" />
+  <meta name="theme-color" content="#0e1622" />
   <link rel="manifest" href="/manifest.webmanifest" />
 
-  <!-- Tailwind -->
   <script src="/industrial-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/industrial.css" />
-
-  
 </head>
-<body class="min-h-[100svh] bg-industrial-chassis text-industrial-text antialiased industrial-texture">
+<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0">
+  <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to content</a>
 
-  <!-- Header -->
-  <header class="skeuo-wrap skeuo-header">
-    <div class="skeuo-container-wide flex items-center justify-between gap-4">
-      <a href="/" class="inline-flex items-center gap-3">
-        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
-        <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
+  <header class="skeuo-wrap skeuo-header sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur-md">
+    <div class="skeuo-container-wide flex min-h-14 items-center justify-between gap-3">
+      <a href="/" class="inline-flex items-center gap-3" aria-label="Yummy Tummy AI home">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20" aria-hidden="true">🍳</span>
+        <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy Tummy <span class="text-emerald-400">AI</span></span>
       </a>
-      <nav class="hidden sm:flex items-center gap-4">
+      <nav class="hidden items-center gap-4 md:flex" aria-label="Primary">
         <a href="/about.html" class="skeuo-link">About</a>
         <a href="/chat.html" class="skeuo-link">Open Chat</a>
-        <span id="homeAuthStatus" class="text-xs text-slate-300"></span>
+        <span id="homeAuthStatus" class="min-h-6 text-xs text-slate-200" aria-live="polite">Checking login status...</span>
         <a id="homeRegisterBtn" href="#" class="skeuo-link">Register</a>
         <a id="homeLoginBtn" href="#" class="skeuo-link">Login</a>
         <a id="homeAccountBtn" href="/account.html" class="hidden skeuo-link">Account</a>
         <a id="homeLogoutBtn" href="#" class="hidden skeuo-link">Logout</a>
       </nav>
-      <div class="sm:hidden flex items-center gap-2">
+      <div class="flex items-center gap-2 md:hidden">
         <a id="homeAccountBtnMobile" href="/account.html" class="hidden skeuo-link">Account</a>
         <a id="homeLoginBtnMobile" href="#" class="skeuo-link">Login</a>
         <a id="homeLogoutBtnMobile" href="#" class="hidden skeuo-link">Logout</a>
-        <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Open Chat</a>
       </div>
     </div>
   </header>
 
-  <section class="skeuo-ticker" aria-label="Announcements">
-    <div class="skeuo-ticker-track">Yummy Tummy AI • Account login + saved chats • Private by default • Ingredient-first recipe assistant • </div>
-  </section>
-
-  <!-- Notice: responsive design in progress -->
-  <div id="notice" class="skeuo-wrap skeuo-container-wide">
-    <div class="glass skeuo-surface skeuo-section-tight skeuo-card-pad flex items-start gap-3">
-      <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
-      </svg>
-      <div class="text-sm leading-6 text-slate-200">
-        <strong class="font-semibold">Heads up:</strong>
-        It works on phones and desktop, and we’re still optimizing the responsive layout.
-      </div>
-      <button id="noticeDismiss"
-              class="ml-auto inline-flex items-center justify-center rounded-full w-8 h-8 text-slate-300 hover:bg-slate-800/70 ring-1 ring-slate-700/60"
-              aria-label="Dismiss notice">✕</button>
-    </div>
-  </div>
-
-  <!-- Privacy notice (acknowledge to enable saving) -->
-  <div id="privacyNoticeHome" class="skeuo-wrap skeuo-container-wide">
-    <div class="glass skeuo-surface skeuo-section-tight skeuo-card-pad flex items-start gap-3">
-      <svg class="w-5 h-5 mt-0.5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
-      </svg>
-      <div class="text-sm leading-6 text-slate-200">
-        <strong class="font-semibold">Privacy:</strong>
-        Saved chats are persisted server-side. Login ties them to your account.
-      </div>
-      <button id="privacyDismissHome"
-              class="ml-auto skeuo-btn skeuo-btn-danger skeuo-interactive"
-              aria-label="Acknowledge privacy notice">
-        Acknowledge
-      </button>
-    </div>
-  </div>
-
-  <!-- Hero -->
-  <section class="skeuo-wrap skeuo-section-tight">
-    <div class="skeuo-container-wide max-w-6xl grid lg:grid-cols-[1.05fr,0.95fr] gap-8 lg:gap-10 items-center">
-      <div>
-        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
-          Turn your <span class="text-emerald-400">ingredients</span> into dinner.
-        </h1>
-        <p class="mt-4 text-slate-300 text-lg leading-relaxed">
-          Paste your pantry list or ask a cooking question.
-          Yummy Tummy AI chats back with recipes, swaps, and step-by-step help.
-        </p>
-
-        <div class="mt-6 flex flex-col sm:flex-row gap-3">
-          <a id="cta" href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">
-            Start chatting
-          </a>
-          <a href="#how" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">
-            How it works
-          </a>
+  <main id="main-content">
+    <section id="notice" class="skeuo-wrap skeuo-container-wide" aria-live="polite">
+      <article class="glass skeuo-surface skeuo-section-tight skeuo-card-pad flex items-start gap-3">
+        <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+        </svg>
+        <div class="text-sm leading-6 text-slate-100">
+          <strong class="font-semibold">Mobile first:</strong>
+          Optimized for one-handed use with larger touch targets and sticky navigation.
         </div>
+        <button id="noticeDismiss" class="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-full text-slate-100 ring-1 ring-slate-600/70 hover:bg-slate-800/70" aria-label="Dismiss notice">✕</button>
+      </article>
+    </section>
 
-        <div class="mt-4 text-sm text-emerald-300/90">
-          Private by default. Login-enabled server-side chat history and saved sessions.
+    <section id="privacyNoticeHome" class="skeuo-wrap skeuo-container-wide" aria-live="polite">
+      <article class="glass skeuo-surface skeuo-section-tight skeuo-card-pad flex items-start gap-3">
+        <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+        </svg>
+        <div class="text-sm leading-6 text-slate-100">
+          <strong class="font-semibold">Privacy:</strong>
+          Saved chats are persisted server-side. Login ties chat history to your account across devices.
+        </div>
+        <button id="privacyDismissHome" class="ml-auto skeuo-btn skeuo-btn-danger skeuo-interactive" aria-label="Acknowledge privacy notice">Acknowledge</button>
+      </article>
+    </section>
+
+    <section class="skeuo-wrap skeuo-section-tight">
+      <div class="skeuo-container-wide grid max-w-6xl items-center gap-6 lg:grid-cols-[1.05fr,0.95fr] lg:gap-10">
+        <article>
+          <h1 class="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+            Turn your <span class="text-emerald-400">ingredients</span> into dinner.
+          </h1>
+          <p class="mt-4 text-base leading-relaxed text-slate-200 sm:text-lg">
+            Paste your pantry list or ask a cooking question. Yummy Tummy AI chats back with recipes, swaps, and step-by-step help.
+          </p>
+          <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+            <a id="cta" href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Start chatting</a>
+            <a href="#how" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">How it works</a>
+          </div>
+          <p class="mt-4 text-sm text-emerald-200">Private by default. Login-enabled server-side chat history and saved sessions.</p>
+        </article>
+        <article class="glass skeuo-surface overflow-hidden rounded-2xl ring-1 ring-amber-200/20 shadow-[0_28px_80px_-30px_rgba(120,53,15,0.8)]">
+          <img
+            src="/YTHeader.png"
+            alt="Family-style table filled with colorful ingredients and dishes"
+            width="1600"
+            height="900"
+            sizes="(min-width: 1024px) 48vw, 100vw"
+            class="block h-[240px] w-full object-cover sm:h-[320px] lg:h-[420px]"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </article>
+      </div>
+    </section>
+
+    <section id="how" class="skeuo-wrap skeuo-section" aria-labelledby="how-heading">
+      <div class="skeuo-container-wide">
+        <h2 id="how-heading" class="sr-only">How it works</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+          <article class="glass skeuo-surface skeuo-card-pad-lg">
+            <p class="skeuo-label">Step 1</p>
+            <h3 class="mt-2 text-lg font-semibold">Tell it what you have</h3>
+            <p class="mt-3 text-slate-200">Type or paste your ingredients and any preferences.</p>
+          </article>
+          <article class="glass skeuo-surface skeuo-card-pad-lg">
+            <p class="skeuo-label">Step 2</p>
+            <h3 class="mt-2 text-lg font-semibold">Chat through options</h3>
+            <p class="mt-3 text-slate-200">Get substitutions, dietary tweaks, and timings as you cook.</p>
+          </article>
+          <article class="glass skeuo-surface skeuo-card-pad-lg">
+            <p class="skeuo-label">Step 3</p>
+            <h3 class="mt-2 text-lg font-semibold">Save your favourites</h3>
+            <p class="mt-3 text-slate-200">Save favorite chats with your account and pick up where you left off.</p>
+          </article>
         </div>
       </div>
-      <div class="glass skeuo-surface overflow-hidden rounded-2xl ring-1 ring-amber-200/20 shadow-[0_28px_80px_-30px_rgba(120,53,15,0.8)]">
-        <img
-          src="/YTHeader.png"
-          alt="Family-style table filled with colorful ingredients and dishes"
-          class="block w-full h-[260px] sm:h-[340px] lg:h-[420px] object-cover"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- How it works -->
-  <section id="how" class="skeuo-wrap skeuo-section">
-    <div class="skeuo-container-wide grid md:grid-cols-3 gap-4">
-      <div class="glass skeuo-surface skeuo-card-pad-lg">
-        <div class="skeuo-label">Step 1</div>
-        <h3 class="text-lg font-semibold mt-2">Tell it what you have</h3>
-        <p class="mt-3 text-slate-300">Type or paste your ingredients and any preferences.</p>
+    <section class="skeuo-wrap skeuo-section" aria-labelledby="features-heading">
+      <div class="skeuo-container-wide">
+        <h2 id="features-heading" class="sr-only">Feature highlights</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+          <article class="glass skeuo-surface skeuo-card-pad-lg">
+            <h3 class="font-semibold">Mobile-optimized interactions</h3>
+            <p class="mt-3 text-slate-200">Sticky navigation, larger tap targets, and responsive spacing reduce friction on small screens.</p>
+          </article>
+          <article class="glass skeuo-surface skeuo-card-pad-lg">
+            <h3 class="font-semibold">Privacy-friendly</h3>
+            <p class="mt-3 text-slate-200">Your chats are stored server-side with account-aware access controls.</p>
+          </article>
+          <article class="glass skeuo-surface skeuo-card-pad-lg">
+            <h3 class="font-semibold">Clear recipe formatting</h3>
+            <p class="mt-3 text-slate-200">Messages support clean formatting for steps, lists, and links, so recipes stay easy to follow.</p>
+          </article>
+        </div>
       </div>
-      <div class="glass skeuo-surface skeuo-card-pad-lg">
-        <div class="skeuo-label">Step 2</div>
-        <h3 class="text-lg font-semibold mt-2">Chat through options</h3>
-        <p class="mt-3 text-slate-300">Get substitutions, dietary tweaks, and timings as you cook.</p>
-      </div>
-      <div class="glass skeuo-surface skeuo-card-pad-lg">
-        <div class="skeuo-label">Step 3</div>
-        <h3 class="text-lg font-semibold mt-2">Save your favourites</h3>
-        <p class="mt-3 text-slate-300">Save favorite chats with your account and pick up where you left off.</p>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Feature grid -->
-  <section class="skeuo-wrap skeuo-section">
-    <div class="skeuo-container-wide grid md:grid-cols-3 gap-4">
-      <div class="glass skeuo-surface skeuo-card-pad-lg">
-        <h3 class="font-semibold">Responsive design (in progress)</h3>
-        <p class="mt-3 text-slate-300">
-          Works today on phones and desktop; we’re actively polishing the layout and interactions.
-        </p>
+    <section class="skeuo-wrap mb-10 mt-8">
+      <div class="skeuo-container-wide glass skeuo-surface skeuo-invert skeuo-card-pad-lg flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+        <div>
+          <h2 class="text-xl font-semibold">Ready to cook smarter?</h2>
+          <p class="mt-2 text-slate-200">Open the chat and ask away.</p>
+        </div>
+        <a id="cta2" href="/chat.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">Start chatting</a>
       </div>
-      <div class="glass skeuo-surface skeuo-card-pad-lg">
-        <h3 class="font-semibold">Privacy-friendly</h3>
-        <p class="mt-3 text-slate-300">Your chats are stored server-side with account-aware access controls.</p>
-      </div>
-      <div class="glass skeuo-surface skeuo-card-pad-lg">
-        <h3 class="font-semibold">Clear recipe formatting</h3>
-        <p class="mt-3 text-slate-300">
-          Messages support clean formatting - steps, lists, and links - so recipes stay easy to follow.
-        </p>
-      </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <!-- CTA strip -->
-  <section class="skeuo-wrap skeuo-section mb-10">
-    <div class="skeuo-container-wide glass skeuo-surface skeuo-invert skeuo-card-pad-lg flex flex-col md:flex-row items-center justify-between gap-4">
-      <div>
-        <h3 class="text-xl font-semibold">Ready to cook smarter?</h3>
-        <p class="text-slate-300 mt-2">Open the chat and ask away.</p>
-      </div>
-      <a id="cta2" href="/chat.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">
-        Start chatting
-      </a>
-    </div>
-  </section>
-
-  <!-- Footer -->
   <footer class="skeuo-wrap pb-8">
-    <div class="skeuo-container-wide flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-400">
-      <div>© <span id="year"></span> Yummy Tummy AI</div>
-      <div class="flex gap-4">
+    <div class="skeuo-container-wide flex flex-col items-start justify-between gap-3 text-sm text-slate-300 sm:flex-row sm:items-center">
+      <p>© <span id="year"></span> Yummy Tummy AI</p>
+      <nav class="flex gap-4" aria-label="Footer">
         <a href="/about.html" class="skeuo-link">About</a>
         <a href="/chat.html" class="skeuo-link">Open Chat</a>
-      </div>
+      </nav>
     </div>
   </footer>
 
+  <nav class="mobile-bottom-nav md:hidden" aria-label="Mobile quick navigation">
+    <ul class="mx-auto grid max-w-xl grid-cols-4 gap-2 text-center">
+      <li><a href="/" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Home</a></li>
+      <li><a href="/about.html" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">About</a></li>
+      <li><a href="/chat.html" class="skeuo-btn skeuo-btn-primary w-full px-2 text-[11px]">Chat</a></li>
+      <li>
+        <a id="homeLoginBtnBottom" href="/auth.html?mode=login&next=%2F" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Login</a>
+      </li>
+    </ul>
+  </nav>
+
   <script src="/chat.js"></script>
- 
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const desktopLogin = document.getElementById('homeLoginBtnMobile');
+      const bottomLogin = document.getElementById('homeLoginBtnBottom');
+      const syncLoginCta = () => {
+        if (!desktopLogin || !bottomLogin) return;
+        bottomLogin.classList.toggle('hidden', desktopLogin.classList.contains('hidden'));
+      };
+      const observer = new MutationObserver(syncLoginCta);
+      if (desktopLogin) observer.observe(desktopLogin, { attributes: true, attributeFilter: ['class'] });
+      syncLoginCta();
+    });
+  </script>
 </body>
 </html>

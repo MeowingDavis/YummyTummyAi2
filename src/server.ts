@@ -30,6 +30,7 @@ import {
   registerUser,
   sendPasswordRecoveryEmail,
   unlinkSession,
+  updateSupabaseUserPassword,
   updateUserProfile,
   validateCredentials,
   verifyPassword,
@@ -431,6 +432,84 @@ export function startServer() {
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       return new Response(JSON.stringify({ ok: true }), { headers: h });
+    }
+    if (req.method === "POST" && url.pathname === "/auth/change-password") {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const user = await getUserForSession(sessionId);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      if (!user) {
+        return new Response(JSON.stringify({
+          ok: false,
+          code: "UNAUTHORIZED",
+          message: "Please log in.",
+        }), { status: 401, headers: h });
+      }
+      try {
+        const body = await readJson<{ currentPassword?: string; newPassword?: string }>(req);
+        const currentPassword = String(body.currentPassword ?? "");
+        const newPassword = String(body.newPassword ?? "");
+        if (!currentPassword) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "PASSWORD_REQUIRED",
+            message: "Current password is required.",
+          }), { status: 400, headers: h });
+        }
+        if (newPassword.length < 8) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "NEW_PASSWORD_INVALID",
+            message: "New password must be at least 8 characters.",
+          }), { status: 400, headers: h });
+        }
+        if (newPassword.length > 256) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "NEW_PASSWORD_INVALID",
+            message: "New password is too long.",
+          }), { status: 400, headers: h });
+        }
+        if (currentPassword === newPassword) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "PASSWORD_REUSE",
+            message: "New password must be different from current password.",
+          }), { status: 400, headers: h });
+        }
+
+        const passwordOk = await verifyPassword(user.email, currentPassword);
+        if (!passwordOk) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "INVALID_PASSWORD",
+            message: "Current password is incorrect.",
+          }), { status: 401, headers: h });
+        }
+
+        await updateSupabaseUserPassword(user.id, newPassword);
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
+      } catch (err) {
+        if (isSupabaseInvalidCredentialsError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "INVALID_PASSWORD",
+            message: "Current password is incorrect.",
+          }), { status: 401, headers: h });
+        }
+        if (isSupabaseRateLimitError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "RATE_LIMITED",
+            message: "Too many attempts. Please wait and try again.",
+          }), { status: 429, headers: h });
+        }
+        return new Response(JSON.stringify({
+          ok: false,
+          code: "CHANGE_PASSWORD_FAILED",
+          message: "Unable to change password right now.",
+        }), { status: 500, headers: h });
+      }
     }
     if (req.method === "POST" && url.pathname === "/auth/delete-account") {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);

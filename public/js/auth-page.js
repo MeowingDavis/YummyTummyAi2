@@ -41,9 +41,7 @@ window.addEventListener('DOMContentLoaded', () => {
       return DEFAULT_NEXT;
     }
     // optionally, restrict to a small set of known-safe paths
-    const allowedPrefixes = ['/chat.html', '/'];
-    const isAllowed = allowedPrefixes.some((prefix) => decoded === prefix || decoded.startsWith(prefix + '?'));
-    return isAllowed ? decoded : DEFAULT_NEXT;
+    return decoded;
   }
 
   const next = sanitizeNextPath(nextRaw);
@@ -136,12 +134,14 @@ window.addEventListener('DOMContentLoaded', () => {
     tabRegister.classList.toggle('skeuo-btn-primary', !isLogin);
     tabLogin.classList.toggle('skeuo-btn-secondary', !isLogin);
     tabRegister.classList.toggle('skeuo-btn-secondary', isLogin);
+    tabLogin.setAttribute('aria-selected', isLogin ? 'true' : 'false');
+    tabRegister.setAttribute('aria-selected', isLogin ? 'false' : 'true');
     clearMessages();
     renderPasswordGuidance();
 
     const url = new URL(window.location.href);
     url.searchParams.set('mode', mode);
-    url.searchParams.set('next', encodeURIComponent(next));
+    url.searchParams.set('next', next);
     history.replaceState(null, '', url.toString());
   }
 

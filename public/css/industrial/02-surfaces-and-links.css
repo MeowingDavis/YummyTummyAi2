@@ -25,6 +25,9 @@
 }
 
 .skeuo-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-size: 0.82rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;

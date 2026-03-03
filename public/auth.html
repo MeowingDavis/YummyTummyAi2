@@ -4,52 +4,56 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Auth - Yummy Tummy AI</title>
+  <meta name="theme-color" content="#0e1622" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <script src="/industrial-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/industrial.css" />
 </head>
-<body class="min-h-[100svh] bg-industrial-chassis text-industrial-text antialiased industrial-texture">
-  <header class="skeuo-wrap skeuo-header">
-    <div class="skeuo-container-wide flex items-center justify-between gap-4">
-      <a href="/" class="inline-flex items-center gap-3">
-        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
-        <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
+<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0">
+  <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to content</a>
+
+  <header class="skeuo-wrap skeuo-header sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur-md">
+    <div class="skeuo-container-wide flex min-h-14 items-center justify-between gap-3">
+      <a href="/" class="inline-flex items-center gap-3" aria-label="Yummy Tummy AI home">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20" aria-hidden="true">🍳</span>
+        <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy Tummy <span class="text-emerald-400">AI</span></span>
       </a>
-      <nav class="flex items-center gap-4">
+      <nav class="flex items-center gap-4" aria-label="Primary">
         <a href="/" class="skeuo-link">Home</a>
         <a href="/chat.html" class="skeuo-link">Open Chat</a>
       </nav>
     </div>
   </header>
 
-  <main class="skeuo-wrap skeuo-section-tight pb-12">
-    <div class="skeuo-container-narrow max-w-md">
-      <div class="stack-surface skeuo-surface skeuo-card-pad-lg">
-        <div class="flex gap-2 mb-4">
-          <button id="tabLogin" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive flex-1">Login</button>
-          <button id="tabRegister" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive flex-1">Register</button>
+  <main id="main-content" class="skeuo-wrap skeuo-section-tight pb-12">
+    <section class="skeuo-container-narrow max-w-md" aria-labelledby="auth-title">
+      <article class="stack-surface skeuo-surface skeuo-card-pad-lg">
+        <h1 id="auth-title" class="mb-4 text-xl font-semibold tracking-tight">Login or create account</h1>
+        <div class="mb-4 flex gap-2" role="tablist" aria-label="Authentication mode">
+          <button id="tabLogin" type="button" role="tab" aria-controls="authForm" aria-selected="true" class="skeuo-btn skeuo-btn-secondary skeuo-interactive min-h-11 flex-1">Login</button>
+          <button id="tabRegister" type="button" role="tab" aria-controls="authForm" aria-selected="false" class="skeuo-btn skeuo-btn-secondary skeuo-interactive min-h-11 flex-1">Register</button>
         </div>
 
-        <form id="authForm" class="space-y-3">
+        <form id="authForm" class="space-y-4" novalidate>
           <div>
             <label class="skeuo-label" for="email">Email</label>
-            <input id="email" type="email" required class="skeuo-input w-full px-3 py-2 mt-1" autocomplete="email" />
+            <input id="email" type="email" required inputmode="email" class="skeuo-input mt-1 w-full px-3 py-3" autocomplete="email" />
           </div>
 
           <div>
             <label class="skeuo-label" for="name">Name (optional)</label>
-            <input id="name" type="text" class="skeuo-input w-full px-3 py-2 mt-1" autocomplete="name" />
+            <input id="name" type="text" class="skeuo-input mt-1 w-full px-3 py-3" autocomplete="name" />
           </div>
 
           <div>
             <label class="skeuo-label" for="password">Password</label>
             <div class="mt-1 flex items-center gap-2">
-              <input id="password" type="password" required class="skeuo-input w-full px-3 py-2" autocomplete="current-password" />
-              <button id="togglePassword" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive px-3 py-2 text-[10px]">Show</button>
+              <input id="password" type="password" required class="skeuo-input w-full px-3 py-3" autocomplete="current-password" />
+              <button id="togglePassword" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive min-h-11 px-3 text-xs">Show</button>
             </div>
-            <div id="passwordGuidance" class="mt-2 text-xs text-slate-300 hidden">
-              <div class="mb-1">Password strength: <span id="passwordStrength" class="font-semibold text-slate-200">Weak</span></div>
+            <div id="passwordGuidance" class="mt-2 hidden rounded-xl border border-slate-700/70 p-3 text-xs text-slate-200" aria-live="polite">
+              <p class="mb-2">Password strength: <span id="passwordStrength" class="font-semibold text-slate-100">Weak</span></p>
               <ul class="space-y-1">
                 <li id="pwLen">• At least 8 characters</li>
                 <li id="pwLower">• Lowercase letter</li>
@@ -63,25 +67,34 @@
           <div id="confirmWrap">
             <label class="skeuo-label" for="confirmPassword">Confirm password</label>
             <div class="mt-1 flex items-center gap-2">
-              <input id="confirmPassword" type="password" class="skeuo-input w-full px-3 py-2" autocomplete="new-password" />
-              <button id="toggleConfirmPassword" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive px-3 py-2 text-[10px]">Show</button>
+              <input id="confirmPassword" type="password" class="skeuo-input w-full px-3 py-3" autocomplete="new-password" />
+              <button id="toggleConfirmPassword" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive min-h-11 px-3 text-xs">Show</button>
             </div>
           </div>
 
-          <p id="authError" class="text-red-300 text-sm hidden"></p>
-          <p id="authSuccess" class="text-emerald-300 text-sm hidden"></p>
+          <p id="authError" class="hidden rounded-xl border border-[rgba(248,113,113,0.55)] bg-[rgba(248,113,113,0.12)] p-3 text-sm font-medium text-white" role="alert"></p>
+          <p id="authSuccess" class="hidden rounded-xl border border-[rgba(79,209,165,0.55)] bg-[rgba(79,209,165,0.14)] p-3 text-sm font-medium text-white" role="status" aria-live="polite"></p>
 
-          <div class="flex items-center justify-between text-sm">
-            <a id="forgotPasswordLink" href="/forgot-password.html" class="skeuo-link hidden">Forgot password?</a>
-            <button id="switchModeBtn" type="button" class="skeuo-link">Already have an account? Login</button>
+          <div class="flex items-center justify-between gap-3 text-sm">
+            <a id="forgotPasswordLink" href="/forgot-password.html" class="hidden skeuo-link">Forgot password?</a>
+            <button id="switchModeBtn" type="button" class="skeuo-link text-left">Already have an account? Login</button>
           </div>
 
           <button id="submitBtn" type="submit" class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full">Create account</button>
         </form>
-      </div>
-    </div>
+      </article>
+    </section>
   </main>
 
-  <script src="/js/auth-page.js"></script>
+  <nav class="mobile-bottom-nav md:hidden" aria-label="Mobile quick navigation">
+    <ul class="mx-auto grid max-w-xl grid-cols-4 gap-2 text-center">
+      <li><a href="/" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Home</a></li>
+      <li><a href="/about.html" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">About</a></li>
+      <li><a href="/chat.html" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Chat</a></li>
+      <li><a href="/auth.html?mode=login" class="skeuo-btn skeuo-btn-primary w-full px-2 text-[11px]">Auth</a></li>
+    </ul>
+  </nav>
+
+  <script src="/js/auth-page.js" defer></script>
 </body>
 </html>

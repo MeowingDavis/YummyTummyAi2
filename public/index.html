@@ -17,7 +17,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/industrial.css" />
 </head>
-<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0">
+<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis text-industrial-text antialiased industrial-texture">
   <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to content</a>
 
   <header class="skeuo-wrap skeuo-header sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur-md">
@@ -35,11 +35,11 @@
         <a id="homeAccountBtn" href="/account.html" class="hidden skeuo-link">Account</a>
         <a id="homeLogoutBtn" href="#" class="hidden skeuo-link">Logout</a>
       </nav>
-      <div class="flex items-center gap-2 md:hidden">
-        <a id="homeAccountBtnMobile" href="/account.html" class="hidden skeuo-link">Account</a>
-        <a id="homeLoginBtnMobile" href="#" class="skeuo-link">Login</a>
-        <a id="homeLogoutBtnMobile" href="#" class="hidden skeuo-link">Logout</a>
-      </div>
+      <button id="homeMobileMenuBtn" type="button" aria-controls="homeMobileMenu" aria-expanded="false" class="skeuo-btn skeuo-btn-secondary skeuo-btn-icon md:hidden" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -54,19 +54,6 @@
           Optimized for one-handed use with larger touch targets and sticky navigation.
         </div>
         <button id="noticeDismiss" class="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-full text-slate-100 ring-1 ring-slate-600/70 hover:bg-slate-800/70" aria-label="Dismiss notice">✕</button>
-      </article>
-    </section>
-
-    <section id="privacyNoticeHome" class="skeuo-wrap skeuo-container-wide" aria-live="polite">
-      <article class="glass skeuo-surface skeuo-section-tight skeuo-card-pad flex items-start gap-3">
-        <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
-        </svg>
-        <div class="text-sm leading-6 text-slate-100">
-          <strong class="font-semibold">Privacy:</strong>
-          Saved chats are persisted server-side. Login ties chat history to your account across devices.
-        </div>
-        <button id="privacyDismissHome" class="ml-auto skeuo-btn skeuo-btn-danger skeuo-interactive" aria-label="Acknowledge privacy notice">Acknowledge</button>
       </article>
     </section>
 
@@ -165,16 +152,23 @@
     </div>
   </footer>
 
-  <nav class="mobile-bottom-nav md:hidden" aria-label="Mobile quick navigation">
-    <ul class="mx-auto grid max-w-xl grid-cols-4 gap-2 text-center">
-      <li><a href="/" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Home</a></li>
-      <li><a href="/about.html" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">About</a></li>
-      <li><a href="/chat.html" class="skeuo-btn skeuo-btn-primary w-full px-2 text-[11px]">Chat</a></li>
-      <li>
-        <a id="homeLoginBtnBottom" href="/auth.html?mode=login&next=%2F" class="skeuo-btn skeuo-btn-secondary w-full px-2 text-[11px]">Login</a>
-      </li>
-    </ul>
-  </nav>
+  <div id="homeMobileMenuBg" class="fixed inset-0 z-40 hidden bg-black/70 md:hidden"></div>
+  <aside id="homeMobileMenu" class="stack-drawer stack-compact skeuo-surface fixed left-0 top-0 z-50 hidden h-[100dvh] w-[90vw] max-w-xs overflow-y-auto p-5 md:hidden" role="dialog" aria-modal="true" aria-labelledby="homeMobileMenuHeading">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 id="homeMobileMenuHeading" class="text-base font-semibold tracking-tight text-emerald-300">Menu</h2>
+      <button id="homeMobileCloseBtn" class="skeuo-btn skeuo-btn-secondary skeuo-btn-icon" type="button" aria-label="Close menu">✕</button>
+    </div>
+    <p id="homeAuthStatusMobile" class="mb-3 text-xs text-slate-200" aria-live="polite">Checking login status...</p>
+    <nav class="flex flex-col gap-2" aria-label="Mobile navigation">
+      <a href="/" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Home</a>
+      <a href="/about.html" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">About</a>
+      <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-btn-sm skeuo-btn-block">Open Chat</a>
+      <a id="homeRegisterBtnMobile" href="#" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Register</a>
+      <a id="homeLoginBtnMobile" href="#" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Login</a>
+      <a id="homeAccountBtnMobile" href="/account.html" class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Account</a>
+      <a id="homeLogoutBtnMobile" href="#" class="hidden skeuo-btn skeuo-btn-danger skeuo-btn-sm skeuo-btn-block">Logout</a>
+    </nav>
+  </aside>
 
   <script src="/chat.js"></script>
 </body>

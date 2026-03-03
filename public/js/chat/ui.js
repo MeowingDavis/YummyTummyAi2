@@ -42,14 +42,19 @@ function makeActions({ onCopy, onDelete }){
 
 export function appendMessage(sender, text) {
   const wrapper = document.createElement("div");
-  wrapper.className = "msg skeuo-surface skeuo-card-pad relative";
+  const isUser = sender === "You";
+  wrapper.className = [
+    "msg", "skeuo-surface", "skeuo-card-pad", "relative",
+    "max-w-[92%]", "md:max-w-[78%]",
+    isUser ? "ml-auto" : "mr-auto",
+  ].join(" ");
 
   const senderEl = document.createElement("div");
-  senderEl.className = "mb-1 skeuo-label text-emerald-400";
+  senderEl.className = "mb-1 skeuo-label text-emerald-300";
   senderEl.textContent = sender;
 
   const textEl = document.createElement("div");
-  textEl.className = "text-slate-200 whitespace-pre-wrap leading-relaxed";
+  textEl.className = "text-slate-100 whitespace-pre-wrap leading-relaxed";
   textEl.textContent = text;
 
   wrapper.appendChild(senderEl);
@@ -65,9 +70,14 @@ export function appendMessage(sender, text) {
 
 export function appendMarkdown(sender, markdown) {
   const wrapper = document.createElement("div");
-  wrapper.className = "msg skeuo-surface skeuo-card-pad relative";
+  const isUser = sender === "You";
+  wrapper.className = [
+    "msg", "skeuo-surface", "skeuo-card-pad", "relative",
+    "max-w-[96%]", "md:max-w-[86%]",
+    isUser ? "ml-auto" : "mr-auto",
+  ].join(" ");
   const safe = renderMarkdown(markdown);
-  wrapper.innerHTML = `<div class="mb-2 skeuo-label text-emerald-400">${sender}</div><div class="prose max-w-none">${safe}</div>`;
+  wrapper.innerHTML = `<div class="mb-2 skeuo-label text-emerald-300">${sender}</div><div class="prose max-w-none text-slate-100">${safe}</div>`;
   const acts = makeActions({
     onCopy: () => navigator.clipboard.writeText(markdown),
     onDelete: () => wrapper.remove()
@@ -85,11 +95,11 @@ export function renderEmptyState(){
   if (refs.chatbox.children.length) return;
   const picks = sample(SUGGESTIONS, 4);
   const box = document.createElement('div');
-  box.className = "grid gap-3 sm:grid-cols-2";
+  box.className = "mx-auto grid w-full max-w-3xl gap-3 sm:grid-cols-2";
   picks.forEach(q => {
     const b = document.createElement('button');
     b.type = "button";
-    b.className = "text-left skeuo-surface skeuo-interactive skeuo-card-pad";
+    b.className = "text-left skeuo-surface skeuo-interactive skeuo-card-pad min-h-11";
     b.textContent = q;
     b.onclick = () => {
       refs.input.value = q;

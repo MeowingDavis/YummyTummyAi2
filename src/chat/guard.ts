@@ -5,7 +5,7 @@ export const FOOD_ALLOWLIST = [
   "bake","baking","roast","roasting","grill","grilling","fry","frying","boil","simmer","saute","steam",
   "soup","salad","sauce","stir-fry","marinade","marinate","season","spice","spices","herb","herbs",
   "breakfast","lunch","dinner","dessert","snack","drink","beverage","coffee","tea","cocktail","mocktail",
-  "ideas","what should i cook","juice","juices","smoothie","smoothies","menu","restaurant","takeout",
+  "ideas","what should i cook","juice","juices","smoothie","smoothies","menu","restaurant","takeout", "salsa", "guacamole", "hummus", "dip", "dips",
   // dietary
   "vegan","vegetarian","gluten","dairy-free","nut-free","halal","kosher","low-carb","keto","pescatarian",
   // pantry/common

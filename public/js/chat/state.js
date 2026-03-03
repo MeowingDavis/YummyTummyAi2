@@ -22,6 +22,9 @@ export const refs = {
   mobileClose: null,
   mobileOptionsBtn: null,
   mobileOptionsPanel: null,
+  mobileOptionsBg: null,
+  mobileOptionsCloseBtn: null,
+  mobileOptionsHeader: null,
 };
 
 export const state = {

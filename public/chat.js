@@ -8,24 +8,27 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function setHomeAuthUI(user) {
     const status = document.getElementById('homeAuthStatus');
+    const statusMobile = document.getElementById('homeAuthStatusMobile');
     const reg = document.getElementById('homeRegisterBtn');
     const login = document.getElementById('homeLoginBtn');
     const account = document.getElementById('homeAccountBtn');
     const logout = document.getElementById('homeLogoutBtn');
+    const regMobile = document.getElementById('homeRegisterBtnMobile');
     const accountMobile = document.getElementById('homeAccountBtnMobile');
     const loginMobile = document.getElementById('homeLoginBtnMobile');
     const logoutMobile = document.getElementById('homeLogoutBtnMobile');
-    const loginBottom = document.getElementById('homeLoginBtnBottom');
+    const signedInText = user ? `Signed in as ${user.email}` : 'Not signed in';
 
-    if (status) status.textContent = user ? `Signed in as ${user.email}` : 'Not signed in';
+    if (status) status.textContent = signedInText;
+    if (statusMobile) statusMobile.textContent = signedInText;
     reg?.classList.toggle('hidden', !!user);
+    regMobile?.classList.toggle('hidden', !!user);
     login?.classList.toggle('hidden', !!user);
     account?.classList.toggle('hidden', !user);
     logout?.classList.toggle('hidden', !user);
     accountMobile?.classList.toggle('hidden', !user);
     loginMobile?.classList.toggle('hidden', !!user);
     logoutMobile?.classList.toggle('hidden', !user);
-    loginBottom?.classList.toggle('hidden', !!user);
   }
 
   function showAccountDeletedMessage() {
@@ -73,12 +76,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if (noticeEl) noticeEl.style.display = 'none';
   });
 
-  const privacyEl = document.getElementById('privacyNoticeHome');
-  const privacyBtn = document.getElementById('privacyDismissHome');
-  privacyBtn?.addEventListener('click', () => {
-    if (privacyEl) privacyEl.style.display = 'none';
-  });
-
   document.getElementById('homeRegisterBtn')?.addEventListener('click', async (e) => {
     e.preventDefault();
     goToAuth('register');
@@ -91,6 +88,10 @@ window.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     goToAuth('login');
   });
+  document.getElementById('homeRegisterBtnMobile')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    goToAuth('register');
+  });
   document.getElementById('homeLogoutBtn')?.addEventListener('click', async (e) => {
     e.preventDefault();
     try { await doLogout(); } catch (e2) { setHomeAuthUI(null); }
@@ -100,16 +101,39 @@ window.addEventListener('DOMContentLoaded', () => {
     try { await doLogout(); } catch (e2) { setHomeAuthUI(null); }
   });
 
-  const desktopLogin = document.getElementById('homeLoginBtnMobile');
-  const bottomLogin = document.getElementById('homeLoginBtnBottom');
-  if (desktopLogin && bottomLogin) {
-    const syncLoginCta = () => {
-      bottomLogin.classList.toggle('hidden', desktopLogin.classList.contains('hidden'));
-    };
-    const observer = new MutationObserver(syncLoginCta);
-    observer.observe(desktopLogin, { attributes: true, attributeFilter: ['class'] });
-    syncLoginCta();
-  }
+  const menuBtn = document.getElementById('homeMobileMenuBtn');
+  const menuBg = document.getElementById('homeMobileMenuBg');
+  const menu = document.getElementById('homeMobileMenu');
+  const menuClose = document.getElementById('homeMobileCloseBtn');
+  const openMenu = () => {
+    if (!menu || !menuBg || !menuBtn) return;
+    menu.classList.remove('hidden');
+    menuBg.classList.remove('hidden');
+    menuBtn.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  };
+  const closeMenu = () => {
+    if (!menu || !menuBg || !menuBtn) return;
+    menu.classList.add('hidden');
+    menuBg.classList.add('hidden');
+    menuBtn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  };
+  menuBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (menu?.classList.contains('hidden')) openMenu();
+    else closeMenu();
+  });
+  menuBg?.addEventListener('click', closeMenu);
+  menuClose?.addEventListener('click', closeMenu);
+  menu?.addEventListener('click', (e) => {
+    const target = e.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest('a')) closeMenu();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
 
   refreshMe();
   showAccountDeletedMessage();

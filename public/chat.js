@@ -100,6 +100,17 @@ window.addEventListener('DOMContentLoaded', () => {
     try { await doLogout(); } catch (e2) { setHomeAuthUI(null); }
   });
 
+  const desktopLogin = document.getElementById('homeLoginBtnMobile');
+  const bottomLogin = document.getElementById('homeLoginBtnBottom');
+  if (desktopLogin && bottomLogin) {
+    const syncLoginCta = () => {
+      bottomLogin.classList.toggle('hidden', desktopLogin.classList.contains('hidden'));
+    };
+    const observer = new MutationObserver(syncLoginCta);
+    observer.observe(desktopLogin, { attributes: true, attributeFilter: ['class'] });
+    syncLoginCta();
+  }
+
   refreshMe();
   showAccountDeletedMessage();
 

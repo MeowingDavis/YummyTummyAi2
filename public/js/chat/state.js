@@ -20,6 +20,8 @@ export const refs = {
   mobileBg: null,
   mobileModal: null,
   mobileClose: null,
+  mobileOptionsBtn: null,
+  mobileOptionsPanel: null,
 };
 
 export const state = {

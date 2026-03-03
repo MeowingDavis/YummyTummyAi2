@@ -177,18 +177,5 @@
   </nav>
 
   <script src="/chat.js"></script>
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const desktopLogin = document.getElementById('homeLoginBtnMobile');
-      const bottomLogin = document.getElementById('homeLoginBtnBottom');
-      const syncLoginCta = () => {
-        if (!desktopLogin || !bottomLogin) return;
-        bottomLogin.classList.toggle('hidden', desktopLogin.classList.contains('hidden'));
-      };
-      const observer = new MutationObserver(syncLoginCta);
-      if (desktopLogin) observer.observe(desktopLogin, { attributes: true, attributeFilter: ['class'] });
-      syncLoginCta();
-    });
-  </script>
 </body>
 </html>

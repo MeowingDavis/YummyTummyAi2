@@ -19,6 +19,8 @@ export function initCore() {
     refs.saveBtn  = document.getElementById('saveBtn');
     refs.refreshSavedBtn = document.getElementById('refreshSavedBtn');
     refs.modelSelect = document.getElementById('modelSelect');
+    refs.mobileOptionsBtn = document.getElementById('mobileOptionsBtn');
+    refs.mobileOptionsPanel = document.getElementById('mobileOptionsPanel');
 
     refs.newChatBtn?.addEventListener('click', window.newChat);
     refs.sendBtn?.addEventListener('click', window.send);
@@ -40,9 +42,59 @@ export function initCore() {
     renderEmptyState();
     autoresize();
     refreshSendState();
+    wireMobileOptionsMenu();
   } catch (e) {
     console.error("[initCore] failed:", e);
   }
+}
+
+function wireMobileOptionsMenu() {
+  const btn = refs.mobileOptionsBtn;
+  const panel = refs.mobileOptionsPanel;
+  if (!btn || !panel) return;
+
+  const open = () => {
+    panel.classList.remove("hidden");
+    btn.setAttribute("aria-expanded", "true");
+  };
+
+  const close = () => {
+    panel.classList.add("hidden");
+    btn.setAttribute("aria-expanded", "false");
+  };
+
+  const toggle = () => {
+    if (panel.classList.contains("hidden")) open();
+    else close();
+  };
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    toggle();
+  });
+
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    if (!(target instanceof Node)) return;
+    if (panel.classList.contains("hidden")) return;
+    if (panel.contains(target) || btn.contains(target)) return;
+    close();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
+
+  panel.addEventListener("click", (e) => {
+    const el = e.target instanceof Element ? e.target.closest("button,a") : null;
+    if (!el) return;
+    if (el.id === "mobileOptionsBtn" || el.id === "modelSelect") return;
+    if (window.matchMedia("(max-width: 767px)").matches) close();
+  });
+
+  refs.modelSelect?.addEventListener("change", () => {
+    if (window.matchMedia("(max-width: 767px)").matches) close();
+  });
 }
 
 async function initModelPicker() {

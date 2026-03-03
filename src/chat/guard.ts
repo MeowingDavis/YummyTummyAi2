@@ -16,6 +16,7 @@ export const FOOD_ALLOWLIST = [
   "yogurt","oats","cinnamon","mushroom","mushrooms","broccoli","lettuce","vegetable","vegetables","veggies","fruit",
   // common foods / cravings
   "burger","burgers","pizza","taco","tacos","sandwich","sandwiches","fries","ramen","sushi","pancake","pancakes",
+  "fresh","exotic","spicy","savory","sweet","healthy","light","comfort food",
   // tools/gear
   "oven","stove","pan","pot","skillet","air fryer","airfryer","knife","cutting board"
 ];
@@ -34,13 +35,18 @@ export function isCookingQuery(s: string, lastAssistant?: string): boolean {
   if (mentionsTech && !mentionsFood) return false;
 
   // 1b) Light small-talk passthrough
-  if (/^(hi|hello|hey|thanks|thank you|ok|okay|cool|great|nice|awesome|how are you|how's it going|whats up|what's up)$/i.test(t)) return true;
+  if (/^(hi|hello|hey|thanks|thank you|ok|okay|cool|great|nice|awesome|sounds good|all good|you'?re alright|youre alright|nah|how are you|how's it going|whats up|what's up)$/i.test(t)) return true;
 
   // 2) Obvious food content
   if (mentionsFood) return true;
 
   // 2b) Food-intent conversational cues (e.g. "i like burger", "i'm craving pasta")
   if (/\b(i like|i love|i want|i'm craving|im craving|craving)\b/.test(t) && /\b(food|dish|meal|burger|pizza|taco|sandwich|pasta|rice|chicken|beef|fish|salad|soup|snack|dessert)\b/.test(t)) {
+    return true;
+  }
+
+  // 2c) Vibe/intent cues without explicit dish names
+  if (/\b(something|anything|give me|make it)\b/.test(t) && /\b(fresh|exotic|spicy|light|healthy|quick|comfort)\b/.test(t)) {
     return true;
   }
 
@@ -53,6 +59,8 @@ export function isCookingQuery(s: string, lastAssistant?: string): boolean {
 
   // 4) Contextual pass-through if last assistant was about cooking
   if (lastAssistant && /\b(cook|dish|meal|recipe|idea|juice|smoothie|soup|salad|quinoa|stew|bowl|curry|pilaf|chickpea|drink|snack|dinner|lunch|breakfast)\b/i.test(lastAssistant)) {
+    // Allow short conversational follow-ups when context is already cooking.
+    if (t.length <= 90 && !mentionsTech) return true;
     return true;
   }
 

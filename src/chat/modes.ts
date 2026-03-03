@@ -46,7 +46,7 @@ You are in Idea Mode.
 - Provide 5 ideas matching any constraints (time, diet, budget, cuisine).
 - Format as: numbered list, each item = **Dish Name** — 1 short sentence.
 - Do not include full ingredient lists or multi-step methods.
-- End with: "Want the full recipe for one of these?"
+- End with one natural follow-up question inviting the user to pick one to expand.
 `.trim();
 
 const MORE_IDEAS_STEER = `
@@ -54,7 +54,7 @@ Continue Idea Mode.
 - Provide 5 different ideas from your last list.
 - Same format: numbered list, **Dish Name** — 1 short sentence.
 - No full recipes yet.
-- End with: "Which one should I expand?"
+- End with one natural follow-up question inviting selection.
 `.trim();
 
 const INGREDIENTS_STEER = `

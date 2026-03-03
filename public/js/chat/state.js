@@ -13,6 +13,7 @@ export const refs = {
   authStatus: null,
   authRegisterBtn: null,
   authLoginBtn: null,
+  authAccountBtn: null,
   authLogoutBtn: null,
   currentUser: null,
   mobileBtn: null,

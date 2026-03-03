@@ -22,6 +22,7 @@ function setAuthUI(user) {
 
   refs.authRegisterBtn?.classList.toggle("hidden", !!user);
   refs.authLoginBtn?.classList.toggle("hidden", !!user);
+  refs.authAccountBtn?.classList.toggle("hidden", !user);
   refs.authLogoutBtn?.classList.toggle("hidden", !user);
 
   if (refs.saveBtn) {
@@ -53,6 +54,7 @@ export async function initAuth() {
   refs.authStatus = document.getElementById("authStatus");
   refs.authRegisterBtn = document.getElementById("authRegisterBtn");
   refs.authLoginBtn = document.getElementById("authLoginBtn");
+  refs.authAccountBtn = document.getElementById("authAccountBtn");
   refs.authLogoutBtn = document.getElementById("authLogoutBtn");
 
   refs.authRegisterBtn?.addEventListener("click", async () => {
@@ -69,6 +71,10 @@ export async function initAuth() {
     } catch (err) {
       alert((err && err.message) || "Logout failed");
     }
+  });
+
+  refs.authAccountBtn?.addEventListener("click", async () => {
+    window.location.href = "/account.html";
   });
 
   try {

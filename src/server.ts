@@ -2,7 +2,7 @@
 import { serveDir } from "https://deno.land/std@0.224.0/http/file_server.ts";
 import { applySecurityHeaders, withSecurity } from "./security.ts";
 import { serveErrorPage, serveTextTemplate, wantsHtml } from "./templates.ts";
-import { getOrSetSessionId } from "./session.ts";
+import { clearSessionCookie, getOrSetSessionId } from "./session.ts";
 import { HttpError, readJson } from "./http.ts";
 import { allow, allowSession } from "./rateLimit.ts";
 import { SYSTEM_PROMPT, OFF_TOPIC_REPLY, INJECTION_REPLY } from "./chat/prompts.ts";
@@ -16,13 +16,23 @@ import { buildRecipeContext, hasStrongRecipeMatch, retrieveRecipes } from "./rag
 import type { Msg } from "./chat/history.ts";
 import { getAppKv } from "./kv.ts";
 import {
+  SupabaseApiError,
   authenticateUser,
+  deleteLocalUserData,
+  deleteSupabaseUser,
+  getPublicSupabaseConfig,
   getUserForSession,
+  isSupabaseAlreadyRegisteredError,
+  isSupabaseEmailNotConfirmedError,
+  isSupabaseInvalidCredentialsError,
+  isSupabaseRateLimitError,
   linkSessionToUser,
   registerUser,
+  sendPasswordRecoveryEmail,
   unlinkSession,
   updateUserProfile,
   validateCredentials,
+  verifyPassword,
 } from "./auth.ts";
 
 const NODE_ENV = Deno.env.get("NODE_ENV")?.trim().toLowerCase() ?? "";
@@ -137,6 +147,13 @@ function publicOrigin(url: URL) {
   return CANONICAL_URL?.origin || url.origin;
 }
 
+function getPasswordResetRedirect(url: URL) {
+  const host = url.hostname.toLowerCase();
+  const isLocalHost = host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "[::1]";
+  const origin = isLocalHost ? url.origin : publicOrigin(url);
+  return `${origin}/reset-password.html`;
+}
+
 function chatOwnerKey(sessionId: string, userId?: string) {
   return userId ? `user:${userId}` : `session:${sessionId}`;
 }
@@ -244,7 +261,7 @@ export function startServer() {
       return new Response(JSON.stringify({ user }), { headers: h });
     }
     if (req.method === "POST" && url.pathname === "/auth/register") {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const { setCookie } = await getOrSetSessionId(req);
       try {
         const body = await readJson<{ email?: string; password?: string; name?: string }>(req);
         const email = (body.email ?? "").trim();
@@ -255,22 +272,36 @@ export function startServer() {
           if (setCookie) h.append("Set-Cookie", setCookie);
           return new Response(JSON.stringify({ error: err }), { status: 400, headers: h });
         }
-        const user = await registerUser(email, password, body.name);
-        await linkSessionToUser(sessionId, user.id);
+        await registerUser(email, password, body.name);
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
-        return new Response(JSON.stringify({ user }), { status: 201, headers: h });
+        return new Response(JSON.stringify({
+          ok: true,
+          confirmationRequired: true,
+        }), { status: 201, headers: h });
       } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
-        const msg = String((err as Error)?.message ?? err);
-        if (
-          msg === "EMAIL_TAKEN" ||
-          /already (registered|in use)|already exists|duplicate|unique/i.test(msg)
-        ) {
-          return new Response(JSON.stringify({ error: "Email already in use" }), { status: 409, headers: h });
+        if (isSupabaseAlreadyRegisteredError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "EMAIL_ALREADY_EXISTS",
+            message: "An account with this email already exists. Try logging in.",
+          }), { status: 409, headers: h });
         }
-        return new Response(JSON.stringify({ error: msg || "Server error" }), { status: 500, headers: h });
+        if (isSupabaseRateLimitError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "RATE_LIMITED",
+            message: "Too many attempts. Please wait and try again.",
+          }), { status: 429, headers: h });
+        }
+        const msg = String((err as Error)?.message ?? err);
+        return new Response(JSON.stringify({
+          ok: false,
+          code: "REGISTER_FAILED",
+          message: msg || "Server error",
+        }), { status: 500, headers: h });
       }
     }
     if (req.method === "POST" && url.pathname === "/auth/login") {
@@ -279,21 +310,117 @@ export function startServer() {
         const body = await readJson<{ email?: string; password?: string }>(req);
         const email = (body.email ?? "").trim();
         const password = String(body.password ?? "");
-        const user = await authenticateUser(email, password);
-        if (!user) {
+        if (!email || !password) {
           const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
           if (setCookie) h.append("Set-Cookie", setCookie);
-          return new Response(JSON.stringify({ error: "Invalid credentials" }), { status: 401, headers: h });
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "INVALID_CREDENTIALS",
+            message: "Invalid email or password.",
+          }), { status: 401, headers: h });
         }
-        await linkSessionToUser(sessionId, user.id);
+
+        const login = await authenticateUser(email, password);
+        if (!login) {
+          const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+          if (setCookie) h.append("Set-Cookie", setCookie);
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "INVALID_CREDENTIALS",
+            message: "Invalid email or password.",
+          }), { status: 401, headers: h });
+        }
+        if (!login.emailConfirmed) {
+          const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+          if (setCookie) h.append("Set-Cookie", setCookie);
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "EMAIL_NOT_CONFIRMED",
+            message: "Please confirm your email before logging in.",
+          }), { status: 401, headers: h });
+        }
+        await linkSessionToUser(sessionId, login.user.id);
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
-        return new Response(JSON.stringify({ user }), { headers: h });
+        return new Response(JSON.stringify({ ok: true, user: login.user }), { headers: h });
       } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
+        if (isSupabaseEmailNotConfirmedError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "EMAIL_NOT_CONFIRMED",
+            message: "Please confirm your email before logging in.",
+          }), { status: 401, headers: h });
+        }
+        if (isSupabaseInvalidCredentialsError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "INVALID_CREDENTIALS",
+            message: "Invalid email or password.",
+          }), { status: 401, headers: h });
+        }
+        if (isSupabaseRateLimitError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "RATE_LIMITED",
+            message: "Too many attempts. Please wait and try again.",
+          }), { status: 429, headers: h });
+        }
         const msg = String((err as Error)?.message ?? err);
-        return new Response(JSON.stringify({ error: msg || "Server error" }), { status: 500, headers: h });
+        return new Response(JSON.stringify({
+          ok: false,
+          code: "LOGIN_FAILED",
+          message: msg || "Server error",
+        }), { status: 500, headers: h });
+      }
+    }
+    if (req.method === "POST" && url.pathname === "/auth/forgot-password") {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      try {
+        const body = await readJson<{ email?: string }>(req);
+        const email = (body.email ?? "").trim();
+        if (!email) {
+          return new Response(JSON.stringify({ ok: true }), { headers: h });
+        }
+        await sendPasswordRecoveryEmail(email, getPasswordResetRedirect(url));
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
+      } catch (err) {
+        if (isSupabaseRateLimitError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "RATE_LIMITED",
+            message: "Too many requests. Please wait and try again.",
+          }), { status: 429, headers: h });
+        }
+        if (err instanceof SupabaseApiError && err.status >= 400 && err.status < 500) {
+          return new Response(JSON.stringify({ ok: true }), { headers: h });
+        }
+        return new Response(JSON.stringify({
+          ok: false,
+          code: "FORGOT_PASSWORD_FAILED",
+          message: "Unable to send reset email right now.",
+        }), { status: 502, headers: h });
+      }
+    }
+    if (req.method === "GET" && url.pathname === "/auth/client-config") {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      try {
+        const conf = getPublicSupabaseConfig();
+        return new Response(JSON.stringify({
+          ok: true,
+          supabaseUrl: conf.url,
+          supabaseAnonKey: conf.anonKey,
+        }), { headers: h });
+      } catch {
+        return new Response(JSON.stringify({
+          ok: false,
+          message: "Supabase configuration unavailable.",
+        }), { status: 500, headers: h });
       }
     }
     if (req.method === "POST" && url.pathname === "/auth/logout") {
@@ -302,6 +429,75 @@ export function startServer() {
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       return new Response(JSON.stringify({ ok: true }), { headers: h });
+    }
+    if (req.method === "POST" && url.pathname === "/auth/delete-account") {
+      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const user = await getUserForSession(sessionId);
+      const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      if (!user) {
+        return new Response(JSON.stringify({
+          ok: false,
+          code: "UNAUTHORIZED",
+          message: "Please log in.",
+        }), { status: 401, headers: h });
+      }
+      try {
+        const body = await readJson<{ password?: string }>(req);
+        const password = String(body.password ?? "");
+        if (!password) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "PASSWORD_REQUIRED",
+            message: "Password is required.",
+          }), { status: 400, headers: h });
+        }
+
+        const passwordOk = await verifyPassword(user.email, password);
+        if (!passwordOk) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "INVALID_PASSWORD",
+            message: "Incorrect password.",
+          }), { status: 401, headers: h });
+        }
+
+        await deleteSupabaseUser(user.id);
+        await deleteLocalUserData(user.id);
+        await unlinkSession(sessionId);
+
+        const kv = await getKv();
+        const owner = chatOwnerKey(sessionId, user.id);
+        for await (const e of kv.list({ prefix: ["savedChats", owner] })) {
+          await kv.delete(e.key);
+        }
+        await kv.delete(["chatHistory", owner]);
+        await kv.delete(["chatQuota", `user:${user.id}`]);
+
+        const successHeaders = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        successHeaders.append("Set-Cookie", clearSessionCookie(req));
+        return new Response(JSON.stringify({ ok: true }), { headers: successHeaders });
+      } catch (err) {
+        if (isSupabaseInvalidCredentialsError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "INVALID_PASSWORD",
+            message: "Incorrect password.",
+          }), { status: 401, headers: h });
+        }
+        if (isSupabaseRateLimitError(err)) {
+          return new Response(JSON.stringify({
+            ok: false,
+            code: "RATE_LIMITED",
+            message: "Too many attempts. Please wait and try again.",
+          }), { status: 429, headers: h });
+        }
+        return new Response(JSON.stringify({
+          ok: false,
+          code: "DELETE_ACCOUNT_FAILED",
+          message: "Unable to delete account right now.",
+        }), { status: 500, headers: h });
+      }
     }
     if (req.method === "PATCH" && url.pathname === "/me/profile") {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);
@@ -439,6 +635,33 @@ export function startServer() {
         status: 307,
         headers: withSecurity({
           "Location": "/auth.html",
+          "Cache-Control": "no-store",
+        }),
+      });
+    }
+    if (req.method === "GET" && (url.pathname === "/forgot-password" || url.pathname === "/forgot-password/")) {
+      return new Response(null, {
+        status: 307,
+        headers: withSecurity({
+          "Location": "/forgot-password.html",
+          "Cache-Control": "no-store",
+        }),
+      });
+    }
+    if (req.method === "GET" && (url.pathname === "/reset-password" || url.pathname === "/reset-password/")) {
+      return new Response(null, {
+        status: 307,
+        headers: withSecurity({
+          "Location": "/reset-password.html",
+          "Cache-Control": "no-store",
+        }),
+      });
+    }
+    if (req.method === "GET" && (url.pathname === "/account" || url.pathname === "/account/")) {
+      return new Response(null, {
+        status: 307,
+        headers: withSecurity({
+          "Location": "/account.html",
           "Cache-Control": "no-store",
         }),
       });

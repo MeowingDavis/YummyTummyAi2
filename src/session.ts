@@ -51,6 +51,11 @@ function shouldSetSecureCookie(req: Request) {
   return COOKIE_SECURE || proto === "https:";
 }
 
+export function clearSessionCookie(req: Request) {
+  const secure = shouldSetSecureCookie(req) ? "; Secure" : "";
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
+}
+
 async function getSigningKey() {
   if (!signingKeyPromise) {
     signingKeyPromise = crypto.subtle.importKey(

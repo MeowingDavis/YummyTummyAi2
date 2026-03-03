@@ -35,9 +35,11 @@
         <span id="homeAuthStatus" class="text-xs text-slate-300"></span>
         <a id="homeRegisterBtn" href="#" class="skeuo-link">Register</a>
         <a id="homeLoginBtn" href="#" class="skeuo-link">Login</a>
+        <a id="homeAccountBtn" href="/account.html" class="hidden skeuo-link">Account</a>
         <a id="homeLogoutBtn" href="#" class="hidden skeuo-link">Logout</a>
       </nav>
       <div class="sm:hidden flex items-center gap-2">
+        <a id="homeAccountBtnMobile" href="/account.html" class="hidden skeuo-link">Account</a>
         <a id="homeLoginBtnMobile" href="#" class="skeuo-link">Login</a>
         <a id="homeLogoutBtnMobile" href="#" class="hidden skeuo-link">Logout</a>
         <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Open Chat</a>
@@ -85,7 +87,7 @@
 
   <!-- Hero -->
   <section class="skeuo-wrap skeuo-section-tight">
-    <div class="skeuo-container-wide max-w-4xl">
+    <div class="skeuo-container-wide max-w-6xl grid lg:grid-cols-[1.05fr,0.95fr] gap-8 lg:gap-10 items-center">
       <div>
         <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
           Turn your <span class="text-emerald-400">ingredients</span> into dinner.
@@ -107,6 +109,16 @@
         <div class="mt-4 text-sm text-emerald-300/90">
           Private by default. Login-enabled server-side chat history and saved sessions.
         </div>
+      </div>
+      <div class="glass skeuo-surface overflow-hidden rounded-2xl ring-1 ring-amber-200/20 shadow-[0_28px_80px_-30px_rgba(120,53,15,0.8)]">
+        <img
+          src="/YTHeader.png"
+          alt="Family-style table filled with colorful ingredients and dishes"
+          class="block w-full h-[260px] sm:h-[340px] lg:h-[420px] object-cover"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
       </div>
     </div>
   </section>

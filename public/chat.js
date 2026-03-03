@@ -10,16 +10,37 @@ window.addEventListener('DOMContentLoaded', () => {
     const status = document.getElementById('homeAuthStatus');
     const reg = document.getElementById('homeRegisterBtn');
     const login = document.getElementById('homeLoginBtn');
+    const account = document.getElementById('homeAccountBtn');
     const logout = document.getElementById('homeLogoutBtn');
+    const accountMobile = document.getElementById('homeAccountBtnMobile');
     const loginMobile = document.getElementById('homeLoginBtnMobile');
     const logoutMobile = document.getElementById('homeLogoutBtnMobile');
 
     if (status) status.textContent = user ? `Signed in as ${user.email}` : 'Not signed in';
     reg?.classList.toggle('hidden', !!user);
     login?.classList.toggle('hidden', !!user);
+    account?.classList.toggle('hidden', !user);
     logout?.classList.toggle('hidden', !user);
+    accountMobile?.classList.toggle('hidden', !user);
     loginMobile?.classList.toggle('hidden', !!user);
     logoutMobile?.classList.toggle('hidden', !user);
+  }
+
+  function showAccountDeletedMessage() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('accountDeleted') !== '1') return;
+    const host = document.getElementById('notice') || document.body;
+    const wrap = document.createElement('div');
+    wrap.className = 'skeuo-wrap skeuo-container-wide';
+    wrap.innerHTML = `
+      <div class="glass skeuo-surface skeuo-section-tight skeuo-card-pad text-sm text-emerald-200">
+        Account deleted.
+      </div>
+    `;
+    host.parentNode.insertBefore(wrap, host);
+    params.delete('accountDeleted');
+    const clean = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${window.location.hash}`;
+    history.replaceState(null, '', clean);
   }
 
   async function refreshMe() {
@@ -78,6 +99,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   refreshMe();
+  showAccountDeletedMessage();
 
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {

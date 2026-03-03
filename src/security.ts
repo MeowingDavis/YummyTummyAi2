@@ -1,13 +1,27 @@
 // src/security.ts
 // Centralized security headers.
 
+const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+
+function buildConnectSrc() {
+  const values = new Set(["'self'", "https://api.groq.com"]);
+  if (SUPABASE_URL) {
+    try {
+      values.add(new URL(SUPABASE_URL).origin);
+    } catch {
+      // ignore invalid env value; startup validation happens elsewhere
+    }
+  }
+  return Array.from(values).join(" ");
+}
+
 export const baseHeaders: HeadersInit = {
   "Content-Security-Policy": [
     "default-src 'self'",
     "img-src 'self' data: blob:",
     "script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net",
     "style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'",
-    "connect-src 'self' https://api.groq.com",
+    `connect-src ${buildConnectSrc()}`,
     "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",

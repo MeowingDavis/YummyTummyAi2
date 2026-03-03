@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <title>Account - Yummy Tummy AI</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <script src="/industrial-tailwind.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/industrial.css" />
+</head>
+<body class="min-h-[100svh] bg-industrial-chassis text-industrial-text antialiased industrial-texture">
+  <header class="skeuo-wrap skeuo-header">
+    <div class="skeuo-container-wide flex items-center justify-between gap-4">
+      <a href="/" class="inline-flex items-center gap-3">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20">🍳</span>
+        <span class="text-xl font-semibold tracking-tight">Yummy Tummy <span class="text-emerald-400">AI</span></span>
+      </a>
+      <nav class="flex items-center gap-4">
+        <a href="/" class="skeuo-link">Home</a>
+        <a href="/chat.html" class="skeuo-link">Open Chat</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="skeuo-wrap skeuo-section-tight pb-12">
+    <div class="skeuo-container-narrow max-w-md space-y-4">
+      <section class="stack-surface skeuo-surface skeuo-card-pad-lg">
+        <h1 class="text-xl font-semibold tracking-tight">Account settings</h1>
+        <p id="accountStatus" class="mt-2 text-sm text-slate-300">Checking session...</p>
+      </section>
+
+      <section id="deleteSection" class="hidden stack-surface skeuo-surface skeuo-card-pad-lg space-y-3">
+        <h2 class="text-lg font-semibold text-red-200">Delete account</h2>
+        <p class="text-sm text-red-200/80">This action is permanent. Your account cannot be restored.</p>
+
+        <form id="deleteForm" class="space-y-3">
+          <div>
+            <label class="skeuo-label" for="password">Confirm password</label>
+            <input id="password" type="password" required class="skeuo-input w-full px-3 py-2 mt-1" autocomplete="current-password" />
+          </div>
+
+          <p id="deleteError" class="hidden text-sm text-red-300"></p>
+          <p id="deleteSuccess" class="hidden text-sm text-emerald-300"></p>
+
+          <button id="deleteBtn" type="submit" class="skeuo-btn skeuo-btn-danger skeuo-interactive w-full">
+            Delete account permanently
+          </button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script src="/js/account-page.js"></script>
+</body>
+</html>

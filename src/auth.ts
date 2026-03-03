@@ -23,9 +23,26 @@ type StoredUser = {
   updatedAt: number;
 };
 
+export type AuthenticatedUser = {
+  user: PublicUser;
+  emailConfirmed: boolean;
+};
+
+export class SupabaseApiError extends Error {
+  status: number;
+  code?: string;
+
+  constructor(status: number, message: string, code?: string) {
+    super(message);
+    this.status = status;
+    this.code = code;
+  }
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") ?? "").trim().replace(/\/$/, "");
 const SUPABASE_ANON_KEY = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
+const SUPABASE_SERVICE_ROLE_KEY = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
 
 function assertSupabaseEnv() {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -46,6 +63,11 @@ function parseSupabaseTime(value: unknown) {
   return Number.isFinite(ms) ? ms : Date.now();
 }
 
+function isEmailConfirmed(raw: any) {
+  const value = raw?.email_confirmed_at ?? raw?.confirmed_at;
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 function toStoredUserFromSupabase(raw: any): StoredUser {
   const id = String(raw?.id ?? "").trim();
   const email = normalizeEmail(String(raw?.email ?? ""));
@@ -59,23 +81,38 @@ function toStoredUserFromSupabase(raw: any): StoredUser {
   };
 }
 
-async function supabaseRequest(path: string, options: RequestInit) {
-  assertSupabaseEnv();
+async function supabaseRequest(path: string, options: RequestInit, useServiceRole = false) {
+  if (useServiceRole) {
+    assertSupabaseServiceEnv();
+  } else {
+    assertSupabaseEnv();
+  }
+
+  const key = useServiceRole ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY;
+  const headers = new Headers(options.headers ?? {});
+  if (!headers.has("apikey")) headers.set("apikey", key);
+  if (useServiceRole && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${key}`);
+  if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+
   const res = await fetch(`${SUPABASE_URL}${path}`, {
     ...options,
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      "Content-Type": "application/json",
-      ...(options.headers ?? {}),
-    },
+    headers,
   });
 
+  if (res.status === 204) return {};
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const message = data?.msg || data?.error_description || data?.error || `Supabase auth error (${res.status})`;
-    throw new Error(String(message));
+    const message = data?.msg || data?.error_description || data?.error || data?.message ||
+      `Supabase auth error (${res.status})`;
+    throw new SupabaseApiError(res.status, String(message), typeof data?.code === "string" ? data.code : undefined);
   }
   return data;
+}
+
+function assertSupabaseServiceEnv() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Missing Supabase env: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
+  }
 }
 
 async function upsertUser(user: StoredUser) {
@@ -130,7 +167,7 @@ export async function registerUser(email: string, password: string, name?: strin
   return await toPublicUser(stored);
 }
 
-export async function authenticateUser(email: string, password: string): Promise<PublicUser | null> {
+export async function authenticateUser(email: string, password: string): Promise<AuthenticatedUser | null> {
   const data = await supabaseRequest("/auth/v1/token?grant_type=password", {
     method: "POST",
     body: JSON.stringify({ email: normalizeEmail(email), password }),
@@ -140,7 +177,10 @@ export async function authenticateUser(email: string, password: string): Promise
   if (!rawUser) return null;
   const stored = toStoredUserFromSupabase(rawUser);
   await upsertUser(stored);
-  return await toPublicUser(stored);
+  return {
+    user: await toPublicUser(stored),
+    emailConfirmed: isEmailConfirmed(rawUser),
+  };
 }
 
 export async function getUserById(id: string): Promise<PublicUser | null> {
@@ -179,4 +219,81 @@ export async function updateUserProfile(userId: string, patch: UserProfile): Pro
   const kv = await getKv();
   await kv.set(["profiles", userId], next);
   return await toPublicUser(stored);
+}
+
+export function getPublicSupabaseConfig() {
+  assertSupabaseEnv();
+  return {
+    url: SUPABASE_URL,
+    anonKey: SUPABASE_ANON_KEY,
+  };
+}
+
+export function isSupabaseAlreadyRegisteredError(err: unknown) {
+  const msg = String((err as Error)?.message ?? err);
+  return /already (registered|in use)|already exists|duplicate|unique/i.test(msg);
+}
+
+export function isSupabaseRateLimitError(err: unknown) {
+  const msg = String((err as Error)?.message ?? err);
+  const status = err instanceof SupabaseApiError ? err.status : 0;
+  return status === 429 || /rate limit|too many requests|over_email_send_rate_limit/i.test(msg);
+}
+
+export function isSupabaseInvalidCredentialsError(err: unknown) {
+  const msg = String((err as Error)?.message ?? err);
+  return /invalid login credentials|invalid credentials|invalid grant/i.test(msg);
+}
+
+export function isSupabaseEmailNotConfirmedError(err: unknown) {
+  const msg = String((err as Error)?.message ?? err);
+  return /email not confirmed|confirm your email/i.test(msg);
+}
+
+export async function sendPasswordRecoveryEmail(email: string, redirectTo: string) {
+  await supabaseRequest("/auth/v1/recover", {
+    method: "POST",
+    body: JSON.stringify({
+      email: normalizeEmail(email),
+      redirect_to: redirectTo,
+    }),
+  });
+}
+
+export async function verifyPassword(email: string, password: string) {
+  try {
+    await supabaseRequest("/auth/v1/token?grant_type=password", {
+      method: "POST",
+      body: JSON.stringify({ email: normalizeEmail(email), password }),
+    });
+    return true;
+  } catch (err) {
+    if (isSupabaseInvalidCredentialsError(err) || isSupabaseEmailNotConfirmedError(err)) {
+      return false;
+    }
+    throw err;
+  }
+}
+
+export async function deleteSupabaseUser(userId: string) {
+  const encodedId = encodeURIComponent(userId);
+  try {
+    await supabaseRequest(`/auth/v1/admin/users/${encodedId}?should_soft_delete=true`, {
+      method: "DELETE",
+    }, true);
+    return;
+  } catch (err) {
+    const status = err instanceof SupabaseApiError ? err.status : 0;
+    if (status !== 400 && status !== 404 && status !== 422) throw err;
+  }
+
+  await supabaseRequest(`/auth/v1/admin/users/${encodedId}`, {
+    method: "DELETE",
+  }, true);
+}
+
+export async function deleteLocalUserData(userId: string) {
+  const kv = await getKv();
+  await kv.delete(["users", userId]);
+  await kv.delete(["profiles", userId]);
 }

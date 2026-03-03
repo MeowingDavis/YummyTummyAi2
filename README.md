@@ -23,6 +23,7 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 
 - Deno installed
 - A Groq API key
+- Supabase project (Auth enabled)
 
 ## Quick Start
 
@@ -30,6 +31,10 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 
 ```bash
 export GROQ_API_KEY="your_groq_api_key"
+export SUPABASE_URL="https://<project-ref>.supabase.co"
+export SUPABASE_ANON_KEY="your_supabase_anon_key"
+# required for secure server-side delete-account admin API
+export SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
 # optional
 export MODEL="llama-3.1-8b-instant"
 # optional: models shown in the UI picker (comma-separated)
@@ -84,7 +89,10 @@ http://localhost:8000
 - `GET /me` -> current session user or `null`
 - `POST /auth/register` -> `{ email, password, name? }`
 - `POST /auth/login` -> `{ email, password }`
+- `POST /auth/forgot-password` -> `{ email }` (always generic success unless rate-limited/hard failure)
+- `POST /auth/delete-account` -> `{ password }` (requires logged-in session)
 - `POST /auth/logout` -> clears session-user link
+- `GET /auth/client-config` -> browser-safe Supabase config for reset flow (`SUPABASE_URL`, anon key only)
 - `PATCH /me/profile` -> updates `{ dietaryRequirements, allergies, dislikes }`
 - `POST /chat` -> accepts JSON:
 
@@ -112,10 +120,22 @@ http://localhost:8000
 ## Notes
 
 - `GROQ_API_KEY` is required at startup.
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` are required for auth flows.
+- `SUPABASE_SERVICE_ROLE_KEY` is required for secure server-side account deletion. Never expose this key in browser code.
 - If `MODEL` is unset, the app defaults to `llama-3.1-8b-instant`.
 - Rate limit state remains in-memory; chat history and saved chats are persisted in Deno KV.
 - If RAG finds strong recipe matches, the assistant uses those titles/details.
 - If no strong RAG match exists, the assistant still generates a fresh recipe.
+
+## Supabase Auth Settings
+
+Configure these in Supabase Dashboard -> Authentication:
+
+- Enable email confirmations (signup should not auto-login before confirmation).
+- Add password recovery redirect URLs:
+  - `http://localhost:8000/reset-password.html`
+  - `https://<your-domain>/reset-password.html`
+- If you use a different dev/preview port or domain, add that exact `/reset-password.html` URL too.
 
 ## Recipe RAG: Adding New Recipes
 

@@ -18,10 +18,55 @@ window.addEventListener('DOMContentLoaded', () => {
   const pwSymbol = document.getElementById('pwSymbol');
   const submitBtn = document.getElementById('submitBtn');
   const errorEl = document.getElementById('authError');
+  const successEl = document.getElementById('authSuccess');
+  const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+  const switchModeBtn = document.getElementById('switchModeBtn');
 
   const params = new URLSearchParams(window.location.search);
-  const next = params.get('next') || '/chat.html';
-  let mode = params.get('mode') === 'login' ? 'login' : 'register';
+  const nextRaw = params.get('next') || '/chat.html';
+  let next = '/chat.html';
+  try {
+    next = decodeURIComponent(nextRaw || '/chat.html');
+  } catch {
+    next = nextRaw || '/chat.html';
+  }
+  if (!next || !next.startsWith('/')) next = '/chat.html';
+  let mode = params.get('mode') === 'register' ? 'register' : 'login';
+  let submitting = false;
+
+  function showError(message) {
+    if (!errorEl) return;
+    errorEl.textContent = message || 'Authentication failed';
+    errorEl.classList.remove('hidden');
+    successEl?.classList.add('hidden');
+    if (successEl) successEl.textContent = '';
+  }
+
+  function showSuccess(message) {
+    if (!successEl) return;
+    successEl.textContent = message || '';
+    successEl.classList.remove('hidden');
+    errorEl?.classList.add('hidden');
+    if (errorEl) errorEl.textContent = '';
+  }
+
+  function clearMessages() {
+    errorEl?.classList.add('hidden');
+    successEl?.classList.add('hidden');
+    if (errorEl) errorEl.textContent = '';
+    if (successEl) successEl.textContent = '';
+  }
+
+  function setSubmitting(isBusy) {
+    submitting = isBusy;
+    if (!submitBtn) return;
+    submitBtn.disabled = isBusy;
+    if (isBusy) {
+      submitBtn.textContent = 'Please wait...';
+      return;
+    }
+    submitBtn.textContent = mode === 'login' ? 'Login' : 'Create account';
+  }
 
   function evaluatePassword(pw) {
     const checks = {
@@ -65,31 +110,42 @@ window.addEventListener('DOMContentLoaded', () => {
     name.parentElement.classList.toggle('hidden', isLogin);
     confirmWrap.classList.toggle('hidden', isLogin);
     passwordGuidance.classList.toggle('hidden', isLogin);
+    forgotPasswordLink?.classList.toggle('hidden', !isLogin);
+    if (switchModeBtn) {
+      switchModeBtn.textContent = isLogin ? 'Need an account? Register' : 'Back to login';
+    }
     password.autocomplete = isLogin ? 'current-password' : 'new-password';
     submitBtn.textContent = isLogin ? 'Login' : 'Create account';
     tabLogin.classList.toggle('skeuo-btn-primary', isLogin);
     tabRegister.classList.toggle('skeuo-btn-primary', !isLogin);
     tabLogin.classList.toggle('skeuo-btn-secondary', !isLogin);
     tabRegister.classList.toggle('skeuo-btn-secondary', isLogin);
-    errorEl.classList.add('hidden');
-    errorEl.textContent = '';
+    clearMessages();
     renderPasswordGuidance();
 
     const url = new URL(window.location.href);
     url.searchParams.set('mode', mode);
-    url.searchParams.set('next', next);
+    url.searchParams.set('next', encodeURIComponent(next));
     history.replaceState(null, '', url.toString());
   }
 
   async function request(url, options = {}) {
     const res = await fetch(url, options);
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = new Error(data?.message || data?.error || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.code = data?.code;
+      throw err;
+    }
     return data;
   }
 
   tabLogin?.addEventListener('click', () => setMode('login'));
   tabRegister?.addEventListener('click', () => setMode('register'));
+  switchModeBtn?.addEventListener('click', () => {
+    setMode(mode === 'login' ? 'register' : 'login');
+  });
   password?.addEventListener('input', () => {
     if (mode === 'register') renderPasswordGuidance();
   });
@@ -106,8 +162,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    errorEl.classList.add('hidden');
-    errorEl.textContent = '';
+    if (submitting) return;
+    clearMessages();
 
     const eVal = email.value.trim();
     const pVal = password.value;
@@ -115,6 +171,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const cVal = confirmPassword.value;
 
     try {
+      setSubmitting(true);
       if (!eVal || !pVal) throw new Error('Email and password are required');
       if (mode === 'register') {
         const checks = renderPasswordGuidance();
@@ -136,10 +193,27 @@ window.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(body),
       });
 
-      window.location.href = next;
+      if (mode === 'register') {
+        password.value = '';
+        confirmPassword.value = '';
+        setMode('login');
+        showSuccess('Account created. Please check your email to confirm before logging in.');
+        return;
+      }
+
+      showSuccess('Login successful. Redirecting...');
+      await request('/me').catch(() => null);
+      window.setTimeout(() => {
+        window.location.href = next;
+      }, 450);
     } catch (err) {
-      errorEl.textContent = err?.message || 'Authentication failed';
-      errorEl.classList.remove('hidden');
+      if (err?.code === 'EMAIL_NOT_CONFIRMED') {
+        showError('Please confirm your email before logging in.');
+      } else {
+        showError(err?.message || 'Authentication failed');
+      }
+    } finally {
+      setSubmitting(false);
     }
   });
 

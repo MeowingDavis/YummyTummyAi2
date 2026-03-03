@@ -27,10 +27,11 @@ function announce(text){
 
 function makeActions({ onCopy, onDelete }){
   const bar = document.createElement('div');
-  bar.className = "msg-actions opacity-0 transition-opacity absolute top-2 right-2 inline-flex gap-1";
+  bar.className = "msg-actions opacity-0 transition-opacity absolute top-2 right-3 inline-flex items-center gap-3";
   const mk = (label, cb) => {
     const b = document.createElement('button');
-    b.className = "skeuo-btn skeuo-btn-secondary skeuo-interactive text-xs px-2 py-1";
+    b.type = "button";
+    b.className = "msg-action-link skeuo-link";
     b.textContent = label;
     b.onclick = cb;
     return b;

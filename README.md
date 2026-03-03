@@ -6,6 +6,7 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 
 - Ingredient-aware recipe help and cooking Q&A
 - Local recipe RAG context (retrieves matching recipes from `data/recipes.json`)
+- Optional API Ninjas recipe enrichment when local matches are weak
 - Off-topic guard that steers conversation back to food
 - Session-based chat history persisted in Deno KV
 - Saved chats persisted in Deno KV
@@ -41,6 +42,8 @@ export MODEL="llama-3.1-8b-instant"
 export GROQ_MODELS="llama-3.1-8b-instant,llama-3.3-70b-versatile"
 # optional recipe corpus location
 export RECIPES_DB_PATH="data/recipes.json"
+# optional API Ninjas recipe API key (server-side enrichment)
+export API_NINJAS_API_KEY="your_api_ninjas_key"
 ```
 
 Production security env requirements:
@@ -126,6 +129,7 @@ http://localhost:8000
 - Rate limit state remains in-memory; chat history and saved chats are persisted in Deno KV.
 - If RAG finds strong recipe matches, the assistant uses those titles/details.
 - If no strong RAG match exists, the assistant still generates a fresh recipe.
+- If `API_NINJAS_API_KEY` is set, the app also fetches API Ninjas recipe matches when local recipe matches are weak.
 
 ## Supabase Auth Settings
 

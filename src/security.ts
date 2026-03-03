@@ -4,7 +4,7 @@
 const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") ?? "").trim();
 
 function buildConnectSrc() {
-  const values = new Set(["'self'", "https://api.groq.com"]);
+  const values = new Set(["'self'", "https://api.groq.com", "https://cdn.jsdelivr.net"]);
   if (SUPABASE_URL) {
     try {
       values.add(new URL(SUPABASE_URL).origin);

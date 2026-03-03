@@ -13,6 +13,7 @@ import { groqChat, listGroqModels } from "./chat/groq.ts";
 import { detectPromptInjection } from "./chat/injection.ts";
 import { redact } from "./redact.ts";
 import { buildRecipeContext, hasStrongRecipeMatch, retrieveRecipes } from "./rag/retrieve.ts";
+import { buildApiNinjasContext, fetchApiNinjasRecipes, hasApiNinjasConfigured } from "./rag/apiNinjas.ts";
 import type { Msg } from "./chat/history.ts";
 import { getAppKv } from "./kv.ts";
 import {
@@ -835,6 +836,16 @@ export function startServer() {
         const recipeHits = await retrieveRecipes(message, 3);
         const recipeContext = buildRecipeContext(recipeHits);
         const strongRecipeMatch = hasStrongRecipeMatch(recipeHits);
+        let apiNinjasContext = "";
+        if (!strongRecipeMatch && hasApiNinjasConfigured()) {
+          try {
+            const apiNinjasRecipes = await fetchApiNinjasRecipes(message, 2);
+            apiNinjasContext = buildApiNinjasContext(apiNinjasRecipes);
+          } catch (err) {
+            const safe = redact(String((err as Error)?.message ?? err));
+            console.warn("[api-ninjas] recipe lookup failed:", safe);
+          }
+        }
         const profile = user?.profile;
         const profileSteer = profile
           ? [
@@ -848,6 +859,8 @@ export function startServer() {
           role: "system" as const,
           content: strongRecipeMatch
             ? "Use the recipe library context when it fits the request. Prefer those recipes and mention recipe title(s) used."
+            : apiNinjasContext
+            ? "No strong local recipe-library match found. Use API recipe matches when relevant and mention recipe title(s) used."
             : "No strong recipe-library match found. You may create a fresh recipe while following user constraints.",
         };
 
@@ -858,6 +871,7 @@ export function startServer() {
           steer,
           ...(profileSteer ? [{ role: "system" as const, content: profileSteer }] : []),
           ...(recipeContext ? [{ role: "system" as const, content: recipeContext }] : []),
+          ...(apiNinjasContext ? [{ role: "system" as const, content: apiNinjasContext }] : []),
           ragSteer,
           { role: "user" as const, content: message },
         ];

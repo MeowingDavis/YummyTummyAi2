@@ -7,12 +7,28 @@
   }
 }
 
-.msg-actions .skeuo-btn {
-  min-height: 44px;
-  border-radius: 0.55rem;
-  padding: 0.45rem 0.7rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
+.msg-action-link {
+  min-height: auto !important;
+  min-width: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.msg-action-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.msg-action-link:active {
+  transform: none !important;
 }
 
 @supports (padding: max(0px)) {

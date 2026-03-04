@@ -34,7 +34,7 @@
     <div class="skeuo-container-wide max-w-5xl grid gap-5">
       <section class="skeuo-section-tight">
         <h1 class="text-3xl font-extrabold tracking-tight sm:text-5xl">Recipe Explorer</h1>
-        <p class="mt-3 text-slate-200">Search recipes manually and filter by category. Powered by API Ninjas.</p>
+        <p class="mt-3 text-slate-200">Explore recipes instantly, then refine with search and category filters. Powered by API Ninjas.</p>
       </section>
 
       <section class="glass skeuo-surface skeuo-card-pad-lg" aria-labelledby="search-heading">
@@ -56,12 +56,17 @@
           <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="dessert">Dessert</button>
           <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="global">Global</button>
         </div>
-        <p id="searchStatus" class="mt-3 text-sm text-slate-300" aria-live="polite">Type a query to start browsing recipes.</p>
+        <p id="searchStatus" class="mt-3 text-sm text-slate-300" aria-live="polite">Loading explore recipes...</p>
       </section>
 
       <section aria-labelledby="results-heading">
         <h2 id="results-heading" class="sr-only">Recipe results</h2>
         <div id="recipeResults" class="grid gap-4"></div>
+        <div class="mt-4">
+          <button id="loadMoreBtn" type="button" class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive">
+            Load more
+          </button>
+        </div>
       </section>
     </div>
   </main>

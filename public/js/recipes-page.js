@@ -4,6 +4,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const input = document.getElementById('recipeSearchInput');
   const btn = document.getElementById('recipeSearchBtn');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
   const resultsEl = document.getElementById('recipeResults');
   const statusEl = document.getElementById('searchStatus');
   const categoryButtons = Array.from(document.querySelectorAll('.recipe-category'));
@@ -11,6 +12,10 @@ window.addEventListener('DOMContentLoaded', () => {
   let activeCategory = '';
   let pendingTimer = null;
   let reqId = 0;
+  let offset = 0;
+  let hasMore = false;
+  let lastQuery = '';
+  const PAGE_LIMIT = 10;
 
   function escapeHtml(str) {
     return String(str ?? '')
@@ -25,9 +30,14 @@ window.addEventListener('DOMContentLoaded', () => {
     if (statusEl) statusEl.textContent = text;
   }
 
-  function renderRecipes(recipes) {
+  function setLoadMoreVisible(show) {
+    if (!loadMoreBtn) return;
+    loadMoreBtn.classList.toggle('hidden', !show);
+  }
+
+  function renderRecipes(recipes, append = false) {
     if (!resultsEl) return;
-    if (!recipes.length) {
+    if (!append && !recipes.length) {
       resultsEl.innerHTML = `
         <article class="glass skeuo-surface skeuo-card-pad-lg">
           <h3 class="text-lg font-semibold">No recipes found</h3>
@@ -37,7 +47,7 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    resultsEl.innerHTML = recipes.map((recipe) => {
+    const html = recipes.map((recipe) => {
       const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
       const ingredientList = ingredients.slice(0, 10).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
       const instructions = escapeHtml(String(recipe.instructions ?? '')).replaceAll('|', '<br/>');
@@ -50,31 +60,41 @@ window.addEventListener('DOMContentLoaded', () => {
         </article>
       `;
     }).join('');
+
+    if (append) resultsEl.insertAdjacentHTML('beforeend', html);
+    else resultsEl.innerHTML = html;
   }
 
-  async function searchRecipes() {
-    const query = (input?.value ?? '').trim();
-    const currentReqId = ++reqId;
-
-    if (!query && !activeCategory) {
-      renderRecipes([]);
-      setStatus('Type a query to start browsing recipes.');
-      return;
-    }
-
-    setStatus('Searching recipes...');
-    if (resultsEl) {
-      resultsEl.innerHTML = `
-        <article class="glass skeuo-surface skeuo-card-pad-lg">
-          <p class="text-slate-200">Loading...</p>
-        </article>
-      `;
-    }
-
+  function buildParams(query, off) {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     if (activeCategory) params.set('category', activeCategory);
-    params.set('limit', '18');
+    params.set('limit', String(PAGE_LIMIT));
+    params.set('offset', String(off));
+    return params;
+  }
+
+  async function fetchRecipes({ append = false } = {}) {
+    const query = (input?.value ?? '').trim();
+    if (!append) {
+      offset = 0;
+      hasMore = false;
+      setLoadMoreVisible(false);
+    }
+
+    if (!append) {
+      setStatus(query || activeCategory ? 'Searching recipes...' : 'Loading explore recipes...');
+      if (resultsEl) {
+        resultsEl.innerHTML = `
+          <article class="glass skeuo-surface skeuo-card-pad-lg">
+            <p class="text-slate-200">Loading...</p>
+          </article>
+        `;
+      }
+    }
+
+    const currentReqId = ++reqId;
+    const params = buildParams(query, append ? offset : 0);
 
     try {
       const res = await fetch(`/recipes/search?${params.toString()}`);
@@ -84,33 +104,61 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!res.ok || !data?.ok) {
         const msg = data?.message || 'Unable to search recipes right now.';
         setStatus(msg.includes('configured') ? 'Recipe provider is not configured on the server.' : msg);
-        renderRecipes([]);
+        if (!append) renderRecipes([], false);
+        setLoadMoreVisible(false);
         return;
       }
 
       const recipes = Array.isArray(data?.recipes) ? data.recipes : [];
-      setStatus(recipes.length ? `Found ${recipes.length} recipes.` : 'No recipes found for this search.');
-      renderRecipes(recipes);
+      renderRecipes(recipes, append);
+
+      const paging = data?.paging || {};
+      offset = Number.isFinite(paging?.nextOffset) ? paging.nextOffset : (append ? offset + recipes.length : recipes.length);
+      hasMore = Boolean(paging?.hasMore);
+      setLoadMoreVisible(hasMore);
+
+      if (!append) {
+        lastQuery = query;
+        const isBrowseMode = !query && !activeCategory;
+        setStatus(
+          recipes.length
+            ? (isBrowseMode ? `Showing ${recipes.length}${hasMore ? '+' : ''} explore recipes.` : `Found ${recipes.length}${hasMore ? '+' : ''} recipes.`)
+            : (isBrowseMode ? 'No explore recipes found right now.' : 'No recipes found for this search.'),
+        );
+      } else {
+        setStatus(`Loaded ${offset} recipe${offset === 1 ? '' : 's'}${hasMore ? ' (more available)' : ''}.`);
+      }
     } catch {
       if (currentReqId !== reqId) return;
       setStatus('Network error. Please try again.');
-      renderRecipes([]);
+      if (!append) renderRecipes([], false);
+      setLoadMoreVisible(false);
     }
   }
 
   function queueSearch() {
     if (pendingTimer) window.clearTimeout(pendingTimer);
-    pendingTimer = window.setTimeout(searchRecipes, 260);
+    pendingTimer = window.setTimeout(() => fetchRecipes({ append: false }), 260);
   }
 
   input?.addEventListener('input', queueSearch);
   input?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      searchRecipes();
+      fetchRecipes({ append: false });
     }
   });
-  btn?.addEventListener('click', () => searchRecipes());
+
+  btn?.addEventListener('click', () => fetchRecipes({ append: false }));
+
+  loadMoreBtn?.addEventListener('click', () => {
+    if (!hasMore) return;
+    if ((input?.value ?? '').trim() !== lastQuery) {
+      fetchRecipes({ append: false });
+      return;
+    }
+    fetchRecipes({ append: true });
+  });
 
   for (const node of categoryButtons) {
     node.addEventListener('click', () => {
@@ -120,7 +168,9 @@ window.addEventListener('DOMContentLoaded', () => {
         btnEl.classList.toggle('skeuo-btn-primary', isActive);
         btnEl.classList.toggle('skeuo-btn-secondary', !isActive);
       }
-      searchRecipes();
+      fetchRecipes({ append: false });
     });
   }
+
+  fetchRecipes({ append: false });
 });

@@ -92,7 +92,7 @@ http://localhost:8000
 
 - `GET /health` -> `{ "ok": true }`
 - `GET /chat-models` -> allowed model list for UI picker
-- `GET /recipes/search` -> API Ninjas-backed recipe search (`q`, `category`, `limit`)
+- `GET /recipes/search` -> API Ninjas-backed recipe search (`q`, `category`, `limit<=10`, `offset`)
 - `GET /me` -> current session user or `null`
 - `POST /auth/register` -> `{ email, password, name? }`
 - `POST /auth/login` -> `{ email, password }`

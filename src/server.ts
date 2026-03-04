@@ -14,6 +14,7 @@ import { detectPromptInjection } from "./chat/injection.ts";
 import { redact } from "./redact.ts";
 import { buildRecipeContext, hasStrongRecipeMatch, retrieveRecipes } from "./rag/retrieve.ts";
 import {
+  browseApiNinjasRecipes,
   buildApiNinjasContext,
   fetchApiNinjasRecipes,
   hasApiNinjasConfigured,
@@ -265,8 +266,10 @@ export function startServer() {
       if (setCookie) h.append("Set-Cookie", setCookie);
       const q = (url.searchParams.get("q") ?? "").trim();
       const category = (url.searchParams.get("category") ?? "").trim();
-      const limit = Number(url.searchParams.get("limit") ?? "20");
-      const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(Math.floor(limit), 30)) : 20;
+      const limit = Number(url.searchParams.get("limit") ?? "10");
+      const offset = Number(url.searchParams.get("offset") ?? "0");
+      const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(Math.floor(limit), 10)) : 10;
+      const safeOffset = Number.isFinite(offset) ? Math.max(0, Math.floor(offset)) : 0;
 
       if (!hasApiNinjasConfigured()) {
         return new Response(JSON.stringify({
@@ -277,13 +280,20 @@ export function startServer() {
         }), { status: 503, headers: h });
       }
 
-      if (!q && !category) {
-        return new Response(JSON.stringify({ ok: true, recipes: [] }), { headers: h });
-      }
-
       try {
-        const recipes = await searchApiNinjasRecipes(q, category, safeLimit);
-        return new Response(JSON.stringify({ ok: true, recipes }), { headers: h });
+        const recipes = (!q && !category)
+          ? await browseApiNinjasRecipes(safeLimit, safeOffset)
+          : await searchApiNinjasRecipes(q, category, safeLimit, safeOffset);
+        return new Response(JSON.stringify({
+          ok: true,
+          recipes,
+          paging: {
+            limit: safeLimit,
+            offset: safeOffset,
+            nextOffset: safeOffset + recipes.length,
+            hasMore: recipes.length === safeLimit,
+          },
+        }), { headers: h });
       } catch (err) {
         const safe = redact(String((err as Error)?.message ?? err));
         console.warn("[recipes/search] error:", safe);

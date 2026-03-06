@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yummy Tummy AI Homepage Mock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-cream: #f7f2e9;
+      --text-900: #13231f;
+      --text-700: #2d4740;
+      --emerald-600: #0f7d63;
+      --emerald-500: #1a9b7b;
+      --amber-500: #e2a237;
+      --amber-400: #efbb62;
+      --glass: rgba(255,255,255,0.68);
+      --glass-border: rgba(255,255,255,0.75);
+      --shadow-lg: 0 18px 55px rgba(17, 39, 33, 0.14);
+      --shadow-md: 0 8px 26px rgba(17, 39, 33, 0.09);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+      --space-16: 64px;
+      --space-20: 80px;
+      --max-width: 1200px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      color: var(--text-900);
+      background:
+        radial-gradient(1200px 500px at -10% -20%, #e9f6ef 0%, rgba(233,246,239,0) 65%),
+        radial-gradient(800px 400px at 105% 5%, #ffe7bf 0%, rgba(255,231,191,0) 60%),
+        linear-gradient(180deg, #fbf7f0 0%, #f7f2e9 100%);
+    }
+
+    .frame {
+      width: 100%;
+      border: 1px dashed rgba(16, 50, 42, 0.25);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      background: rgba(255,255,255,0.4);
+      backdrop-filter: blur(2px);
+      margin-bottom: 48px;
+    }
+
+    .frame-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-700);
+      padding: var(--space-4) var(--space-6);
+      background: rgba(15,125,99,0.08);
+      border-bottom: 1px solid rgba(16, 50, 42, 0.16);
+    }
+
+    .homepage {
+      margin: 0 auto;
+      width: min(var(--max-width), calc(100% - 72px));
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-16);
+      padding-bottom: var(--space-16);
+    }
+
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: var(--space-6) auto 0;
+      width: min(var(--max-width), calc(100% - 72px));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-lg);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(16px);
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--text-900);
+    }
+
+    .logo-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: linear-gradient(160deg, var(--emerald-500), #0b604b);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-5);
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: var(--text-700);
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: var(--space-10);
+      align-items: stretch;
+    }
+
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+      padding-top: var(--space-8);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #0f6b56;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(15, 125, 99, 0.12);
+      border: 1px solid rgba(15, 125, 99, 0.24);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Fraunces", serif;
+      font-size: clamp(44px, 5vw, 66px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      max-width: 12ch;
+    }
+
+    .subheadline {
+      margin: 0;
+      color: var(--text-700);
+      font-size: 20px;
+      line-height: 1.5;
+      max-width: 42ch;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+      align-items: center;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 22px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: default;
+    }
+
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(160deg, var(--emerald-500), var(--emerald-600));
+      box-shadow: 0 10px 22px rgba(15, 125, 99, 0.33);
+    }
+
+    .btn-secondary {
+      color: var(--text-900);
+      background: rgba(255,255,255,0.75);
+      border: 1px solid rgba(19, 35, 31, 0.18);
+    }
+
+    .hero-image {
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(19, 35, 31, 0.13);
+      background:
+        linear-gradient(130deg, rgba(15,125,99,0.2), rgba(226,162,55,0.21)),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.26), rgba(255,255,255,0.26) 12px, rgba(255,255,255,0.06) 12px, rgba(255,255,255,0.06) 24px),
+        #f3ede3;
+      min-height: 420px;
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-image span {
+      font-weight: 700;
+      color: #27594d;
+      background: rgba(255,255,255,0.76);
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(39,89,77,0.16);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+    }
+
+    .card {
+      padding: var(--space-6);
+      border-radius: var(--radius-lg);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      min-height: 220px;
+    }
+
+    .step {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      background: linear-gradient(160deg, rgba(15,125,99,0.15), rgba(226,162,55,0.2));
+      color: #0d5f4c;
+      border: 1px solid rgba(15,125,99,0.22);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: -0.015em;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--text-700);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .cta-banner {
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      background:
+        radial-gradient(circle at 8% 18%, rgba(239,187,98,0.35), rgba(239,187,98,0) 46%),
+        radial-gradient(circle at 92% 88%, rgba(19,155,123,0.34), rgba(19,155,123,0) 52%),
+        linear-gradient(145deg, #fff7ea 10%, #edf8f3 100%);
+      border: 1px solid rgba(19, 35, 31, 0.14);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-6);
+    }
+
+    .cta-banner h2 {
+      margin: 0;
+      font-family: "Fraunces", serif;
+      font-size: 38px;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-6);
+      color: #36564e;
+      font-size: 14px;
+      border-top: 1px solid rgba(19, 35, 31, 0.15);
+      padding-top: var(--space-6);
+    }
+
+    .footer-links {
+      display: inline-flex;
+      gap: var(--space-5);
+      flex-wrap: wrap;
+    }
+
+    .footer-links span { text-decoration: underline; text-underline-offset: 4px; }
+
+    /* mobile artboard */
+    .mobile-wrap {
+      width: 390px;
+      margin: 0 auto;
+      padding-bottom: var(--space-12);
+    }
+
+    .mobile .sticky-header,
+    .mobile .homepage {
+      width: calc(100% - 24px);
+    }
+
+    .mobile .sticky-header {
+      margin-top: var(--space-3);
+      padding: 12px;
+    }
+
+    .mobile .nav { display: none; }
+
+    .mobile .homepage {
+      gap: var(--space-10);
+      padding-bottom: var(--space-10);
+    }
+
+    .mobile h1 {
+      font-size: 42px;
+      max-width: 10ch;
+    }
+
+    .mobile .subheadline {
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .mobile .hero {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+
+    .mobile .hero-image { min-height: 260px; }
+
+    .mobile .features {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+
+    .mobile .card {
+      min-height: 0;
+      padding: var(--space-5);
+    }
+
+    .mobile .cta-banner {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: var(--space-6);
+    }
+
+    .mobile .cta-banner h2 { font-size: 30px; }
+
+    .mobile .footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
+  </style>
+</head>
+<body>
+  <section class="frame desktop" style="max-width: 1440px; margin: 20px auto;">
+    <div class="frame-label">Desktop Frame 1440</div>
+    <header class="sticky-header">
+      <div class="logo"><span class="logo-badge">YT</span>Yummy Tummy AI</div>
+      <nav class="nav">
+        <a href="#">About</a>
+        <a href="#">Recipes</a>
+        <a href="#">Open Chat</a>
+      </nav>
+    </header>
+
+    <main class="homepage">
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Cook smarter daily</span>
+          <h1>Turn your ingredients into dinner</h1>
+          <p class="subheadline">Chat with an AI recipe assistant that transforms what is already in your kitchen into tailored meals in seconds.</p>
+          <div class="actions">
+            <button class="btn btn-primary">Start chatting</button>
+            <button class="btn btn-secondary">How it works</button>
+          </div>
+        </div>
+        <div class="hero-image"><span>Hero Image Placeholder</span></div>
+      </section>
+
+      <section class="features">
+        <article class="card">
+          <div class="step">1</div>
+          <h3>Add ingredients</h3>
+          <p>List what you have or snap a quick pantry photo. The assistant understands quantities, substitutions, and dietary constraints.</p>
+        </article>
+        <article class="card">
+          <div class="step">2</div>
+          <h3>Get meal ideas</h3>
+          <p>Receive balanced dinner options ranked by prep time, flavor profile, and ingredient usage so less food gets wasted.</p>
+        </article>
+        <article class="card">
+          <div class="step">3</div>
+          <h3>Cook with guidance</h3>
+          <p>Follow an interactive, step-by-step chat mode with timers and smart swaps for ingredients you do not have on hand.</p>
+        </article>
+      </section>
+
+      <section class="cta-banner">
+        <h2>Ready to cook without overthinking dinner?</h2>
+        <button class="btn btn-primary">Start chatting</button>
+      </section>
+
+      <footer class="footer">
+        <div>© 2026 Yummy Tummy AI</div>
+        <div class="footer-links">
+          <span>Privacy</span>
+          <span>Terms</span>
+          <span>Contact</span>
+          <span>Instagram</span>
+        </div>
+      </footer>
+    </main>
+  </section>
+
+  <section class="frame mobile" style="max-width: 420px; margin: 20px auto;">
+    <div class="frame-label">Mobile Frame 390</div>
+    <div class="mobile-wrap">
+      <header class="sticky-header">
+        <div class="logo"><span class="logo-badge">YT</span>Yummy Tummy AI</div>
+      </header>
+
+      <main class="homepage">
+        <section class="hero">
+          <div class="hero-copy">
+            <span class="eyebrow">Cook smarter daily</span>
+            <h1>Turn your ingredients into dinner</h1>
+            <p class="subheadline">An AI recipe chat that turns your fridge and pantry into personalized dinner ideas.</p>
+            <div class="actions">
+              <button class="btn btn-primary">Start chatting</button>
+              <button class="btn btn-secondary">How it works</button>
+            </div>
+          </div>
+          <div class="hero-image"><span>Hero Image Placeholder</span></div>
+        </section>
+
+        <section class="features">
+          <article class="card">
+            <div class="step">1</div>
+            <h3>Add ingredients</h3>
+            <p>Type or upload ingredients and preferences.</p>
+          </article>
+          <article class="card">
+            <div class="step">2</div>
+            <h3>See recipes</h3>
+            <p>Get curated ideas by time, taste, and nutrition.</p>
+          </article>
+          <article class="card">
+            <div class="step">3</div>
+            <h3>Cook in chat</h3>
+            <p>Follow guided steps with substitutions and timers.</p>
+          </article>
+        </section>
+
+        <section class="cta-banner">
+          <h2>Start tonight’s dinner with what you already have.</h2>
+          <button class="btn btn-primary">Start chatting</button>
+        </section>
+
+        <footer class="footer">
+          <div>© 2026 Yummy Tummy AI</div>
+          <div class="footer-links">
+            <span>Privacy</span>
+            <span>Terms</span>
+            <span>Contact</span>
+          </div>
+        </footer>
+      </main>
+    </div>
+  </section>
+</body>
+</html>

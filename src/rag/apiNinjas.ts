@@ -25,37 +25,6 @@ function normalizeText(input: string) {
     .trim();
 }
 
-function parseIngredientQuery(message: string): string[] {
-  const raw = normalizeText(message);
-  if (!raw) return [];
-
-  if (raw.includes(",")) {
-    return raw
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean)
-      .slice(0, 6);
-  }
-
-  const marker = raw.match(/(?:with|using|from)\s+(.+)$/i);
-  if (!marker) return [];
-  return marker[1]
-    .split(/,| and /g)
-    .map((v) => v.trim())
-    .filter((v) => v.length > 1)
-    .slice(0, 6);
-}
-
-function buildSearchParams(message: string) {
-  const params = new URLSearchParams();
-  const ingredients = parseIngredientQuery(message);
-  // v3 docs indicate `ingredients` is premium-only, so default to title-based search
-  // for broad compatibility across API Ninjas plans.
-  const title = (ingredients.length >= 2 ? ingredients.join(" ") : normalizeText(message)).slice(0, 80);
-  if (title) params.set("title", title);
-  return params;
-}
-
 function toRecipe(raw: unknown): ApiNinjasRecipe | null {
   const obj = raw as Record<string, unknown>;
   const title = String(obj?.title ?? "").trim();
@@ -100,37 +69,6 @@ function normalizeIngredient(value: unknown) {
 
 export function hasApiNinjasConfigured() {
   return API_NINJAS_API_KEY.length > 0;
-}
-
-export async function fetchApiNinjasRecipes(message: string, limit = 2): Promise<ApiNinjasRecipe[]> {
-  if (!hasApiNinjasConfigured()) return [];
-
-  const params = buildSearchParams(message);
-  if (![...params.keys()].length) return [];
-
-  const cacheKey = params.toString();
-  const hit = cache.get(cacheKey);
-  if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
-    return hit.items.slice(0, limit);
-  }
-
-  const recipes = await fetchFromAnyEndpoint(params, Math.max(1, Math.min(limit, 4)));
-
-  cache.set(cacheKey, { at: Date.now(), items: recipes });
-  return recipes;
-}
-
-export function buildApiNinjasContext(recipes: ApiNinjasRecipe[]) {
-  if (!recipes.length) return "";
-
-  const lines = ["API Ninjas recipe matches (use when relevant):"];
-  for (const r of recipes) {
-    lines.push(`- ${r.title}${r.servings ? ` (${r.servings})` : ""}`);
-    if (r.ingredients.length) lines.push(`  ingredients: ${r.ingredients.join(", ")}`);
-    if (r.instructions) lines.push(`  instructions: ${r.instructions.slice(0, 700)}`);
-  }
-
-  return lines.join("\n");
 }
 
 const CATEGORY_KEYWORDS: Record<string, string> = {

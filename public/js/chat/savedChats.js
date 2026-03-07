@@ -15,44 +15,64 @@ async function requestJSON(url, options = {}) {
   return data;
 }
 
-function actionButton(label, classes, onClick) {
+function iconButton({ label, icon, classes, onClick }) {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = classes;
-  btn.textContent = label;
+  btn.setAttribute("aria-label", label);
+  btn.title = label;
+  btn.innerHTML = icon;
   btn.addEventListener("click", onClick);
   return btn;
 }
 
-function buildSavedChatItem(chat, mobile = false) {
+function formatUpdatedAt(value) {
+  const ts = Number(value);
+  if (!Number.isFinite(ts)) return "";
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function buildSavedChatItem(chat) {
   const li = document.createElement("li");
-  li.className = mobile
-    ? "flex items-center justify-between skeuo-surface px-3 py-2"
-    : "flex items-center justify-between skeuo-surface px-3 py-2";
+  li.className = "group flex items-center gap-1 px-2 py-1.5";
+
+  const loadBtn = document.createElement("button");
+  loadBtn.type = "button";
+  loadBtn.className = "saved-chat-title min-w-0 flex-1 text-left";
+  loadBtn.addEventListener("click", () => loadChat(chat.id));
 
   const title = document.createElement("span");
-  title.className = "truncate max-w-[160px] text-slate-200 skeuo-ui";
+  title.className = "saved-chat-title-text";
   title.textContent = chat.title || "Untitled Chat";
 
-  const actions = document.createElement("span");
-  actions.className = "shrink-0 space-x-2";
-  actions.appendChild(actionButton(
-    "Load",
-    "skeuo-btn skeuo-btn-secondary skeuo-interactive px-2 py-1 text-xs",
-    () => loadChat(chat.id),
-  ));
-  actions.appendChild(actionButton(
-    "Export",
-    "skeuo-btn skeuo-btn-secondary skeuo-interactive px-2 py-1 text-xs",
-    () => exportChat(chat.id),
-  ));
-  actions.appendChild(actionButton(
-    "Delete",
-    "skeuo-btn skeuo-btn-danger skeuo-interactive px-2 py-1 text-xs",
-    () => deleteChat(chat.id),
+  const updated = formatUpdatedAt(chat?.updatedAt);
+  if (updated) {
+    const meta = document.createElement("span");
+    meta.className = "saved-chat-title-meta";
+    meta.textContent = `Updated ${updated}`;
+    loadBtn.appendChild(meta);
+  }
+
+  loadBtn.prepend(title);
+
+  const actions = document.createElement("div");
+  actions.className = "saved-chat-actions shrink-0";
+  actions.appendChild(iconButton({
+    label: "Export chat",
+    classes: "saved-chat-action",
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>',
+    onClick: () => exportChat(chat.id),
+  }));
+  actions.appendChild(iconButton({
+    label: "Delete chat",
+    classes: "saved-chat-action saved-chat-action-danger",
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.9 12.1a2 2 0 01-2 1.9H7.9a2 2 0 01-2-1.9L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16"/></svg>',
+    onClick: () => deleteChat(chat.id),
   ));
 
-  li.appendChild(title);
+  li.appendChild(loadBtn);
   li.appendChild(actions);
   return li;
 }
@@ -63,7 +83,7 @@ async function fetchSavedChats() {
   return savedChatsCache;
 }
 
-function renderList(ul, chats, mobile) {
+function renderList(ul, chats) {
   if (!ul) return;
   ul.innerHTML = "";
   if (!chats.length) {
@@ -73,7 +93,7 @@ function renderList(ul, chats, mobile) {
     ul.appendChild(li);
     return;
   }
-  chats.forEach((chat) => ul.appendChild(buildSavedChatItem(chat, mobile)));
+  chats.forEach((chat) => ul.appendChild(buildSavedChatItem(chat)));
 }
 
 function renderAuthRequired(ul) {
@@ -89,10 +109,10 @@ export async function renderSavedChats() {
   const ul = document.getElementById("savedChats");
   try {
     const chats = await fetchSavedChats();
-    renderList(ul, chats, false);
+    renderList(ul, chats);
   } catch (err) {
     if (err?.status === 401) return renderAuthRequired(ul);
-    renderList(ul, [], false);
+    renderList(ul, []);
   }
 }
 
@@ -100,10 +120,10 @@ export async function renderMobileSavedChats() {
   const ul = document.getElementById("mobileSavedChats");
   try {
     const chats = await fetchSavedChats();
-    renderList(ul, chats, true);
+    renderList(ul, chats);
   } catch (err) {
     if (err?.status === 401) return renderAuthRequired(ul);
-    renderList(ul, [], true);
+    renderList(ul, []);
   }
 }
 

@@ -30,9 +30,4 @@ export const refs = {
 export const state = {
   chatHistory: [],
   pendingFiles: [],
-  composing: false,
 };
-
-export function setRef(key, value) {
-  refs[key] = value;
-}

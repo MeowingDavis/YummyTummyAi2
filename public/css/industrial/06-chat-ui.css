@@ -31,6 +31,96 @@
   transform: none !important;
 }
 
+.saved-chat-title {
+  display: grid;
+  gap: 0.125rem;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+  padding: 0.35rem 0.5rem;
+  color: var(--text-primary);
+}
+
+.saved-chat-title:hover {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.saved-chat-title:focus-visible {
+  outline: none;
+  border-color: rgba(110, 231, 183, 0.55);
+  box-shadow: 0 0 0 2px rgba(110, 231, 183, 0.2);
+}
+
+.saved-chat-title-text {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-chat-title-meta {
+  display: block;
+  font-size: 0.68rem;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.saved-chat-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.saved-chat-action {
+  min-height: 32px !important;
+  min-width: 32px !important;
+  width: 32px;
+  height: 32px;
+  padding: 0 !important;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(184, 203, 227, 0.32);
+  background: rgba(39, 56, 79, 0.66);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.saved-chat-action:hover {
+  border-color: rgba(110, 231, 183, 0.55);
+  background: rgba(23, 35, 52, 0.9);
+}
+
+.saved-chat-action:focus-visible {
+  outline: none;
+  border-color: rgba(110, 231, 183, 0.6);
+  box-shadow: 0 0 0 2px rgba(110, 231, 183, 0.2);
+}
+
+.saved-chat-action-danger:hover,
+.saved-chat-action-danger:focus-visible {
+  border-color: rgba(248, 113, 113, 0.75);
+  color: #fecaca;
+}
+
+@media (min-width: 768px) {
+  .saved-chat-actions {
+    opacity: 0.25;
+    transition: opacity 140ms ease;
+  }
+
+  #savedChats > li:hover .saved-chat-actions,
+  #savedChats > li:focus-within .saved-chat-actions {
+    opacity: 1;
+  }
+}
+
 @supports (padding: max(0px)) {
   .composer-safe {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));

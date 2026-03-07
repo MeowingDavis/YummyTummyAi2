@@ -22,17 +22,31 @@ export async function ensureHistory(sessionId: string, systemPrompt: string) {
   const key = [HISTORY_KEY, sessionId];
   const current = await kv.get<SessionHistory>(key);
   const value = current.value;
+  const normalizedSystem = systemPrompt.trim();
 
   if (!value || isExpired(value.updatedAt)) {
     await kv.set(key, {
-      messages: [{ role: "system", content: systemPrompt.trim() }],
+      messages: [{ role: "system", content: normalizedSystem }],
       updatedAt: Date.now(),
     });
     return;
   }
 
+  const existing = Array.isArray(value.messages) ? value.messages : [];
+  let messages = existing.slice();
+  if (messages.length && messages[0].role === "system") {
+    // If system behavior changed, reset conversation context to avoid stale steering.
+    if (messages[0].content !== normalizedSystem) {
+      messages = [{ role: "system", content: normalizedSystem }];
+    } else {
+      messages[0] = { role: "system", content: normalizedSystem };
+    }
+  } else {
+    messages.unshift({ role: "system", content: normalizedSystem });
+  }
+
   await kv.set(key, {
-    messages: value.messages,
+    messages,
     updatedAt: Date.now(),
   });
 }

@@ -1,7 +1,7 @@
 // public/js/chat/drawer.js
 import { refs } from "./state.js";
 
-export function isDrawerOpen() {
+function isDrawerOpen() {
   return document.body.classList.contains('drawer-open');
 }
 

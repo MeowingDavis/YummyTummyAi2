@@ -5,18 +5,14 @@ import { serveErrorPage, serveTextTemplate, wantsHtml } from "./templates.ts";
 import { clearSessionCookie, getOrSetSessionId } from "./session.ts";
 import { HttpError, readJson } from "./http.ts";
 import { allow, allowSession } from "./rateLimit.ts";
-import { SYSTEM_PROMPT, OFF_TOPIC_REPLY, INJECTION_REPLY } from "./chat/prompts.ts";
+import { SYSTEM_PROMPT, INJECTION_REPLY, NON_FOOD_STEER_PROMPT } from "./chat/prompts.ts";
 import { ensureHistory, getHistory, pushAndClamp, clearHistory } from "./chat/history.ts";
-import { isCookingQuery } from "./chat/guard.ts";
-import { detectMode, steerForMode } from "./chat/modes.ts";
 import { groqChat, listGroqModels } from "./chat/groq.ts";
 import { detectPromptInjection } from "./chat/injection.ts";
+import { isCookingQuery } from "./chat/guard.ts";
 import { redact } from "./redact.ts";
-import { buildRecipeContext, hasStrongRecipeMatch, retrieveRecipes } from "./rag/retrieve.ts";
 import {
   browseApiNinjasRecipes,
-  buildApiNinjasContext,
-  fetchApiNinjasRecipes,
   hasApiNinjasConfigured,
   searchApiNinjasRecipes,
 } from "./rag/apiNinjas.ts";
@@ -61,7 +57,6 @@ const MODELS_REFRESH_MS = 5 * 60 * 1000;
 const CHAT_WINDOW_MS = 24 * 60 * 60 * 1000;
 const GUEST_DAILY_CHAT_LIMIT = 15;
 const USER_DAILY_CHAT_LIMIT = 40;
-const CHAT_DEBUG_SOURCES = (Deno.env.get("CHAT_DEBUG_SOURCES") ?? "").trim() === "1";
 
 type SavedChat = {
   id: string;
@@ -881,61 +876,13 @@ export function startServer() {
 
         const history = await getHistory(ownerKey);
         const lastAssistant = history.slice().reverse().find(m => m.role === "assistant")?.content ?? "";
-
-        // Off-topic guard (context-aware)
-        if (!isCookingQuery(message, lastAssistant)) {
-          const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
-          if (setCookie) h.append("Set-Cookie", setCookie);
-          return new Response(JSON.stringify({ reply: OFF_TOPIC_REPLY, markdown: OFF_TOPIC_REPLY }), { headers: h });
-        }
-
-        // Choose mode
-        const mode = detectMode(message, lastAssistant);
-        const steer = steerForMode(mode);
-
-        // Retrieve recipe context (RAG-lite from local recipe corpus)
-        const recipeHits = await retrieveRecipes(message, 3);
-        const recipeContext = buildRecipeContext(recipeHits);
-        const strongRecipeMatch = hasStrongRecipeMatch(recipeHits);
-        let apiNinjasContext = "";
-        let apiNinjasUsed = false;
-        if (!strongRecipeMatch && hasApiNinjasConfigured()) {
-          try {
-            const apiNinjasRecipes = await fetchApiNinjasRecipes(message, 2);
-            apiNinjasContext = buildApiNinjasContext(apiNinjasRecipes);
-            apiNinjasUsed = apiNinjasRecipes.length > 0;
-          } catch (err) {
-            const safe = redact(String((err as Error)?.message ?? err));
-            console.warn("[api-ninjas] recipe lookup failed:", safe);
-          }
-        }
-        const profile = user?.profile;
-        const profileSteer = profile
-          ? [
-              "Apply user profile preferences when generating food responses:",
-              `dietaryRequirements: ${(profile.dietaryRequirements ?? []).join(", ") || "none"}`,
-              `allergies: ${(profile.allergies ?? []).join(", ") || "none"}`,
-              `dislikes: ${(profile.dislikes ?? []).join(", ") || "none"}`,
-            ].join("\n")
-          : "";
-        const ragSteer = {
-          role: "system" as const,
-          content: strongRecipeMatch
-            ? "Use the recipe library context when it fits the request. Prefer those recipes and mention recipe title(s) used."
-            : apiNinjasContext
-            ? "No strong local recipe-library match found. Use API recipe matches when relevant and mention recipe title(s) used."
-            : "No strong recipe-library match found. You may create a fresh recipe while following user constraints.",
-        };
+        const isFoodTurn = isCookingQuery(message, lastAssistant);
 
         // Build request to model
         const recent = history.slice(-12);
         const messagesToSend = [
           ...recent,
-          steer,
-          ...(profileSteer ? [{ role: "system" as const, content: profileSteer }] : []),
-          ...(recipeContext ? [{ role: "system" as const, content: recipeContext }] : []),
-          ...(apiNinjasContext ? [{ role: "system" as const, content: apiNinjasContext }] : []),
-          ragSteer,
+          ...(!isFoodTurn ? [{ role: "system" as const, content: NON_FOOD_STEER_PROMPT }] : []),
           { role: "user" as const, content: message },
         ];
 
@@ -952,14 +899,6 @@ export function startServer() {
           modelUsed: chosenModel,
           modelFallback: !!selectedModel && selectedModel !== chosenModel,
         };
-        if (CHAT_DEBUG_SOURCES) {
-          responsePayload.recipeSources = {
-            localStrongMatch: strongRecipeMatch,
-            localHits: recipeHits.length,
-            apiNinjasConfigured: hasApiNinjasConfigured(),
-            apiNinjasUsed,
-          };
-        }
         return new Response(JSON.stringify(responsePayload), { headers: h });
       } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));

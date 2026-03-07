@@ -1,5 +1,4 @@
 // public/js/chat/privacy.js
-import { refs } from "./state.js";
 import { hasPrivacyAck, savePrivacyAck } from "./storage.js";
 import { renderSavedChats, renderMobileSavedChats } from "./savedChats.js";
 

@@ -8,7 +8,7 @@ import { wireComposer, autoresize, refreshSendState } from "./chat.js";
 import { initPrivacy } from "./privacy.js";
 import { initAuth } from "./auth.js";
 
-export function initCore() {
+function initCore() {
   try {
     refs.chatbox  = document.getElementById('chatbox');
     refs.typingEl = document.getElementById('typing');

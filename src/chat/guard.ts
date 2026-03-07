@@ -1,10 +1,11 @@
 // src/chat/guard.ts
 
-export const FOOD_ALLOWLIST = [
+const FOOD_ALLOWLIST = [
   "cook","cooking","recipe","recipes","ingredient","ingredients","meal","meals","dish","dishes",
+  "eat","eating","hungry","craving","snacky","snack","snacks","what should i eat","what to eat",
   "bake","baking","roast","roasting","grill","grilling","fry","frying","boil","simmer","saute","steam",
   "soup","salad","sauce","stir-fry","marinade","marinate","season","spice","spices","herb","herbs",
-  "breakfast","lunch","dinner","dessert","snack","drink","beverage","coffee","tea","cocktail","mocktail",
+  "breakfast","lunch","dinner","dessert","drink","beverage","coffee","tea","cocktail","mocktail",
   "ideas","what should i cook","juice","juices","smoothie","smoothies","menu","restaurant","takeout", "salsa", "guacamole", "hummus", "dip", "dips",
   // dietary
   "vegan","vegetarian","gluten","dairy-free","nut-free","halal","kosher","low-carb","keto","pescatarian",
@@ -16,12 +17,12 @@ export const FOOD_ALLOWLIST = [
   "yogurt","oats","cinnamon","mushroom","mushrooms","broccoli","lettuce","vegetable","vegetables","veggies","fruit",
   // common foods / cravings
   "burger","burgers","pizza","taco","tacos","sandwich","sandwiches","fries","ramen","sushi","pancake","pancakes",
-  "fresh","exotic","spicy","savory","sweet","healthy","light","comfort food",
+  "fresh","exotic","spicy","savory","sweet","healthy","light","comfort food","comforting","indulgent","cheap","budget",
   // tools/gear
   "oven","stove","pan","pot","skillet","air fryer","airfryer","knife","cutting board"
 ];
 
-export const TECH_BLOCKLIST = [
+const TECH_BLOCKLIST = [
   "html","css","javascript","js","typescript","ts","react","svelte","vue","next","tailwind",
   "api","endpoint","server","client","deploy","docker","deno","node","python","sql","database","schema","uml","mermaid","github","git"
 ];
@@ -35,13 +36,18 @@ export function isCookingQuery(s: string, lastAssistant?: string): boolean {
   if (mentionsTech && !mentionsFood) return false;
 
   // 1b) Light small-talk passthrough
-  if (/^(hi|hello|hey|thanks|thank you|ok|okay|cool|great|nice|awesome|sounds good|all good|you'?re alright|youre alright|nah|how are you|how's it going|whats up|what's up)$/i.test(t)) return true;
+  if (/^(hi|hello|hey|hey there|yo|thanks|thank you|ok|okay|cool|great|nice|awesome|sounds good|all good|you'?re alright|youre alright|nah|how are you|how's it going|whats up|what's up|good morning|good afternoon|good evening)$/i.test(t)) return true;
 
   // 2) Obvious food content
   if (mentionsFood) return true;
 
   // 2b) Food-intent conversational cues (e.g. "i like burger", "i'm craving pasta")
   if (/\b(i like|i love|i want|i'm craving|im craving|craving)\b/.test(t) && /\b(food|dish|meal|burger|pizza|taco|sandwich|pasta|rice|chicken|beef|fish|salad|soup|snack|dessert)\b/.test(t)) {
+    return true;
+  }
+
+  // 2bb) Broad indecisive food prompts
+  if (/\b(what should i eat|what do i eat|what to eat|i'?m hungry|im hungry|pick for me|surprise me)\b/.test(t)) {
     return true;
   }
 

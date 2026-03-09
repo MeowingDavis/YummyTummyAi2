@@ -1,5 +1,3 @@
-import { getAppKv } from "./kv.ts";
-
 export type UserProfile = {
   dietaryRequirements?: string[];
   allergies?: string[];
@@ -13,14 +11,6 @@ export type PublicUser = {
   createdAt: number;
   updatedAt: number;
   profile?: UserProfile;
-};
-
-type StoredUser = {
-  id: string;
-  email: string;
-  name?: string;
-  createdAt: number;
-  updatedAt: number;
 };
 
 export type AuthenticatedUser = {
@@ -50,8 +40,10 @@ function assertSupabaseEnv() {
   }
 }
 
-async function getKv() {
-  return await getAppKv();
+function assertSupabaseServiceEnv() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Missing Supabase env: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
+  }
 }
 
 function normalizeEmail(email: string) {
@@ -68,16 +60,28 @@ function isEmailConfirmed(raw: any) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-function toStoredUserFromSupabase(raw: any): StoredUser {
-  const id = String(raw?.id ?? "").trim();
-  const email = normalizeEmail(String(raw?.email ?? ""));
-  const name = raw?.user_metadata?.name ? String(raw.user_metadata.name).trim() : undefined;
+function toArr(input: unknown) {
+  return Array.isArray(input) ? input.map((item) => String(item).trim()).filter(Boolean).slice(0, 30) : [];
+}
+
+function sanitizeProfile(input: unknown): UserProfile {
+  if (!input || typeof input !== "object") return {};
+  const row = input as Record<string, unknown>;
   return {
-    id,
-    email,
-    name,
+    dietaryRequirements: toArr(row.dietary_requirements ?? row.dietaryRequirements),
+    allergies: toArr(row.allergies),
+    dislikes: toArr(row.dislikes),
+  };
+}
+
+function toPublicUserFromSupabase(raw: any, profile?: UserProfile): PublicUser {
+  return {
+    id: String(raw?.id ?? "").trim(),
+    email: normalizeEmail(String(raw?.email ?? "")),
+    name: raw?.user_metadata?.name ? String(raw.user_metadata.name).trim() : undefined,
     createdAt: parseSupabaseTime(raw?.created_at),
     updatedAt: parseSupabaseTime(raw?.updated_at),
+    profile,
   };
 }
 
@@ -91,7 +95,7 @@ async function supabaseRequest(path: string, options: RequestInit, useServiceRol
   const key = useServiceRole ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY;
   const headers = new Headers(options.headers ?? {});
   if (!headers.has("apikey")) headers.set("apikey", key);
-  if (useServiceRole && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${key}`);
+  if (!headers.has("Authorization")) headers.set("Authorization", `Bearer ${key}`);
   if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
 
   const res = await fetch(`${SUPABASE_URL}${path}`, {
@@ -113,35 +117,32 @@ export async function supabaseAdminRequest(path: string, options: RequestInit) {
   return await supabaseRequest(path, options, true);
 }
 
-function assertSupabaseServiceEnv() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("Missing Supabase env: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
+async function requestRows<T>(path: string, options: RequestInit): Promise<T[]> {
+  const data = await supabaseAdminRequest(path, options);
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === "object" && Object.keys(data).length) return [data as T];
+  return [];
+}
+
+function buildProfilePath(params: Record<string, string | number>) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    search.set(key, String(value));
   }
+  return `/rest/v1/profiles?${search.toString()}`;
 }
 
-async function upsertUser(user: StoredUser) {
-  if (!user.id || !user.email) throw new Error("Invalid Supabase user payload");
-  const kv = await getKv();
-  await kv.set(["users", user.id], user);
-}
-
-async function getStoredUser(userId: string): Promise<StoredUser | null> {
-  const kv = await getKv();
-  const row = await kv.get<StoredUser>(["users", userId]);
-  return row.value ?? null;
-}
-
-async function getProfile(userId: string): Promise<UserProfile | undefined> {
-  const kv = await getKv();
-  const row = await kv.get<UserProfile>(["profiles", userId]);
-  return row.value ?? undefined;
-}
-
-async function toPublicUser(stored: StoredUser): Promise<PublicUser> {
-  return {
-    ...stored,
-    profile: await getProfile(stored.id),
-  };
+export async function getUserProfile(userId: string): Promise<UserProfile | undefined> {
+  const rows = await requestRows<Record<string, unknown>>(buildProfilePath({
+    select: "dietary_requirements,allergies,dislikes",
+    user_id: `eq.${userId}`,
+    limit: 1,
+  }), { method: "GET" });
+  const profile = sanitizeProfile(rows[0]);
+  if (!profile.dietaryRequirements?.length && !profile.allergies?.length && !profile.dislikes?.length) {
+    return undefined;
+  }
+  return profile;
 }
 
 export function validateCredentials(email: string, password: string) {
@@ -166,9 +167,7 @@ export async function registerUser(email: string, password: string, name?: strin
 
   const rawUser = data?.user;
   if (!rawUser) throw new Error("Supabase did not return a user");
-  const stored = toStoredUserFromSupabase(rawUser);
-  await upsertUser(stored);
-  return await toPublicUser(stored);
+  return toPublicUserFromSupabase(rawUser);
 }
 
 export async function authenticateUser(email: string, password: string): Promise<AuthenticatedUser | null> {
@@ -179,50 +178,49 @@ export async function authenticateUser(email: string, password: string): Promise
 
   const rawUser = data?.user;
   if (!rawUser) return null;
-  const stored = toStoredUserFromSupabase(rawUser);
-  await upsertUser(stored);
+  const profile = await getUserProfile(String(rawUser.id ?? ""));
   return {
-    user: await toPublicUser(stored),
+    user: toPublicUserFromSupabase(rawUser, profile),
     emailConfirmed: isEmailConfirmed(rawUser),
   };
 }
 
 export async function getUserById(id: string): Promise<PublicUser | null> {
-  const stored = await getStoredUser(id);
-  if (!stored) return null;
-  return await toPublicUser(stored);
-}
-
-export async function linkSessionToUser(sessionId: string, userId: string) {
-  const kv = await getKv();
-  await kv.set(["sessionUser", sessionId], userId);
-}
-
-export async function unlinkSession(sessionId: string) {
-  const kv = await getKv();
-  await kv.delete(["sessionUser", sessionId]);
-}
-
-export async function getUserForSession(sessionId: string): Promise<PublicUser | null> {
-  const kv = await getKv();
-  const row = await kv.get<string>(["sessionUser", sessionId]);
-  if (!row.value) return null;
-  return await getUserById(row.value);
+  const encodedId = encodeURIComponent(id);
+  const data = await supabaseAdminRequest(`/auth/v1/admin/users/${encodedId}`, { method: "GET" });
+  const rawUser = data?.user ?? data;
+  if (!rawUser?.id || !rawUser?.email) return null;
+  const profile = await getUserProfile(String(rawUser.id));
+  return toPublicUserFromSupabase(rawUser, profile);
 }
 
 export async function updateUserProfile(userId: string, patch: UserProfile): Promise<PublicUser | null> {
-  const stored = await getStoredUser(userId);
-  if (!stored) return null;
-
-  const current = (await getProfile(userId)) ?? {};
+  const current = (await getUserProfile(userId)) ?? {};
   const next: UserProfile = {
-    ...current,
-    ...patch,
+    dietaryRequirements: toArr(patch.dietaryRequirements ?? current.dietaryRequirements),
+    allergies: toArr(patch.allergies ?? current.allergies),
+    dislikes: toArr(patch.dislikes ?? current.dislikes),
   };
 
-  const kv = await getKv();
-  await kv.set(["profiles", userId], next);
-  return await toPublicUser(stored);
+  const rows = await requestRows<Record<string, unknown>>("/rest/v1/profiles", {
+    method: "POST",
+    headers: {
+      "Prefer": "resolution=merge-duplicates,return=representation",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      dietary_requirements: next.dietaryRequirements ?? [],
+      allergies: next.allergies ?? [],
+      dislikes: next.dislikes ?? [],
+    }),
+  });
+
+  const user = await getUserById(userId);
+  if (!user) return null;
+  return {
+    ...user,
+    profile: sanitizeProfile(rows[0]),
+  };
 }
 
 export function getPublicSupabaseConfig() {
@@ -281,31 +279,31 @@ export async function verifyPassword(email: string, password: string) {
 
 export async function updateSupabaseUserPassword(userId: string, newPassword: string) {
   const encodedId = encodeURIComponent(userId);
-  await supabaseRequest(`/auth/v1/admin/users/${encodedId}`, {
+  await supabaseAdminRequest(`/auth/v1/admin/users/${encodedId}`, {
     method: "PUT",
     body: JSON.stringify({ password: newPassword }),
-  }, true);
+  });
 }
 
 export async function deleteSupabaseUser(userId: string) {
   const encodedId = encodeURIComponent(userId);
   try {
-    await supabaseRequest(`/auth/v1/admin/users/${encodedId}?should_soft_delete=true`, {
+    await supabaseAdminRequest(`/auth/v1/admin/users/${encodedId}?should_soft_delete=true`, {
       method: "DELETE",
-    }, true);
+    });
     return;
   } catch (err) {
     const status = err instanceof SupabaseApiError ? err.status : 0;
     if (status !== 400 && status !== 404 && status !== 422) throw err;
   }
 
-  await supabaseRequest(`/auth/v1/admin/users/${encodedId}`, {
+  await supabaseAdminRequest(`/auth/v1/admin/users/${encodedId}`, {
     method: "DELETE",
-  }, true);
+  });
 }
 
 export async function deleteLocalUserData(userId: string) {
-  const kv = await getKv();
-  await kv.delete(["users", userId]);
-  await kv.delete(["profiles", userId]);
+  await supabaseAdminRequest(buildProfilePath({
+    user_id: `eq.${userId}`,
+  }), { method: "DELETE" });
 }

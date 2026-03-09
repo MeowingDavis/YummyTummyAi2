@@ -2,11 +2,12 @@
 import { serveDir } from "https://deno.land/std@0.224.0/http/file_server.ts";
 import { applySecurityHeaders, withSecurity } from "./security.ts";
 import { serveErrorPage, serveTextTemplate, wantsHtml } from "./templates.ts";
-import { clearSessionCookie, getOrSetSessionId } from "./session.ts";
+import { clearAuthCookie, clearSessionCookie, getAuthUserFromCookie, getOrSetSessionId, setAuthCookie } from "./session.ts";
 import { HttpError, readJson } from "./http.ts";
 import { allow, allowSession } from "./rateLimit.ts";
 import { SYSTEM_PROMPT, OFF_TOPIC_REPLY, INJECTION_REPLY } from "./chat/prompts.ts";
 import { ensureHistory, getHistory, pushAndClamp, clearHistory } from "./chat/history.ts";
+import { clearChatQuota, consumeDailyChatQuota } from "./chatQuota.ts";
 import { isCookingQuery } from "./chat/guard.ts";
 import { detectMode, steerForMode } from "./chat/modes.ts";
 import { groqChat, listGroqModels } from "./chat/groq.ts";
@@ -20,23 +21,19 @@ import {
   hasApiNinjasConfigured,
   searchApiNinjasRecipes,
 } from "./rag/apiNinjas.ts";
-import type { Msg } from "./chat/history.ts";
-import { getAppKv } from "./kv.ts";
 import {
   SupabaseApiError,
   authenticateUser,
   deleteLocalUserData,
   deleteSupabaseUser,
   getPublicSupabaseConfig,
-  getUserForSession,
+  getUserById,
   isSupabaseAlreadyRegisteredError,
   isSupabaseEmailNotConfirmedError,
   isSupabaseInvalidCredentialsError,
   isSupabaseRateLimitError,
-  linkSessionToUser,
   registerUser,
   sendPasswordRecoveryEmail,
-  unlinkSession,
   updateSupabaseUserPassword,
   updateUserProfile,
   validateCredentials,
@@ -65,15 +62,9 @@ const CONFIGURED_MODELS = (() => {
 const IP_RE = /^[0-9a-fA-F:.]+$/;
 const CANONICAL_URL = parseCanonicalOrigin(CANONICAL_ORIGIN);
 const MODELS_REFRESH_MS = 5 * 60 * 1000;
-const CHAT_WINDOW_MS = 24 * 60 * 60 * 1000;
 const GUEST_DAILY_CHAT_LIMIT = 15;
 const USER_DAILY_CHAT_LIMIT = 40;
 const CHAT_DEBUG_SOURCES = (Deno.env.get("CHAT_DEBUG_SOURCES") ?? "").trim() === "1";
-
-type ChatQuotaState = {
-  timestamps: number[];
-  updatedAt: number;
-};
 
 let modelResolutionCache: { at: number; models: string[]; defaultModel: string } | null = null;
 
@@ -166,10 +157,6 @@ function chatOwnerKey(sessionId: string, userId?: string) {
   return userId ? `user:${userId}` : `session:${sessionId}`;
 }
 
-async function getKv() {
-  return await getAppKv();
-}
-
 function limitForUser(userId?: string) {
   return userId ? USER_DAILY_CHAT_LIMIT : GUEST_DAILY_CHAT_LIMIT;
 }
@@ -179,32 +166,10 @@ function isControlNewChat(message: string, newChat?: boolean) {
   return /^let'?s start a new chat!?$/i.test(message.trim());
 }
 
-async function consumeDailyChatQuota(sessionId: string, userId?: string) {
-  const kv = await getKv();
-  const quotaOwner = userId ? `user:${userId}` : `session:${sessionId}`;
-  const key = ["chatQuota", quotaOwner];
-  const now = Date.now();
-  const limit = limitForUser(userId);
-
-  const row = await kv.get<ChatQuotaState>(key);
-  const prior = Array.isArray(row.value?.timestamps)
-    ? row.value.timestamps.filter((ts): ts is number => Number.isFinite(ts) && ts > 0)
-    : [];
-  const kept = prior
-    .filter(ts => now - ts < CHAT_WINDOW_MS)
-    .sort((a, b) => a - b)
-    .slice(-limit);
-
-  if (kept.length >= limit) {
-    await kv.set(key, { timestamps: kept, updatedAt: now });
-    const oldest = kept[0] ?? now;
-    const retryAfterSec = Math.max(1, Math.ceil((CHAT_WINDOW_MS - (now - oldest)) / 1000));
-    return { allowed: false as const, limit, remaining: 0, retryAfterSec };
-  }
-
-  kept.push(now);
-  await kv.set(key, { timestamps: kept, updatedAt: now });
-  return { allowed: true as const, limit, remaining: Math.max(0, limit - kept.length), retryAfterSec: 0 };
+async function getCurrentUser(req: Request) {
+  const cookieUser = await getAuthUserFromCookie(req);
+  if (!cookieUser) return null;
+  return await getUserById(cookieUser.id);
 }
 
 export function startServer() {
@@ -283,8 +248,8 @@ export function startServer() {
 
     // Auth
     if (req.method === "GET" && url.pathname === "/me") {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
-      const user = await getUserForSession(sessionId);
+      const { setCookie } = await getOrSetSessionId(req);
+      const user = await getCurrentUser(req);
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       return new Response(JSON.stringify({ user }), { headers: h });
@@ -335,7 +300,7 @@ export function startServer() {
       }
     }
     if (req.method === "POST" && url.pathname === "/auth/login") {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const { setCookie } = await getOrSetSessionId(req);
       try {
         const body = await readJson<{ email?: string; password?: string }>(req);
         const email = (body.email ?? "").trim();
@@ -369,9 +334,9 @@ export function startServer() {
             message: "Please confirm your email before logging in.",
           }), { status: 401, headers: h });
         }
-        await linkSessionToUser(sessionId, login.user.id);
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
+        h.append("Set-Cookie", await setAuthCookie(req, login.user));
         return new Response(JSON.stringify({ ok: true, user: login.user }), { headers: h });
       } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
@@ -455,15 +420,15 @@ export function startServer() {
       }
     }
     if (req.method === "POST" && url.pathname === "/auth/logout") {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
-      await unlinkSession(sessionId);
+      const { setCookie } = await getOrSetSessionId(req);
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
+      h.append("Set-Cookie", clearAuthCookie(req));
       return new Response(JSON.stringify({ ok: true }), { headers: h });
     }
     if (req.method === "POST" && url.pathname === "/auth/change-password") {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
-      const user = await getUserForSession(sessionId);
+      const { setCookie } = await getOrSetSessionId(req);
+      const user = await getCurrentUser(req);
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       if (!user) {
@@ -541,7 +506,7 @@ export function startServer() {
     }
     if (req.method === "POST" && url.pathname === "/auth/delete-account") {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);
-      const user = await getUserForSession(sessionId);
+      const user = await getCurrentUser(req);
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       if (!user) {
@@ -573,16 +538,13 @@ export function startServer() {
 
         await deleteSupabaseUser(user.id);
         await deleteLocalUserData(user.id);
-        await unlinkSession(sessionId);
-
         await deleteAllSavedChats(user.id);
-
-        const kv = await getKv();
         const owner = chatOwnerKey(sessionId, user.id);
-        await kv.delete(["chatHistory", owner]);
-        await kv.delete(["chatQuota", `user:${user.id}`]);
+        await clearHistory(owner);
+        await clearChatQuota(owner);
 
         const successHeaders = new Headers(withSecurity({ "Content-Type": "application/json" }));
+        successHeaders.append("Set-Cookie", clearAuthCookie(req));
         successHeaders.append("Set-Cookie", clearSessionCookie(req));
         return new Response(JSON.stringify({ ok: true }), { headers: successHeaders });
       } catch (err) {
@@ -608,8 +570,8 @@ export function startServer() {
       }
     }
     if (req.method === "PATCH" && url.pathname === "/me/profile") {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
-      const user = await getUserForSession(sessionId);
+      const { setCookie } = await getOrSetSessionId(req);
+      const user = await getCurrentUser(req);
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       if (!user) {
@@ -623,6 +585,7 @@ export function startServer() {
           allergies: toArr(body.allergies),
           dislikes: toArr(body.dislikes),
         });
+        if (updated) h.append("Set-Cookie", await setAuthCookie(req, updated));
         return new Response(JSON.stringify({ user: updated }), { headers: h });
       } catch (err) {
         if (err instanceof HttpError) {
@@ -634,10 +597,10 @@ export function startServer() {
 
     // Saved chats (Supabase-backed, account required)
     if (req.method === "GET" && url.pathname === "/saved-chats") {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const { setCookie } = await getOrSetSessionId(req);
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
-      const user = await getUserForSession(sessionId);
+      const user = await getCurrentUser(req);
       if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
       try {
         const chats = await listSavedChats(user.id);
@@ -651,8 +614,8 @@ export function startServer() {
       }
     }
     if (req.method === "POST" && url.pathname === "/saved-chats") {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
-      const user = await getUserForSession(sessionId);
+      const { setCookie } = await getOrSetSessionId(req);
+      const user = await getCurrentUser(req);
       try {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
@@ -682,11 +645,11 @@ export function startServer() {
       }
     }
     if (req.method === "GET" && url.pathname.startsWith("/saved-chats/")) {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const { setCookie } = await getOrSetSessionId(req);
       const id = decodeURIComponent(url.pathname.replace("/saved-chats/", ""));
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
-      const user = await getUserForSession(sessionId);
+      const user = await getCurrentUser(req);
       if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
       try {
         const found = await getSavedChat(user.id, id);
@@ -703,9 +666,9 @@ export function startServer() {
       }
     }
     if (req.method === "DELETE" && url.pathname.startsWith("/saved-chats/")) {
-      const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const { setCookie } = await getOrSetSessionId(req);
       const id = decodeURIComponent(url.pathname.replace("/saved-chats/", ""));
-      const user = await getUserForSession(sessionId);
+      const user = await getCurrentUser(req);
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
@@ -798,7 +761,7 @@ export function startServer() {
     if (req.method === "POST" && url.pathname === "/chat") {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);
       const ip = getClientIp(req, info);
-      const user = await getUserForSession(sessionId);
+      const user = await getCurrentUser(req);
       const ownerKey = chatOwnerKey(sessionId, user?.id);
 
       if (!allow(ip) || !allowSession(sessionId)) {
@@ -830,7 +793,7 @@ export function startServer() {
           return new Response(JSON.stringify({ error: "Message too long (max 1000 chars)" }), { status: 413, headers: h });
         }
         if (!isNewChatControl) {
-          const quota = await consumeDailyChatQuota(sessionId, user?.id);
+          const quota = await consumeDailyChatQuota(ownerKey, limitForUser(user?.id));
           if (!quota.allowed) {
             const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
             if (setCookie) h.append("Set-Cookie", setCookie);

@@ -9,7 +9,7 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 - Optional API Ninjas recipe enrichment when local matches are weak
 - Recipe Explorer page for manual search + categories (`/recipes.html`)
 - Off-topic guard that steers conversation back to food
-- Session-based chat history persisted in Deno KV
+- Session-based chat history persisted in Supabase
 - Saved chats persisted in Supabase
 - Optional account auth (register/login/logout) with profile fields
 - Basic in-memory rate limiting (IP + session cooldown)
@@ -98,7 +98,7 @@ http://localhost:8000
 - `POST /auth/login` -> `{ email, password }`
 - `POST /auth/forgot-password` -> `{ email }` (always generic success unless rate-limited/hard failure)
 - `POST /auth/delete-account` -> `{ password }` (requires logged-in session)
-- `POST /auth/logout` -> clears session-user link
+- `POST /auth/logout` -> clears the persistent auth cookie
 - `GET /auth/client-config` -> browser-safe Supabase config for reset flow (`SUPABASE_URL`, anon key only)
 - `PATCH /me/profile` -> updates `{ dietaryRequirements, allergies, dislikes }`
 - `POST /chat` -> accepts JSON:
@@ -120,18 +120,18 @@ http://localhost:8000
 - `src/chat/` -> prompt logic, mode detection, guard, history, Groq client
 - `src/security.ts` -> security headers
 - `src/rateLimit.ts` -> in-memory token bucket + session cooldown
-- `src/chat/history.ts` -> Deno KV-backed session chat history
-- `src/auth.ts` -> account auth + profile management in Deno KV
+- `src/chat/history.ts` -> Supabase-backed session and user chat history
+- `src/auth.ts` -> Supabase auth + profile management
 - `public/` -> static pages and chat UI scripts
 
 ## Notes
 
 - `GROQ_API_KEY` is required at startup.
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY` are required for auth flows.
-- `SUPABASE_SERVICE_ROLE_KEY` is required for server-side saved chat access and secure account deletion. Never expose this key in browser code.
+- `SUPABASE_SERVICE_ROLE_KEY` is required for server-side app state access and secure account deletion. Never expose this key in browser code.
 - If `MODEL` is unset, the app defaults to `llama-3.1-8b-instant`.
-- Rate limit state remains in-memory; chat history is persisted in Deno KV and saved chats are persisted in Supabase.
-- Run the SQL in `supabase/saved_chats.sql` before using saved chats.
+- Rate limit state remains in-memory; persistent app state is stored in Supabase.
+- Run the SQL in `supabase/app_state.sql` and `supabase/saved_chats.sql` before using auth-backed chat features.
 - If RAG finds strong recipe matches, the assistant uses those titles/details.
 - If no strong RAG match exists, the assistant still generates a fresh recipe.
 - If `API_NINJAS_API_KEY` is set, the app also fetches API Ninjas recipe matches when local recipe matches are weak.

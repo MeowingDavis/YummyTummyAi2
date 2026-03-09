@@ -1,6 +1,7 @@
 // src/session.ts
 
 const COOKIE_NAME = "yt_sid";
+const AUTH_COOKIE_NAME = "yt_auth";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 const SESSION_SECRET_ENV = Deno.env.get("SESSION_SECRET")?.trim() ?? "";
 const NODE_ENV = Deno.env.get("NODE_ENV")?.trim().toLowerCase() ?? "";
@@ -31,19 +32,31 @@ function toBase64Url(bytes: Uint8Array) {
   return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
 }
 
-function parseCookieValue(req: Request) {
+function fromBase64Url(value: string) {
+  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
+  const padding = normalized.length % 4 === 0 ? "" : "=".repeat(4 - (normalized.length % 4));
+  return atob(normalized + padding);
+}
+
+function parseSignedCookie(req: Request, name: string) {
   const cookie = req.headers.get("cookie") ?? "";
-  const match = cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`));
+  const match = cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`));
   if (!match) return null;
   try {
     const raw = decodeURIComponent(match[1]);
-    if (raw.length > 256) return null;
-    const dot = raw.indexOf(".");
-    if (dot === -1) return { id: raw, sig: "" };
-    return { id: raw.slice(0, dot), sig: raw.slice(dot + 1) };
+    if (raw.length > 2048) return null;
+    const dot = raw.lastIndexOf(".");
+    if (dot === -1) return null;
+    return { value: raw.slice(0, dot), sig: raw.slice(dot + 1) };
   } catch {
     return null;
   }
+}
+
+function parseCookieValue(req: Request) {
+  const parsed = parseSignedCookie(req, COOKIE_NAME);
+  if (!parsed || parsed.value.length > 256) return null;
+  return { id: parsed.value, sig: parsed.sig };
 }
 
 function shouldSetSecureCookie(req: Request) {
@@ -54,6 +67,11 @@ function shouldSetSecureCookie(req: Request) {
 export function clearSessionCookie(req: Request) {
   const secure = shouldSetSecureCookie(req) ? "; Secure" : "";
   return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
+}
+
+export function clearAuthCookie(req: Request) {
+  const secure = shouldSetSecureCookie(req) ? "; Secure" : "";
+  return `${AUTH_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
 }
 
 async function getSigningKey() {
@@ -94,4 +112,43 @@ export async function getOrSetSessionId(req: Request) {
   const cookieVal =
     `${COOKIE_NAME}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}${secure}`;
   return { id, setCookie: cookieVal };
+}
+
+type AuthCookieUser = {
+  id: string;
+  email: string;
+  name?: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+function isValidAuthCookieUser(value: unknown): value is AuthCookieUser {
+  if (!value || typeof value !== "object") return false;
+  const row = value as Record<string, unknown>;
+  return UUID_RE.test(String(row.id ?? "").trim()) &&
+    typeof row.email === "string" &&
+    row.email.trim().length > 0 &&
+    Number.isFinite(row.createdAt) &&
+    Number.isFinite(row.updatedAt) &&
+    (row.name === undefined || typeof row.name === "string");
+}
+
+export async function getAuthUserFromCookie(req: Request): Promise<AuthCookieUser | null> {
+  const parsed = parseSignedCookie(req, AUTH_COOKIE_NAME);
+  if (!parsed || !await hasValidSignature(parsed.value, parsed.sig)) return null;
+  try {
+    const decoded = fromBase64Url(parsed.value);
+    const user = JSON.parse(decoded);
+    return isValidAuthCookieUser(user) ? user : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setAuthCookie(req: Request, user: AuthCookieUser) {
+  const secure = shouldSetSecureCookie(req) ? "; Secure" : "";
+  const payload = toBase64Url(encoder.encode(JSON.stringify(user)));
+  const sig = await signSessionId(payload);
+  const value = `${payload}.${sig}`;
+  return `${AUTH_COOKIE_NAME}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}${secure}`;
 }

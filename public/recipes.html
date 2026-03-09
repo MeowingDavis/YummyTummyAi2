@@ -25,8 +25,15 @@
         <a href="/chat.html" class="skeuo-link">Chat</a>
         <a href="/recipes.html" class="skeuo-link">Recipes</a>
         <a href="/about.html" class="skeuo-link">About</a>
+        <span data-auth-status class="min-h-6 text-xs text-slate-200" aria-live="polite">Checking login status...</span>
+        <a data-auth="signed-out-only" data-auth-link="login" href="/auth.html?mode=login" class="skeuo-link">Login</a>
+        <a data-auth="signed-in-only" href="/account.html" class="hidden skeuo-link">Account</a>
       </nav>
-      <a href="/chat.html" class="md:hidden skeuo-btn skeuo-btn-primary skeuo-btn-sm">Open Chat</a>
+      <div class="flex items-center gap-2 md:hidden">
+        <a data-auth="signed-out-only" data-auth-link="login" href="/auth.html?mode=login" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm">Login</a>
+        <a data-auth="signed-in-only" href="/account.html" class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm">Account</a>
+        <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-btn-sm">Open Chat</a>
+      </div>
     </div>
   </header>
 
@@ -85,6 +92,7 @@
     </div>
   </footer>
 
+  <script src="/js/site-auth.js" defer></script>
   <script src="/js/recipes-page.js" defer></script>
 </body>
 </html>

@@ -815,6 +815,16 @@ export function startServer() {
         withSecurity({ "Content-Type": "application/json" }),
       );
       if (setCookie) h.append("Set-Cookie", setCookie);
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return new Response(
+          JSON.stringify({
+            error: "Please sign in to use Pantry search.",
+            code: "AUTH_REQUIRED",
+          }),
+          { status: 401, headers: h },
+        );
+      }
 
       const query = (url.searchParams.get("q") ?? "").trim();
       if (!query) {
@@ -933,6 +943,16 @@ export function startServer() {
         withSecurity({ "Content-Type": "application/json" }),
       );
       if (setCookie) h.append("Set-Cookie", setCookie);
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return new Response(
+          JSON.stringify({
+            error: "Please sign in to view Pantry recipes.",
+            code: "AUTH_REQUIRED",
+          }),
+          { status: 401, headers: h },
+        );
+      }
 
       const rawId = decodeURIComponent(
         url.pathname.replace("/api/pantry/recipe/", ""),
@@ -1856,6 +1876,17 @@ export function startServer() {
       req.method === "GET" &&
       (url.pathname === "/recipes" || url.pathname === "/recipes/")
     ) {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        const next = encodeURIComponent("/recipes.html");
+        return new Response(null, {
+          status: 307,
+          headers: withSecurity({
+            "Location": `/auth.html?mode=login&next=${next}`,
+            "Cache-Control": "no-store",
+          }),
+        });
+      }
       return new Response(null, {
         status: 307,
         headers: withSecurity({
@@ -1913,6 +1944,20 @@ export function startServer() {
           "Cache-Control": "no-store",
         }),
       });
+    }
+
+    if (req.method === "GET" && url.pathname === "/recipes.html") {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        const next = encodeURIComponent("/recipes.html");
+        return new Response(null, {
+          status: 307,
+          headers: withSecurity({
+            "Location": `/auth.html?mode=login&next=${next}`,
+            "Cache-Control": "no-store",
+          }),
+        });
+      }
     }
 
     // Chat

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deno Hosting Expert"
+  short_description: "Deploy and host Deno apps with production best practices"
+  default_prompt: "Use $deno-hosting-expert to set up production-ready Deno hosting and deployment for this project."

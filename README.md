@@ -108,6 +108,7 @@ http://localhost:8000
 - `GET /api/pantry/search?q=<term>&number=<1..24>` -> pantry recipe search
 - `GET /api/pantry/book` -> list signed-in user's saved recipe book entries
 - `POST /api/pantry/book` -> save recipe to recipe book `{ spoonacularId }`
+- `POST /api/pantry/book/custom` -> save a user-created recipe to recipe book
 - `DELETE /api/pantry/book/:id` -> remove saved recipe entry
 - `GET /saved-chats` -> account saved chats
 - `POST /saved-chats` -> save chat `{ title, history }`

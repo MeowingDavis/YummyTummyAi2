@@ -25,6 +25,15 @@ window.addEventListener("DOMContentLoaded", () => {
   const pantryBookStatus = document.getElementById("pantryBookStatus");
   const pantryBookList = document.getElementById("pantryBookList");
   const pantryBookRefresh = document.getElementById("pantryBookRefresh");
+  const pantryCustomForm = document.getElementById("pantryCustomForm");
+  const customTitle = document.getElementById("customTitle");
+  const customReady = document.getElementById("customReady");
+  const customServings = document.getElementById("customServings");
+  const customIngredients = document.getElementById("customIngredients");
+  const customInstructions = document.getElementById("customInstructions");
+  const customSummary = document.getElementById("customSummary");
+  const customSaveBtn = document.getElementById("customSaveBtn");
+  const customStatus = document.getElementById("customStatus");
 
   if (
     !form || !queryInput || !statusEl || !resultsEl || !recipeSection ||
@@ -33,7 +42,9 @@ window.addEventListener("DOMContentLoaded", () => {
     !nextPageBtn || !pageInfo || !dietSelect || !cuisineSelect ||
     !maxReadyTimeSelect || !quickFilters || !lockedNotice || !searchOverlay ||
     !resultsOverlay || !pantryBookSection || !pantryBookStatus || !pantryBookList ||
-    !pantryBookRefresh
+    !pantryBookRefresh || !pantryCustomForm || !customTitle || !customReady ||
+    !customServings || !customIngredients || !customInstructions || !customSummary ||
+    !customSaveBtn || !customStatus
   ) return;
 
   const PAGE_SIZE = 6;
@@ -66,6 +77,12 @@ window.addEventListener("DOMContentLoaded", () => {
     pantryBookStatus.classList.toggle("text-slate-500", !isError);
   };
 
+  const setCustomStatus = (message, isError = false) => {
+    customStatus.textContent = message;
+    customStatus.classList.toggle("text-red-200", isError);
+    customStatus.classList.toggle("text-slate-500", !isError);
+  };
+
   const applyLockedState = (locked) => {
     pantryLocked = locked;
     const controls = [
@@ -77,6 +94,7 @@ window.addEventListener("DOMContentLoaded", () => {
       nextPageBtn,
       ...quickFilters.querySelectorAll("button"),
       ...form.querySelectorAll("button"),
+      ...pantryCustomForm.querySelectorAll("button, input, textarea"),
     ];
     controls.forEach((el) => {
       if ("disabled" in el) el.disabled = locked;
@@ -88,6 +106,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (locked) {
       setStatus("Sign in to unlock Pantry search and recipe details.", true);
       setBookStatus("Sign in to save recipes to your personal recipe book.");
+      setCustomStatus("Sign in to add your own recipes.");
       pantryBookList.replaceChildren();
     }
   };
@@ -461,6 +480,64 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   pantryBookRefresh.addEventListener("click", () => {
     loadRecipeBook();
+  });
+
+  pantryCustomForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (pantryLocked) {
+      setCustomStatus("Sign in to add your own recipes.", true);
+      return;
+    }
+    const title = String(customTitle.value || "").trim();
+    const ingredients = String(customIngredients.value || "")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const instructions = String(customInstructions.value || "").trim();
+    const summary = String(customSummary.value || "").trim();
+    const readyInMinutes = String(customReady.value || "").trim();
+    const servings = String(customServings.value || "").trim();
+
+    if (!title) {
+      setCustomStatus("Title is required.", true);
+      return;
+    }
+    if (!ingredients.length) {
+      setCustomStatus("Add at least one ingredient.", true);
+      return;
+    }
+    if (!instructions) {
+      setCustomStatus("Instructions are required.", true);
+      return;
+    }
+
+    customSaveBtn.disabled = true;
+    setCustomStatus("Saving custom recipe...");
+    try {
+      const response = await fetch("/api/pantry/book/custom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          ingredients,
+          instructions,
+          summary,
+          readyInMinutes: readyInMinutes || null,
+          servings: servings || null,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.error || `Save failed (${response.status})`);
+      }
+      pantryCustomForm.reset();
+      setCustomStatus("Recipe saved to your recipe book.");
+      await loadRecipeBook();
+    } catch (error) {
+      setCustomStatus((error && error.message) || "Could not save custom recipe.", true);
+    } finally {
+      customSaveBtn.disabled = false;
+    }
   });
 
   prevPageBtn.addEventListener("click", () => {

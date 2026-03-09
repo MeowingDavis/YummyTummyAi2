@@ -1129,6 +1129,102 @@ export function startServer() {
       }
     }
 
+    if (req.method === "POST" && url.pathname === "/api/pantry/book/custom") {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(
+        withSecurity({ "Content-Type": "application/json" }),
+      );
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return new Response(
+          JSON.stringify({
+            error: "Please sign in to save custom recipes.",
+            code: "AUTH_REQUIRED",
+          }),
+          { status: 401, headers: h },
+        );
+      }
+      try {
+        const body = await readJson<{
+          title?: string;
+          ingredients?: unknown;
+          instructions?: string;
+          summary?: string;
+          readyInMinutes?: number | string;
+          servings?: number | string;
+        }>(req);
+
+        const title = String(body.title ?? "").trim().slice(0, 220);
+        const instructions = String(body.instructions ?? "").trim().slice(
+          0,
+          12000,
+        );
+        const summary = String(body.summary ?? "").trim().slice(0, 12000);
+        const ingredients = Array.isArray(body.ingredients)
+          ? body.ingredients.map((item) => String(item ?? "").trim()).filter(
+            Boolean,
+          ).slice(0, 160)
+          : [];
+        const readyInMinutes = Number(body.readyInMinutes ?? 0);
+        const servings = Number(body.servings ?? 0);
+
+        if (!title) {
+          return new Response(JSON.stringify({ error: "Title is required." }), {
+            status: 400,
+            headers: h,
+          });
+        }
+        if (!ingredients.length) {
+          return new Response(
+            JSON.stringify({ error: "At least one ingredient is required." }),
+            { status: 400, headers: h },
+          );
+        }
+        if (!instructions) {
+          return new Response(
+            JSON.stringify({ error: "Instructions are required." }),
+            { status: 400, headers: h },
+          );
+        }
+
+        const stored = await upsertPantryRecipe({
+          spoonacularId: null,
+          title,
+          image: "",
+          readyInMinutes: Number.isFinite(readyInMinutes) && readyInMinutes > 0
+            ? Math.trunc(readyInMinutes)
+            : null,
+          servings: Number.isFinite(servings) && servings > 0
+            ? Math.trunc(servings)
+            : null,
+          summary,
+          instructions,
+          ingredients,
+          sourceUrl: "",
+          spoonacularSourceUrl: "",
+        });
+        const entryId = await addRecipeToBook(user.id, stored.id);
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            entryId,
+            recipe: stored,
+          }),
+          { status: 201, headers: h },
+        );
+      } catch (err) {
+        const status = err instanceof HttpError ? err.status : 500;
+        const message = err instanceof HttpError
+          ? err.message
+          : "Unable to save custom recipe";
+        return new Response(JSON.stringify({ error: message }), {
+          status,
+          headers: h,
+        });
+      }
+    }
+
     if (
       req.method === "DELETE" && url.pathname.startsWith("/api/pantry/book/")
     ) {

@@ -11,11 +11,7 @@ import {
 } from "./session.ts";
 import { HttpError, readJson } from "./http.ts";
 import { allow, allowSession } from "./rateLimit.ts";
-import {
-  INJECTION_REPLY,
-  OFF_TOPIC_REPLY,
-  SYSTEM_PROMPT,
-} from "./chat/prompts.ts";
+import { INJECTION_REPLY, SYSTEM_PROMPT } from "./chat/prompts.ts";
 import {
   clearHistory,
   ensureHistory,
@@ -23,10 +19,14 @@ import {
   pushAndClamp,
 } from "./chat/history.ts";
 import { clearChatQuota, consumeDailyChatQuota } from "./chatQuota.ts";
-import { isCookingQuery } from "./chat/guard.ts";
+import { buildConversationSteer } from "./chat/guard.ts";
 import { detectMode, steerForMode } from "./chat/modes.ts";
 import { groqChat, listGroqModels } from "./chat/groq.ts";
 import { detectPromptInjection } from "./chat/injection.ts";
+import {
+  extractProfileMemory,
+  mergeUserProfile,
+} from "./chat/profileMemory.ts";
 import { redact } from "./redact.ts";
 import {
   authenticateUser,
@@ -709,8 +709,9 @@ export function startServer() {
           Array.isArray(v)
             ? v.map((x) => String(x).trim()).filter(Boolean).slice(0, 30)
             : [];
-        const hasOwn = (key: "dietaryRequirements" | "allergies" | "dislikes") =>
-          Object.prototype.hasOwnProperty.call(body, key);
+        const hasOwn = (
+          key: "dietaryRequirements" | "allergies" | "dislikes",
+        ) => Object.prototype.hasOwnProperty.call(body, key);
         const updated = await updateUserProfile(user.id, {
           dietaryRequirements: hasOwn("dietaryRequirements")
             ? toArr(body.dietaryRequirements)
@@ -1099,29 +1100,45 @@ export function startServer() {
           m.role === "assistant"
         )?.content ?? "";
 
-        // Off-topic guard (context-aware)
-        if (!isCookingQuery(message, lastAssistant)) {
-          const h = new Headers(
-            withSecurity({ "Content-Type": "application/json" }),
-          );
-          if (setCookie) h.append("Set-Cookie", setCookie);
-          return new Response(
-            JSON.stringify({
-              reply: OFF_TOPIC_REPLY,
-              markdown: OFF_TOPIC_REPLY,
-            }),
-            { headers: h },
-          );
+        let activeUser = user;
+        const learnedProfilePatch = activeUser
+          ? extractProfileMemory(message)
+          : null;
+        let profile = activeUser?.profile;
+
+        if (activeUser?.id && learnedProfilePatch) {
+          const mergedProfile = mergeUserProfile(profile, learnedProfilePatch);
+          if (mergedProfile) {
+            try {
+              const updatedUser = await updateUserProfile(activeUser.id, {
+                dietaryRequirements: mergedProfile.dietaryRequirements,
+                allergies: mergedProfile.allergies,
+                dislikes: mergedProfile.dislikes,
+              });
+              if (updatedUser) {
+                activeUser = updatedUser;
+                profile = updatedUser.profile;
+              } else {
+                profile = mergedProfile;
+              }
+            } catch (err) {
+              console.warn(
+                "[chat] profile memory update failed:",
+                redact(String((err as Error)?.message ?? err)),
+              );
+              profile = mergedProfile;
+            }
+          }
         }
 
         // Choose mode
         const mode = detectMode(message, lastAssistant);
         const steer = steerForMode(mode);
-        const profile = user?.profile;
         const profileSteer = profile
           ? [
             "Apply user profile preferences when generating food responses:",
             "Never suggest or include a listed allergen in a recipe unless the user explicitly asks to discuss that allergen. If a request conflicts, explain the conflict and offer safe alternatives.",
+            "Treat these as persistent user defaults unless the user clearly overrides them for just this request.",
             `dietaryRequirements: ${
               (profile.dietaryRequirements ?? []).join(", ") || "none"
             }`,
@@ -1129,14 +1146,40 @@ export function startServer() {
             `dislikes: ${(profile.dislikes ?? []).join(", ") || "none"}`,
           ].join("\n")
           : "";
+        const learnedProfileSteer = learnedProfilePatch
+          ? [
+            "The current user message includes stable food-profile information worth remembering.",
+            "If it fits naturally, briefly acknowledge that you will keep it in mind.",
+            `newDietaryRequirements: ${
+              (learnedProfilePatch.dietaryRequirements ?? []).join(", ") ||
+              "none"
+            }`,
+            `newAllergies: ${
+              (learnedProfilePatch.allergies ?? []).join(", ") || "none"
+            }`,
+            `newDislikes: ${
+              (learnedProfilePatch.dislikes ?? []).join(", ") || "none"
+            }`,
+          ].join("\n")
+          : "";
+        const conversationSteer = buildConversationSteer(
+          message,
+          lastAssistant,
+        );
 
         // Build request to model
         const recent = history.slice(-12);
         const messagesToSend = [
           ...recent,
           steer,
+          ...(conversationSteer
+            ? [{ role: "system" as const, content: conversationSteer }]
+            : []),
           ...(profileSteer
             ? [{ role: "system" as const, content: profileSteer }]
+            : []),
+          ...(learnedProfileSteer
+            ? [{ role: "system" as const, content: learnedProfileSteer }]
             : []),
           { role: "user" as const, content: message },
         ];
@@ -1150,6 +1193,9 @@ export function startServer() {
           withSecurity({ "Content-Type": "application/json" }),
         );
         if (setCookie) h.append("Set-Cookie", setCookie);
+        if (activeUser && activeUser !== user) {
+          h.append("Set-Cookie", await setAuthCookie(req, activeUser));
+        }
         const responsePayload: Record<string, unknown> = {
           reply,
           markdown: reply,

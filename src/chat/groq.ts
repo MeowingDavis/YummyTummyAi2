@@ -15,8 +15,12 @@ function parseModelIds(data: unknown): string[] {
   const list = (data as { data?: unknown }).data;
   if (!Array.isArray(list)) return [];
   return list
-    .map((x) => (x && typeof x === "object" ? (x as { id?: unknown }).id : null))
-    .filter((id): id is string => typeof id === "string" && id.trim().length > 0);
+    .map((
+      x,
+    ) => (x && typeof x === "object" ? (x as { id?: unknown }).id : null))
+    .filter((id): id is string =>
+      typeof id === "string" && id.trim().length > 0
+    );
 }
 
 export async function listGroqModels(force = false): Promise<string[]> {
@@ -41,7 +45,10 @@ export async function listGroqModels(force = false): Promise<string[]> {
   return ids;
 }
 
-export async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ?? "llama-3.1-8b-instant") {
+export async function groqChat(
+  messages: Msg[],
+  model = Deno.env.get("MODEL") ?? "llama-3.1-8b-instant",
+) {
   const GROQ_API_KEY = getGroqApiKey();
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -52,9 +59,9 @@ export async function groqChat(messages: Msg[], model = Deno.env.get("MODEL") ??
     body: JSON.stringify({
       model,
       messages,
-      temperature: 0.5,
-      max_tokens: 500,
-      top_p: 0.9,
+      temperature: 0.7,
+      max_tokens: 700,
+      top_p: 0.95,
     }),
   });
   if (!res.ok) {

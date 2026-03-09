@@ -18,7 +18,10 @@ function sanitizeMessages(input: unknown) {
       if (!row || typeof row !== "object") return null;
       const role = (row as { role?: string }).role;
       const content = (row as { content?: unknown }).content;
-      if ((role !== "system" && role !== "user" && role !== "assistant") || typeof content !== "string") return null;
+      if (
+        (role !== "system" && role !== "user" && role !== "assistant") ||
+        typeof content !== "string"
+      ) return null;
       return { role, content: content.trim() } as Msg;
     })
     .filter((msg): msg is Msg => !!msg && !!msg.content);
@@ -42,15 +45,22 @@ function buildPath(ownerKey: string) {
   return `${HISTORY_TABLE}?${params.toString()}`;
 }
 
-async function requestRows<T>(path: string, options: RequestInit): Promise<T[]> {
+async function requestRows<T>(
+  path: string,
+  options: RequestInit,
+): Promise<T[]> {
   const data = await supabaseAdminRequest(path, options);
   if (Array.isArray(data)) return data as T[];
-  if (data && typeof data === "object" && Object.keys(data).length) return [data as T];
+  if (data && typeof data === "object" && Object.keys(data).length) {
+    return [data as T];
+  }
   return [];
 }
 
 async function getHistoryRow(ownerKey: string): Promise<HistoryRow | null> {
-  const rows = await requestRows<HistoryRow>(buildPath(ownerKey), { method: "GET" });
+  const rows = await requestRows<HistoryRow>(buildPath(ownerKey), {
+    method: "GET",
+  });
   return rows[0] ?? null;
 }
 
@@ -70,10 +80,22 @@ async function upsertHistory(ownerKey: string, messages: Msg[]) {
 export async function ensureHistory(ownerKey: string, systemPrompt: string) {
   const current = await getHistoryRow(ownerKey);
   const value = sanitizeMessages(current?.messages);
+  const trimmedPrompt = systemPrompt.trim();
 
   if (!current || isExpired(parseTime(current.updated_at))) {
-    await upsertHistory(ownerKey, [{ role: "system", content: systemPrompt.trim() }]);
+    await upsertHistory(ownerKey, [{ role: "system", content: trimmedPrompt }]);
     return;
+  }
+
+  if (!value.length) {
+    await upsertHistory(ownerKey, [{ role: "system", content: trimmedPrompt }]);
+    return;
+  }
+
+  if (value[0]?.role === "system") {
+    value[0] = { role: "system", content: trimmedPrompt };
+  } else {
+    value.unshift({ role: "system", content: trimmedPrompt });
   }
 
   await upsertHistory(ownerKey, value);
@@ -95,9 +117,12 @@ export async function getHistory(ownerKey: string) {
 }
 
 export async function clearHistory(ownerKey: string) {
-  await supabaseAdminRequest(`${HISTORY_TABLE}?owner_key=eq.${encodeURIComponent(ownerKey)}`, {
-    method: "DELETE",
-  });
+  await supabaseAdminRequest(
+    `${HISTORY_TABLE}?owner_key=eq.${encodeURIComponent(ownerKey)}`,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
 export async function pushAndClamp(ownerKey: string, msg: Msg, max = 30) {
@@ -106,6 +131,8 @@ export async function pushAndClamp(ownerKey: string, msg: Msg, max = 30) {
   if (!value.length) return;
 
   const messages = [...value, msg];
-  const next = messages.length > max ? messages.slice(messages.length - max) : messages;
+  const next = messages.length > max
+    ? messages.slice(messages.length - max)
+    : messages;
   await upsertHistory(ownerKey, next);
 }

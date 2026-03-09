@@ -1,0 +1,134 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Yummy Tummy recipe explorer illustration</title>
+  <desc id="desc">A soft mint and blue futuristic kitchen scene with the Yummy Tummy chef robot, floating recipe cards, ingredient chips, and a plated dish.</desc>
+  <defs>
+    <linearGradient id="bg" x1="214" y1="137" x2="1388" y2="834" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EFFFF8"/>
+      <stop offset="0.5" stop-color="#E0F5EF"/>
+      <stop offset="1" stop-color="#E3EFFB"/>
+    </linearGradient>
+    <radialGradient id="mintGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(339 401) rotate(19.887) scale(483.69 382.171)">
+      <stop stop-color="#8DFFD7" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#8DFFD7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blueGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1232 242) rotate(126.711) scale(402.413 514.576)">
+      <stop stop-color="#D8EAFE" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#D8EAFE" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cardStroke" x1="447" y1="146" x2="712" y2="417" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#A9F9E0" stop-opacity="0.65"/>
+    </linearGradient>
+    <linearGradient id="cardFill" x1="521" y1="162" x2="663" y2="412" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.74"/>
+      <stop offset="1" stop-color="#F4FFFC" stop-opacity="0.34"/>
+    </linearGradient>
+    <linearGradient id="pillMint" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#C2FFEC"/>
+      <stop offset="1" stop-color="#E8FFF8"/>
+    </linearGradient>
+    <linearGradient id="pillBlue" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#E8F2FF"/>
+      <stop offset="1" stop-color="#F8FBFF"/>
+    </linearGradient>
+    <linearGradient id="plateOuter" x1="887" y1="475" x2="1173" y2="735" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="1" stop-color="#ECF8F5"/>
+    </linearGradient>
+    <linearGradient id="plateInner" x1="934" y1="517" x2="1127" y2="688" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FDFEFD"/>
+      <stop offset="1" stop-color="#E6FAF2"/>
+    </linearGradient>
+    <linearGradient id="salmon" x1="964" y1="542" x2="1096" y2="627" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF9E78"/>
+      <stop offset="1" stop-color="#FF7A61"/>
+    </linearGradient>
+    <filter id="softBlur" x="-80" y="-80" width="1760" height="1060" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+    <filter id="cardShadow" x="387" y="97" width="419" height="437" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="26" stdDeviation="28" flood-color="#163B37" flood-opacity="0.15"/>
+    </filter>
+    <filter id="smallShadow" x="254" y="477" width="305" height="175" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#163B37" flood-opacity="0.12"/>
+    </filter>
+    <filter id="plateShadow" x="809" y="444" width="439" height="348" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="32" stdDeviation="30" flood-color="#163B37" flood-opacity="0.14"/>
+    </filter>
+    <filter id="glow" x="0" y="0" width="1600" height="900" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#7BFFD9" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" rx="40" fill="url(#bg)"/>
+  <ellipse cx="794" cy="874" rx="631" ry="159" fill="#D8F4EA"/>
+  <g filter="url(#softBlur)">
+    <circle cx="255" cy="341" r="173" fill="url(#mintGlow)"/>
+    <circle cx="1305" cy="241" r="182" fill="url(#blueGlow)"/>
+    <circle cx="1107" cy="732" r="98" fill="#9EFFE2" fill-opacity="0.34"/>
+  </g>
+
+  <g opacity="0.42">
+    <path d="M226 643C287 601 378 607 427 651" stroke="#B4ECDC" stroke-width="2"/>
+    <path d="M274 696C338 650 441 658 495 706" stroke="#D8EAFE" stroke-width="2"/>
+    <path d="M1215 633C1271 598 1345 603 1391 642" stroke="#B4ECDC" stroke-width="2"/>
+  </g>
+
+  <g filter="url(#cardShadow)">
+    <rect x="450" y="136" width="294" height="286" rx="34" transform="rotate(-7 450 136)" fill="url(#cardFill)"/>
+    <rect x="450.75" y="136.75" width="292.5" height="284.5" rx="33.25" transform="rotate(-7 450.75 136.75)" stroke="url(#cardStroke)" stroke-width="1.5"/>
+    <rect x="493" y="186" width="126" height="26" rx="13" transform="rotate(-7 493 186)" fill="url(#pillMint)"/>
+    <rect x="633" y="184" width="66" height="26" rx="13" transform="rotate(-7 633 184)" fill="url(#pillBlue)"/>
+    <rect x="493" y="232" width="168" height="22" rx="11" transform="rotate(-7 493 232)" fill="#1A3D37" fill-opacity="0.12"/>
+    <rect x="493" y="268" width="207" height="18" rx="9" transform="rotate(-7 493 268)" fill="#1A3D37" fill-opacity="0.08"/>
+    <rect x="493" y="298" width="184" height="18" rx="9" transform="rotate(-7 493 298)" fill="#1A3D37" fill-opacity="0.08"/>
+    <rect x="493" y="328" width="141" height="18" rx="9" transform="rotate(-7 493 328)" fill="#1A3D37" fill-opacity="0.08"/>
+    <rect x="507" y="357" width="96" height="28" rx="14" transform="rotate(-7 507 357)" fill="#00FFCC" fill-opacity="0.2"/>
+    <circle cx="688" cy="351" r="23" fill="#F0FBF8"/>
+    <path d="M680 351L686 357L699 344" stroke="#00B892" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g filter="url(#smallShadow)">
+    <rect x="272" y="493" width="269" height="143" rx="28" fill="white" fill-opacity="0.68"/>
+    <rect x="272.75" y="493.75" width="267.5" height="141.5" rx="27.25" stroke="white" stroke-opacity="0.84" stroke-width="1.5"/>
+    <rect x="301" y="522" width="74" height="20" rx="10" fill="#C6FFF0"/>
+    <rect x="388" y="522" width="84" height="20" rx="10" fill="#E8F2FF"/>
+    <rect x="301" y="556" width="149" height="16" rx="8" fill="#1A3D37" fill-opacity="0.1"/>
+    <rect x="301" y="584" width="189" height="16" rx="8" fill="#1A3D37" fill-opacity="0.08"/>
+  </g>
+
+  <g filter="url(#plateShadow)">
+    <ellipse cx="1024" cy="651" rx="194" ry="111" fill="#D4EEE6" fill-opacity="0.68"/>
+    <ellipse cx="1024" cy="620" rx="191" ry="110" fill="url(#plateOuter)"/>
+    <ellipse cx="1024" cy="620" rx="149" ry="85" fill="url(#plateInner)"/>
+    <path d="M952 614C952 582 980 555 1019 555C1047 555 1085 578 1096 607C1108 638 1078 668 1030 668C984 668 952 646 952 614Z" fill="url(#salmon)"/>
+    <path d="M946 582C956 563 977 550 1001 550C1027 550 1047 559 1065 584C1042 575 1024 573 1000 573C980 573 962 575 946 582Z" fill="#FFC0AA" fill-opacity="0.75"/>
+    <path d="M1080 603C1108 582 1140 591 1148 618C1156 644 1132 664 1104 666C1085 668 1067 660 1057 642C1052 632 1054 616 1080 603Z" fill="#7DDC93"/>
+    <path d="M1118 587C1138 573 1162 582 1168 603C1174 623 1156 639 1132 641C1120 642 1106 638 1098 629" stroke="#56B76E" stroke-width="8" stroke-linecap="round"/>
+    <path d="M936 628C954 600 982 592 1002 602C1016 609 1019 626 1004 643C989 659 961 666 940 655C927 648 924 638 936 628Z" fill="#7BCB62"/>
+    <path d="M932 627C950 633 965 630 978 617" stroke="#56A94B" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="946" cy="574" r="22" fill="#D9FF73"/>
+    <circle cx="946" cy="574" r="15" fill="#FFE18F"/>
+    <path d="M931 574H961" stroke="#FFF7C8" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="1084" cy="557" r="14" fill="#FF836F"/>
+    <circle cx="1111" cy="542" r="12" fill="#FF9B7D"/>
+    <circle cx="1128" cy="573" r="11" fill="#FFA485"/>
+  </g>
+
+  <g filter="url(#glow)">
+    <rect x="1181" y="185" width="132" height="42" rx="21" fill="white" fill-opacity="0.42"/>
+    <rect x="1181.75" y="185.75" width="130.5" height="40.5" rx="20.25" stroke="#A7FFE0" stroke-opacity="0.75" stroke-width="1.5"/>
+    <circle cx="1210" cy="206" r="8" fill="#00FFCC"/>
+    <rect x="1228" y="199" width="57" height="14" rx="7" fill="#1A3D37" fill-opacity="0.18"/>
+  </g>
+
+  <g opacity="0.7">
+    <path d="M1378 281L1387 303L1409 312L1387 321L1378 343L1369 321L1347 312L1369 303L1378 281Z" fill="white"/>
+    <path d="M286 263L292 278L307 284L292 290L286 305L280 290L265 284L280 278L286 263Z" fill="#E8FBF6"/>
+    <circle cx="1319" cy="716" r="5" fill="#A7FFE0"/>
+    <circle cx="1375" cy="647" r="7" fill="#D8EAFE"/>
+    <circle cx="241" cy="597" r="6" fill="#B2FFE7"/>
+  </g>
+
+  <image href="/YumTumRightMiddleLogo.png" x="1070" y="192" width="392" height="588" preserveAspectRatio="xMidYMid meet"/>
+</svg>

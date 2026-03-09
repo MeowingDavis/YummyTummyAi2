@@ -1,13 +1,12 @@
 # Yummy Tummy AI
 
-Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static frontend and a backend chat endpoint that calls the Groq Chat Completions API.
+Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static
+frontend and a backend chat endpoint that calls the Groq Chat Completions API.
 
 ## Features
 
 - Ingredient-aware recipe help and cooking Q&A
-- Local recipe RAG context (retrieves matching recipes from `data/recipes.json`)
-- Optional API Ninjas recipe enrichment when local matches are weak
-- Recipe Explorer page for manual search + categories (`/recipes.html`)
+- Recipe Explorer placeholder page for a future release (`/recipes.html`)
 - Off-topic guard that steers conversation back to food
 - Session-based chat history persisted in Supabase
 - Saved chats persisted in Supabase
@@ -41,12 +40,6 @@ export SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
 export MODEL="llama-3.1-8b-instant"
 # optional: models shown in the UI picker (comma-separated)
 export GROQ_MODELS="llama-3.1-8b-instant,llama-3.3-70b-versatile"
-# optional recipe corpus location
-export RECIPES_DB_PATH="data/recipes.json"
-# optional API Ninjas recipe API key (server-side enrichment)
-export API_NINJAS_API_KEY="your_api_ninjas_key"
-# optional debug: include recipe source flags in /chat JSON
-export CHAT_DEBUG_SOURCES="1"
 ```
 
 Production security env requirements:
@@ -82,29 +75,31 @@ http://localhost:8000
   - `--allow-read`
   - `--allow-write`
   - `--allow-env`
-- `deno task dev` -> starts the server and loads variables from `.env` via `--env-file=.env`
-- `deno task ingest-recipes <path>` -> merges recipes into `data/recipes.json` (or `RECIPES_DB_PATH`) with:
-  - `--allow-read`
-  - `--allow-write`
-  - `--allow-env`
+- `deno task dev` -> starts the server and loads variables from `.env` via
+  `--env-file=.env`
 
 ## API Routes
 
 - `GET /health` -> `{ "ok": true }`
 - `GET /chat-models` -> allowed model list for UI picker
-- `GET /recipes/search` -> API Ninjas-backed recipe search (`q`, `category`, `limit<=10`, `offset`)
 - `GET /me` -> current session user or `null`
 - `POST /auth/register` -> `{ email, password, name? }`
 - `POST /auth/login` -> `{ email, password }`
-- `POST /auth/forgot-password` -> `{ email }` (always generic success unless rate-limited/hard failure)
+- `POST /auth/forgot-password` -> `{ email }` (always generic success unless
+  rate-limited/hard failure)
 - `POST /auth/delete-account` -> `{ password }` (requires logged-in session)
 - `POST /auth/logout` -> clears the persistent auth cookie
-- `GET /auth/client-config` -> browser-safe Supabase config for reset flow (`SUPABASE_URL`, anon key only)
+- `GET /auth/client-config` -> browser-safe Supabase config for reset flow
+  (`SUPABASE_URL`, anon key only)
 - `PATCH /me/profile` -> updates `{ dietaryRequirements, allergies, dislikes }`
 - `POST /chat` -> accepts JSON:
 
 ```json
-{ "message": "I have eggs and spinach", "newChat": false, "model": "llama-3.1-8b-instant" }
+{
+  "message": "I have eggs and spinach",
+  "newChat": false,
+  "model": "llama-3.1-8b-instant"
+}
 ```
 
 - `POST /upload` -> currently a stub, returns `[]`
@@ -128,14 +123,15 @@ http://localhost:8000
 
 - `GROQ_API_KEY` is required at startup.
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY` are required for auth flows.
-- `SUPABASE_SERVICE_ROLE_KEY` is required for server-side app state access and secure account deletion. Never expose this key in browser code.
+- `SUPABASE_SERVICE_ROLE_KEY` is required for server-side app state access and
+  secure account deletion. Never expose this key in browser code.
 - If `MODEL` is unset, the app defaults to `llama-3.1-8b-instant`.
-- Rate limit state remains in-memory; persistent app state is stored in Supabase.
-- Run the SQL in `supabase/app_state.sql` and `supabase/saved_chats.sql` before using auth-backed chat features.
-- If RAG finds strong recipe matches, the assistant uses those titles/details.
-- If no strong RAG match exists, the assistant still generates a fresh recipe.
-- If `API_NINJAS_API_KEY` is set, the app also fetches API Ninjas recipe matches when local recipe matches are weak.
-- If `CHAT_DEBUG_SOURCES=1`, `/chat` responses include `recipeSources` debug metadata.
+- Rate limit state remains in-memory; persistent app state is stored in
+  Supabase.
+- Run the SQL in `supabase/app_state.sql` and `supabase/saved_chats.sql` before
+  using auth-backed chat features.
+- The current MVP intentionally keeps recipe generation simple and does not
+  depend on a local recipe database or third-party recipe search API.
 
 ## Supabase Auth Settings
 
@@ -145,40 +141,5 @@ Configure these in Supabase Dashboard -> Authentication:
 - Add password recovery redirect URLs:
   - `http://localhost:8000/reset-password.html`
   - `https://<your-domain>/reset-password.html`
-- If you use a different dev/preview port or domain, add that exact `/reset-password.html` URL too.
-
-## Recipe RAG: Adding New Recipes
-
-Recipe storage is a local JSON database:
-
-- Default: `data/recipes.json`
-- Override with `RECIPES_DB_PATH`
-
-### Supported import formats
-
-- `.json` as either:
-  - an array of recipe objects, or
-  - an object with `recipes: []`
-- `.jsonl` with one recipe object per line
-
-Each recipe object should include:
-
-```json
-{
-  "id": "optional-unique-id",
-  "title": "Crispy Chicken Tacos",
-  "ingredients": ["1 lb chicken thighs", "8 tortillas", "1 lime"],
-  "instructions": ["Season chicken", "Cook in skillet", "Assemble tacos"],
-  "tags": ["tacos", "weeknight"],
-  "cuisine": "Mexican-inspired",
-  "source": "https://example.com/recipe"
-}
-```
-
-### Add recipes to RAG
-
-```bash
-deno task ingest-recipes ./my_new_recipes.json
-```
-
-The script merges by `id` (or title fallback), updates duplicates, and rewrites the DB file.
+- If you use a different dev/preview port or domain, add that exact
+  `/reset-password.html` URL too.

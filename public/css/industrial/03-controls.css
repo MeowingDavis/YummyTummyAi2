@@ -78,13 +78,13 @@
 }
 
 .skeuo-btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  background-color: var(--accent);
   color: var(--secondary) !important;
   border-color: rgba(0, 255, 204, 0.34);
 }
 
 .skeuo-btn-primary:hover {
-  background: linear-gradient(135deg, #33ffd6 0%, #00ad89 100%);
+  background-color: #33ffd6;
 }
 
 .skeuo-btn-secondary {
@@ -101,9 +101,13 @@
 }
 
 .skeuo-btn-danger {
-  background: linear-gradient(135deg, #ff9ba8 0%, #e56474 100%);
+  background-color: #e56474;
   color: #fff !important;
   border-color: rgba(229, 100, 116, 0.5);
+}
+
+.skeuo-btn-danger:hover {
+  background-color: #f07c8b;
 }
 
 .skeuo-input {

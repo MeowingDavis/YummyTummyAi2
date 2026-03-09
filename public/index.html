@@ -32,7 +32,7 @@
           <a href="/recipes.html" class="skeuo-link">Recipes</a>
           <a href="/chat.html" class="skeuo-link">Open Chat</a>
         </nav>
-        <section id="homeAuthShell" class="auth-shell w-[248px]" data-auth-ready="false" aria-label="Account menu">
+        <section id="homeAuthShell" class="auth-shell auth-shell-compact w-[220px]" data-auth-ready="false" aria-label="Account menu">
           <div class="auth-shell-head">
             <p class="skeuo-label">Account</p>
             <p id="homeAuthStatus" class="auth-shell-status" aria-live="polite"></p>
@@ -56,46 +56,46 @@
 
   <main id="main-content">
     <section id="notice" class="skeuo-wrap skeuo-container-wide" aria-live="polite">
-      <article class="glass skeuo-surface skeuo-section-tight skeuo-card-pad flex items-start gap-3">
+      <article class="glass skeuo-surface skeuo-section-tight skeuo-card-pad flex flex-wrap items-start gap-3 sm:flex-nowrap">
         <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
         </svg>
-        <div class="text-sm leading-6 text-slate-100">
+        <div class="min-w-0 flex-1 text-sm leading-6 text-slate-100">
           <strong class="font-semibold">Notice:</strong>
           Yummy Tummy is a work in progress and some functionality is still undergoing maintenance and optimisation.
         </div>
-        <button id="noticeDismiss" class="ml-auto inline-flex h-11 w-11 shrink-0 aspect-square items-center justify-center rounded-full text-slate-100 ring-1 ring-slate-600/70 hover:bg-slate-800/70" aria-label="Dismiss notice">✕</button>
+        <button id="noticeDismiss" class="inline-flex h-11 w-11 shrink-0 aspect-square items-center justify-center rounded-full text-slate-100 ring-1 ring-slate-600/70 hover:bg-slate-800/70 sm:ml-auto" aria-label="Dismiss notice">✕</button>
       </article>
     </section>
 
     <section class="skeuo-wrap skeuo-section-tight">
       <div class="skeuo-container-wide">
-        <article class="glass skeuo-surface relative isolate aspect-[1377/768] overflow-hidden rounded-[2rem]">
+        <article class="hero-spotlight glass skeuo-surface relative isolate overflow-hidden rounded-[2rem]">
           <div class="absolute inset-0 bg-[linear-gradient(105deg,#B7EEDC_0%,#D9E8F5_100%)]"></div>
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_left_center,rgba(0,255,204,0.14),transparent_32%)]"></div>
           <img
-            src="/YumTumRight.png"
+            src="/YumTumHero-v2.png"
             alt="Yummy Tummy AI chef robot mascot"
             width="1377"
             height="768"
             sizes="100vw"
-            class="absolute inset-0 h-full w-full object-contain object-right"
+            class="hero-spotlight-media absolute inset-0 h-full w-full object-contain object-right"
             loading="eager"
             fetchpriority="high"
             decoding="async"
           />
-          <div class="relative z-10 flex h-full items-center">
-            <div class="max-w-2xl px-5 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10">
-              <p class="skeuo-label text-emerald-700">High-end AI kitchen assistant</p>
-              <h1 class="mt-4 max-w-xl text-5xl leading-[0.92] text-[#1A3D37] sm:text-6xl lg:text-7xl">
+          <div class="hero-spotlight-content relative z-10 flex h-full items-center px-4 sm:px-6 lg:px-8">
+            <div class="hero-copy-shell max-w-2xl px-5 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10">
+              <p class="hero-copy-kicker skeuo-label text-emerald-700">High-end AI kitchen assistant</p>
+              <h1 class="hero-copy-title mt-4 max-w-xl text-5xl leading-[0.92] text-[#1A3D37] sm:text-6xl lg:text-7xl">
                 Your Kitchen, Powered by Intelligence.
               </h1>
-              <p class="mt-5 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
+              <p class="hero-copy-body mt-5 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
                 From leftover-logic to gourmet meal planning, chat with TummyBot to transform your ingredients into masterpieces.
               </p>
-              <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a id="cta" href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Start Cooking</a>
-                <a href="/recipes.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">Explore Recipes</a>
+              <div class="hero-copy-actions mt-8 flex flex-col gap-3 sm:flex-row">
+                <a id="cta" href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full sm:w-auto">Start Cooking</a>
+                <a href="/recipes.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive w-full sm:w-auto">Explore Recipes</a>
               </div>
             </div>
           </div>
@@ -195,7 +195,7 @@
   <footer class="skeuo-wrap pb-8">
     <div class="skeuo-container-wide flex flex-col items-start justify-between gap-3 text-sm text-slate-300 sm:flex-row sm:items-center">
       <p>© <span id="year"></span> Yummy Tummy AI</p>
-      <nav class="flex gap-4" aria-label="Footer">
+      <nav class="flex flex-wrap gap-4" aria-label="Footer">
         <a href="/about.html" class="skeuo-link">About</a>
         <a href="/recipes.html" class="skeuo-link">Recipes</a>
         <a href="/chat.html" class="skeuo-link">Open Chat</a>

@@ -6,7 +6,7 @@
   --recessed: rgba(240, 249, 247, 0.92);
   --secondary: #1a3d37;
   --text-primary: #1a3d37;
-  --text-muted: #496660;
+  --text-muted: #355650;
   --accent: #00ffcc;
   --accent-strong: #00997a;
   --alert: #ffb800;
@@ -36,11 +36,8 @@
 
 body {
   font-family: "Plus Jakarta Sans", sans-serif;
-  background-color: var(--chassis);
-  background-image:
-    radial-gradient(circle at 14% 18%, rgba(0, 255, 204, 0.16), transparent 28%),
-    radial-gradient(circle at 86% 16%, rgba(170, 221, 255, 0.24), transparent 30%),
-    linear-gradient(180deg, #f6fffd 0%, #ebfbf7 52%, #e2f7f1 100%);
+  background-color: #b7eedc;
+  background-image: linear-gradient(105deg, #b7eedc 0%, #d9e8f5 100%);
   color: var(--text-primary);
   line-height: 1.65;
   overflow-x: hidden;
@@ -51,7 +48,7 @@ a {
 }
 
 a:hover {
-  color: var(--accent);
+  color: var(--accent-strong);
 }
 
 h1,
@@ -101,19 +98,11 @@ html {
 }
 
 .industrial-texture {
-  background-image: radial-gradient(
-    circle at 1px 1px,
-    rgba(26, 61, 55, 0.045) 1px,
-    transparent 0
-  );
-  background-size: 22px 22px;
+  background-image: linear-gradient(105deg, #b7eedc 0%, #d9e8f5 100%);
 }
 
 .home-page-gradient {
-  background-image:
-    radial-gradient(circle at 14% 18%, rgba(0, 255, 204, 0.16), transparent 28%),
-    radial-gradient(circle at 86% 16%, rgba(170, 221, 255, 0.24), transparent 30%),
-    linear-gradient(to top, #b7eedc 0%, #d9e8f5 100%);
+  background-image: linear-gradient(105deg, #b7eedc 0%, #d9e8f5 100%);
 }
 
 .brand-gradient {
@@ -171,6 +160,17 @@ html {
 .skeuo-header {
   padding-top: var(--skeuo-space-4);
   padding-bottom: var(--skeuo-space-4);
+}
+
+.skeuo-header .skeuo-container-wide > a,
+.skeuo-header .skeuo-container-wide > a span:not(.brand-gradient),
+.skeuo-header nav[aria-label="Primary"] .skeuo-link {
+  color: var(--text-primary);
+}
+
+.skeuo-header .skeuo-container-wide > a:hover,
+.skeuo-header nav[aria-label="Primary"] .skeuo-link:hover {
+  color: var(--accent-strong);
 }
 
 .skeuo-section {

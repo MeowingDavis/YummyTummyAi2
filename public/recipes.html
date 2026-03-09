@@ -1,110 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-  <title>Recipe Explorer - Yummy Tummy AI</title>
-  <meta name="description" content="Search recipes manually with categories and ingredients in Yummy Tummy Recipe Explorer." />
-  <meta name="theme-color" content="#173540" />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <script src="/industrial-tailwind.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/industrial.css" />
-</head>
-<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0">
-  <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to content</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <title>Recipes - Yummy Tummy AI</title>
+    <meta
+      name="description"
+      content="Recipe Explorer is planned for a future Yummy Tummy AI release."
+    />
+    <meta name="theme-color" content="#173540" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <script src="/industrial-tailwind.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/industrial.css" />
+  </head>
+  <body
+    class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0"
+  >
+    <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary"
+    >Skip to content</a>
 
-  <header class="skeuo-wrap skeuo-header sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur-md">
-    <div class="skeuo-container-wide flex min-h-14 items-center justify-between gap-3">
-      <a href="/" class="inline-flex items-center gap-3" aria-label="Yummy Tummy AI home">
-        <span class="holo-icon-chip" aria-hidden="true">🍳</span>
-        <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy Tummy <span class="brand-gradient">AI</span></span>
-      </a>
-      <div class="hidden items-center gap-4 md:flex">
-        <nav class="flex items-center gap-4" aria-label="Primary">
-          <a href="/" class="skeuo-link">Home</a>
-          <a href="/chat.html" class="skeuo-link">Chat</a>
-          <a href="/recipes.html" class="skeuo-link">Recipes</a>
-          <a href="/about.html" class="skeuo-link">About</a>
-        </nav>
-        <section class="auth-shell w-[248px]" data-auth-shell data-auth-ready="false" aria-label="Account menu">
-          <div class="auth-shell-head">
-            <p class="skeuo-label">Account</p>
-            <p data-auth-status class="auth-shell-status" aria-live="polite"></p>
-            <p data-auth-email class="auth-shell-email hidden"></p>
+    <header
+      class="skeuo-wrap skeuo-header sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur-md"
+    >
+      <div
+        class="skeuo-container-wide flex min-h-14 items-center justify-between gap-3"
+      >
+        <a
+          href="/"
+          class="inline-flex items-center gap-3"
+          aria-label="Yummy Tummy AI home"
+        >
+          <span class="holo-icon-chip" aria-hidden="true">🍳</span>
+          <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy
+            Tummy <span class="brand-gradient">AI</span></span>
+        </a>
+        <div class="hidden items-center gap-4 md:flex">
+          <nav class="flex items-center gap-4" aria-label="Primary">
+            <a href="/" class="skeuo-link">Home</a>
+            <a href="/chat.html" class="skeuo-link">Chat</a>
+            <a href="/recipes.html" class="skeuo-link">Recipes</a>
+            <a href="/about.html" class="skeuo-link">About</a>
+          </nav>
+          <section
+            class="auth-shell auth-shell-compact w-[220px]"
+            data-auth-shell
+            data-auth-ready="false"
+            aria-label="Account menu"
+          >
+            <div class="auth-shell-head">
+              <p class="skeuo-label">Account</p>
+              <p data-auth-status class="auth-shell-status" aria-live="polite">
+              </p>
+              <p data-auth-email class="auth-shell-email hidden"></p>
+            </div>
+            <div class="auth-shell-actions">
+              <a
+                data-auth="signed-out-only"
+                data-auth-link="register"
+                href="/auth.html?mode=register"
+                class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm"
+              >Register</a>
+              <a
+                data-auth="signed-out-only"
+                data-auth-link="login"
+                href="/auth.html?mode=login"
+                class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm"
+              >Login</a>
+              <a
+                data-auth="signed-in-only"
+                href="/account.html"
+                class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm"
+              >Account</a>
+              <button
+                data-auth="signed-in-only"
+                data-auth-action="logout"
+                type="button"
+                class="hidden skeuo-btn skeuo-btn-danger skeuo-interactive skeuo-btn-sm"
+              >
+                Logout
+              </button>
+            </div>
+          </section>
+        </div>
+        <div class="flex items-center gap-2 md:hidden">
+          <a
+            data-auth="signed-out-only"
+            data-auth-link="login"
+            href="/auth.html?mode=login"
+            class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+          >Login</a>
+          <a
+            data-auth="signed-in-only"
+            href="/account.html"
+            class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+          >Account</a>
+          <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-btn-sm"
+          >Open Chat</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content" class="skeuo-wrap skeuo-section mb-14">
+      <div class="skeuo-container-wide max-w-6xl grid gap-5">
+        <section
+          class="recipe-explorer-hero glass skeuo-surface skeuo-section-tight overflow-hidden"
+        >
+          <div class="recipe-explorer-hero-grid">
+            <div class="recipe-explorer-copy">
+              <p class="skeuo-label">Recipe Explorer</p>
+              <h1 class="mt-3 text-4xl sm:text-6xl">
+                Recipe Explorer is coming soon.
+              </h1>
+              <p
+                class="recipe-explorer-lede mt-4 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg"
+              >
+                We are building a dedicated place to discover, save, and return
+                to recipes you love. It is not live yet, but it is already
+                planned as a major part of the Yummy Tummy experience.
+              </p>
+              <div
+                class="recipe-explorer-chips mt-6"
+                aria-label="Explorer benefits"
+              >
+                <span class="recipe-explorer-chip">Coming soon</span>
+                <span class="recipe-explorer-chip">Personal recipe book</span>
+                <span class="recipe-explorer-chip">Future user recipes</span>
+              </div>
+            </div>
+            <div class="recipe-explorer-visual">
+              <img
+                src="/recipe-explorer-hero.svg"
+                alt="Yummy Tummy chef robot curating recipe cards beside a plated dish"
+                width="1600"
+                height="900"
+                class="recipe-explorer-illustration"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+              />
+            </div>
           </div>
-          <div class="auth-shell-actions">
-            <a data-auth="signed-out-only" data-auth-link="register" href="/auth.html?mode=register" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Register</a>
-            <a data-auth="signed-out-only" data-auth-link="login" href="/auth.html?mode=login" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Login</a>
-            <a data-auth="signed-in-only" href="/account.html" class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Account</a>
-            <button data-auth="signed-in-only" data-auth-action="logout" type="button" class="hidden skeuo-btn skeuo-btn-danger skeuo-interactive skeuo-btn-sm">Logout</button>
+        </section>
+
+        <section
+          class="glass skeuo-surface skeuo-card-pad-lg"
+          aria-labelledby="recipes-status-heading"
+        >
+          <p class="skeuo-label">Status</p>
+          <h2 id="recipes-status-heading" class="mt-3 text-3xl">
+            What to expect
+          </h2>
+          <div
+            class="mt-4 rounded-[1.25rem] border border-amber-400/40 bg-amber-500/10 px-5 py-4 text-sm leading-7 text-amber-100"
+            role="status"
+          >
+            Recipe Explorer is coming soon. We are focused on making the core
+            cooking AI experience stable, then we will expand into a richer
+            recipe discovery experience.
+          </div>
+          <div class="mt-6 grid gap-4 md:grid-cols-3">
+            <article
+              class="rounded-[1.25rem] border border-[rgba(0,255,204,0.16)] bg-white/55 p-4"
+            >
+              <p class="skeuo-label">Planned feature</p>
+              <h3 class="mt-3 text-xl">Complete recipe lookup</h3>
+              <p class="mt-3 text-slate-600">
+                Search across a fuller recipe database to find meals by dish,
+                ingredient, mood, or cooking style.
+              </p>
+            </article>
+            <article
+              class="rounded-[1.25rem] border border-[rgba(0,255,204,0.16)] bg-white/55 p-4"
+            >
+              <p class="skeuo-label">Planned feature</p>
+              <h3 class="mt-3 text-xl">Save to your recipe book</h3>
+              <p class="mt-3 text-slate-600">
+                Keep favorite finds in a personal recipe book so your go-to
+                meals are always easy to come back to.
+              </p>
+            </article>
+            <article
+              class="rounded-[1.25rem] border border-[rgba(0,255,204,0.16)] bg-white/55 p-4"
+            >
+              <p class="skeuo-label">In the future</p>
+              <h3 class="mt-3 text-xl">User recipes</h3>
+              <p class="mt-3 text-slate-600">
+                Once the core features are stable, user-submitted recipes are in
+                the works so the platform can grow with the community.
+              </p>
+            </article>
+          </div>
+          <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+            <a
+              href="/chat.html"
+              class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full sm:w-auto"
+            >Open Cooking Chat</a>
+            <a
+              href="/"
+              class="skeuo-btn skeuo-btn-secondary skeuo-interactive w-full sm:w-auto"
+            >Back Home</a>
           </div>
         </section>
       </div>
-      <div class="flex items-center gap-2 md:hidden">
-        <a data-auth="signed-out-only" data-auth-link="login" href="/auth.html?mode=login" class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm">Login</a>
-        <a data-auth="signed-in-only" href="/account.html" class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm">Account</a>
-        <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-btn-sm">Open Chat</a>
+    </main>
+
+    <footer class="skeuo-wrap pb-8">
+      <div
+        class="skeuo-container-wide flex flex-col items-start justify-between gap-3 text-sm text-slate-300 sm:flex-row sm:items-center"
+      >
+        <p>© <span id="year"></span> Yummy Tummy AI</p>
+        <nav class="flex gap-4" aria-label="Footer">
+          <a href="/" class="skeuo-link">Home</a>
+          <a href="/chat.html" class="skeuo-link">Open Chat</a>
+          <a href="/recipes.html" class="skeuo-link">Recipes</a>
+        </nav>
       </div>
-    </div>
-  </header>
+    </footer>
 
-  <main id="main-content" class="skeuo-wrap skeuo-section mb-14">
-    <div class="skeuo-container-wide max-w-5xl grid gap-5">
-      <section class="skeuo-section-tight">
-        <h1 class="text-3xl font-extrabold tracking-tight sm:text-5xl">Recipe Explorer</h1>
-        <p class="mt-3 text-slate-200">Explore recipes instantly, then refine with search and category filters. Powered by API Ninjas.</p>
-      </section>
-
-      <section class="glass skeuo-surface skeuo-card-pad-lg" aria-labelledby="search-heading">
-        <h2 id="search-heading" class="text-lg font-semibold">Find recipes</h2>
-        <div class="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100" role="status" aria-live="polite">
-          Notice: Recipe search and categories are not working as expected just yet. We are working to fix them as soon as possible.
-        </div>
-        <div class="mt-3 grid gap-3 sm:grid-cols-[1fr,auto]">
-          <label for="recipeSearchInput" class="sr-only">Search recipes</label>
-          <input id="recipeSearchInput" type="search" class="skeuo-input w-full px-4 py-3" placeholder="Search by dish, ingredient, or cuisine" autocomplete="off" />
-          <button id="recipeSearchBtn" type="button" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Search</button>
-        </div>
-
-        <div class="mt-4 flex flex-wrap gap-2" id="categoryBar" role="toolbar" aria-label="Recipe categories">
-          <button type="button" class="skeuo-btn skeuo-btn-primary skeuo-btn-sm recipe-category active" data-category="">All</button>
-          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="quick">Quick</button>
-          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="healthy">Healthy</button>
-          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="protein">High Protein</button>
-          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="vegetarian">Vegetarian</button>
-          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="seafood">Seafood</button>
-          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="comfort">Comfort</button>
-          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="dessert">Dessert</button>
-          <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm recipe-category" data-category="global">Global</button>
-        </div>
-        <p id="searchStatus" class="mt-3 text-sm text-slate-300" aria-live="polite">Loading explore recipes...</p>
-      </section>
-
-      <section aria-labelledby="results-heading">
-        <h2 id="results-heading" class="sr-only">Recipe results</h2>
-        <div id="recipeResults" class="grid gap-4"></div>
-        <div class="mt-4">
-          <button id="loadMoreBtn" type="button" class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive">
-            Load more
-          </button>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <footer class="skeuo-wrap pb-8">
-    <div class="skeuo-container-wide flex flex-col items-start justify-between gap-3 text-sm text-slate-300 sm:flex-row sm:items-center">
-      <p>© <span id="year"></span> Yummy Tummy AI</p>
-      <nav class="flex gap-4" aria-label="Footer">
-        <a href="/" class="skeuo-link">Home</a>
-        <a href="/chat.html" class="skeuo-link">Open Chat</a>
-        <a href="/recipes.html" class="skeuo-link">Recipes</a>
-      </nav>
-    </div>
-  </footer>
-
-  <script src="/js/site-auth.js" defer></script>
-  <script src="/js/recipes-page.js" defer></script>
-</body>
+    <script src="/js/site-auth.js" defer></script>
+  </body>
 </html>

@@ -300,5 +300,10 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  const urlRecipeId = new URLSearchParams(window.location.search).get("recipeId");
+  if (urlRecipeId) {
+    openRecipeDetails(urlRecipeId);
+  }
+
   updatePaginationUI();
 });

@@ -552,6 +552,7 @@ async function fetchRecipeDetailById(id: number) {
 }
 
 function recipeDetailToMarkdown(detail: {
+  id?: number;
   title: string;
   readyInMinutes: number | null;
   servings: number | null;
@@ -581,8 +582,14 @@ function recipeDetailToMarkdown(detail: {
   lines.push("");
   lines.push("### Instructions");
   lines.push(detail.instructions || "Instructions not available.");
+  if (detail.id) {
+    const pantryLink =
+      `/recipes.html?recipeId=${encodeURIComponent(String(detail.id))}`;
+    lines.push("");
+    lines.push(`Open in Pantry: ${pantryLink}`);
+  }
   const link = detail.sourceUrl || detail.spoonacularSourceUrl;
-  if (link) {
+  if (link && !detail.id) {
     lines.push("");
     lines.push(`Source: ${link}`);
   }
@@ -671,6 +678,7 @@ async function fetchRecipeSuggestions(
 }
 
 function recipeSuggestionsToMarkdown(query: string, suggestions: Array<{
+  id: number;
   title: string;
   readyInMinutes: number | null;
   servings: number | null;
@@ -686,9 +694,11 @@ function recipeSuggestionsToMarkdown(query: string, suggestions: Array<{
     if (item.readyInMinutes) metaParts.push(`${item.readyInMinutes} min`);
     if (item.servings) metaParts.push(`${item.servings} servings`);
     const meta = metaParts.length ? ` (${metaParts.join(" • ")})` : "";
-    const link = item.sourceUrl || item.spoonacularSourceUrl;
-    if (link) {
-      lines.push(`${index + 1}. **${item.title}**${meta} - [View recipe](${link})`);
+    const pantryLink = item.id
+      ? `/recipes.html?recipeId=${encodeURIComponent(String(item.id))}`
+      : "";
+    if (pantryLink) {
+      lines.push(`${index + 1}. **${item.title}**${meta} - [Show recipe](${pantryLink})`);
     } else {
       lines.push(`${index + 1}. **${item.title}**${meta}`);
     }
@@ -2080,7 +2090,13 @@ export function startServer() {
         const steer = steerForMode(mode);
 
         const lastSuggestions = getLastRecipeSuggestions(ownerKey);
-        const shouldTryExactRecipe =
+        const matchedSuggestion = lastSuggestions?.suggestions?.length
+          ? resolveSuggestedRecipeFromMessage(
+            message,
+            lastSuggestions.suggestions,
+          )
+          : null;
+        const shouldTryExactRecipe = Boolean(matchedSuggestion) ||
           mode === "EXPAND" || isRecipeSelectionFollowup(message);
         if (shouldTryExactRecipe) {
           const h = new Headers(
@@ -2102,10 +2118,11 @@ export function startServer() {
             );
           }
 
-          const selected = resolveSuggestedRecipeFromMessage(
-            message,
-            lastSuggestions.suggestions,
-          );
+          const selected = matchedSuggestion ??
+            resolveSuggestedRecipeFromMessage(
+              message,
+              lastSuggestions.suggestions,
+            );
           if (!selected?.id) {
             const options = lastSuggestions.suggestions
               .slice(0, 5)

@@ -16,6 +16,7 @@ import {
   clearHistory,
   ensureHistory,
   getHistory,
+  type Msg,
   pushAndClamp,
 } from "./chat/history.ts";
 import { clearChatQuota, consumeDailyChatQuota } from "./chatQuota.ts";
@@ -75,6 +76,11 @@ const CANONICAL_URL = parseCanonicalOrigin(CANONICAL_ORIGIN);
 const MODELS_REFRESH_MS = 5 * 60 * 1000;
 const GUEST_DAILY_CHAT_LIMIT = 15;
 const USER_DAILY_CHAT_LIMIT = 40;
+const SPOONACULAR_API_KEY = Deno.env.get("SPOONACULAR_API_KEY")?.trim() ?? "";
+const PANTRY_DEFAULT_RESULTS = 12;
+const PANTRY_MAX_RESULTS = 24;
+const PANTRY_MAX_QUERY_CHARS = 120;
+const PANTRY_MAX_OFFSET = 900;
 
 let modelResolutionCache:
   | { at: number; models: string[]; defaultModel: string }
@@ -248,6 +254,260 @@ function isControlNewChat(message: string, newChat?: boolean) {
   return /^let'?s start a new chat!?$/i.test(message.trim());
 }
 
+function parsePantryResultCount(value: string | null) {
+  const n = Number(value ?? PANTRY_DEFAULT_RESULTS);
+  if (!Number.isFinite(n)) return PANTRY_DEFAULT_RESULTS;
+  const asInt = Math.trunc(n);
+  if (asInt < 1) return 1;
+  if (asInt > PANTRY_MAX_RESULTS) return PANTRY_MAX_RESULTS;
+  return asInt;
+}
+
+function parsePantryOffset(value: string | null) {
+  const n = Number(value ?? 0);
+  if (!Number.isFinite(n)) return 0;
+  const asInt = Math.trunc(n);
+  if (asInt < 0) return 0;
+  if (asInt > PANTRY_MAX_OFFSET) return PANTRY_MAX_OFFSET;
+  return asInt;
+}
+
+function parsePantryMaxReadyTime(value: string | null) {
+  if (!value) return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  const asInt = Math.trunc(n);
+  if (asInt < 1) return null;
+  if (asInt > 240) return 240;
+  return asInt;
+}
+
+function normalizeDiet(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function normalizeDietTag(value: unknown) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function recipeMatchesDiet(
+  item: Record<string, unknown>,
+  selectedDiet: string,
+) {
+  const diet = normalizeDiet(selectedDiet);
+  if (!diet) return true;
+
+  const diets = Array.isArray(item.diets)
+    ? item.diets.map((v) => normalizeDietTag(v))
+    : [];
+  const hasDietTag = (tag: string) => diets.includes(tag);
+  const vegetarian = Boolean(item.vegetarian);
+  const vegan = Boolean(item.vegan);
+  const glutenFree = Boolean(item.glutenFree);
+
+  switch (diet) {
+    case "vegetarian":
+      return vegetarian || hasDietTag("vegetarian");
+    case "vegan":
+      return vegan || hasDietTag("vegan");
+    case "gluten free":
+      return glutenFree || hasDietTag("gluten free");
+    case "ketogenic":
+    case "keto":
+      return hasDietTag("ketogenic") || hasDietTag("keto");
+    case "paleo":
+      return hasDietTag("paleo") || hasDietTag("paleolithic");
+    default:
+      return true;
+  }
+}
+
+function parsePantryRecipeId(value: string) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  const asInt = Math.trunc(n);
+  if (asInt <= 0) return null;
+  return asInt;
+}
+
+function stripHtml(value: unknown) {
+  const text = String(value ?? "");
+  return text
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseRecipeCommand(message: string) {
+  const match = message.match(/^\/recipe(?:\s+(.+))?$/i);
+  if (!match) return null;
+  const query = String(match[1] ?? "").trim();
+  return { query };
+}
+
+async function fetchRecipeSuggestions(
+  query: string,
+  number = 5,
+  contextText = "",
+) {
+  if (!SPOONACULAR_API_KEY) {
+    throw new HttpError(
+      503,
+      "Recipe search is not configured on this server.",
+    );
+  }
+  const apiUrl = new URL("https://api.spoonacular.com/recipes/complexSearch");
+  const context = contextText.toLowerCase();
+  const diet = /\bgluten[ -]?free\b/.test(context)
+    ? "gluten free"
+    : /\bvegetarian\b/.test(context)
+    ? "vegetarian"
+    : /\bvegan\b/.test(context)
+    ? "vegan"
+    : /\b(keto|ketogenic)\b/.test(context)
+    ? "ketogenic"
+    : /\bpaleo\b/.test(context)
+    ? "paleo"
+    : "";
+  const cuisine = [
+    "italian",
+    "mexican",
+    "american",
+    "indian",
+    "thai",
+    "japanese",
+    "mediterranean",
+  ].find((c) => new RegExp(`\\b${c}\\b`).test(context)) || "";
+  const readyMatch = context.match(/\b(\d{1,3})\s*(min|mins|minute|minutes)\b/);
+  const maxReadyTime = readyMatch ? Math.min(Number(readyMatch[1]), 240) : 0;
+  apiUrl.searchParams.set("apiKey", SPOONACULAR_API_KEY);
+  apiUrl.searchParams.set("query", query);
+  apiUrl.searchParams.set("number", String(Math.max(1, Math.min(number, 8))));
+  apiUrl.searchParams.set("addRecipeInformation", "true");
+  if (diet) apiUrl.searchParams.set("diet", diet);
+  if (cuisine) apiUrl.searchParams.set("cuisine", cuisine);
+  if (maxReadyTime > 0) {
+    apiUrl.searchParams.set("maxReadyTime", String(maxReadyTime));
+  }
+  apiUrl.searchParams.set("sort", "popularity");
+  apiUrl.searchParams.set("sortDirection", "desc");
+
+  const upstream = await fetch(apiUrl, {
+    headers: { "Accept": "application/json" },
+  });
+  const upstreamText = await upstream.text();
+  const data = upstreamText ? JSON.parse(upstreamText) : {};
+  if (!upstream.ok) {
+    const message = typeof data?.message === "string"
+      ? data.message
+      : `Recipe search failed (${upstream.status})`;
+    const status = upstream.status === 401 || upstream.status === 402 ||
+        upstream.status === 429
+      ? upstream.status
+      : 502;
+    throw new HttpError(status, message);
+  }
+
+  const rawResults = Array.isArray(data?.results) ? data.results : [];
+  return rawResults.map((item: Record<string, unknown>) => ({
+    title: String(item.title ?? "Untitled recipe"),
+    readyInMinutes: Number(item.readyInMinutes ?? 0) || null,
+    servings: Number(item.servings ?? 0) || null,
+    sourceUrl: String(item.sourceUrl ?? ""),
+    spoonacularSourceUrl: String(item.spoonacularSourceUrl ?? ""),
+  }));
+}
+
+function recipeSuggestionsToMarkdown(query: string, suggestions: Array<{
+  title: string;
+  readyInMinutes: number | null;
+  servings: number | null;
+  sourceUrl: string;
+  spoonacularSourceUrl: string;
+}>) {
+  if (!suggestions.length) {
+    return `I couldn't find recipe matches for "${query}". Try another ingredient or dish name.`;
+  }
+  const lines = [`## Recipe ideas for "${query}"`, ""];
+  suggestions.forEach((item, index) => {
+    const metaParts: string[] = [];
+    if (item.readyInMinutes) metaParts.push(`${item.readyInMinutes} min`);
+    if (item.servings) metaParts.push(`${item.servings} servings`);
+    const meta = metaParts.length ? ` (${metaParts.join(" • ")})` : "";
+    const link = item.sourceUrl || item.spoonacularSourceUrl;
+    if (link) {
+      lines.push(`${index + 1}. **${item.title}**${meta} - [View recipe](${link})`);
+    } else {
+      lines.push(`${index + 1}. **${item.title}**${meta}`);
+    }
+  });
+  lines.push("");
+  lines.push("Tip: use `/recipe <ingredients or dish>` to search again.");
+  return lines.join("\n");
+}
+
+function recentRecipeContext(history: Msg[], currentMessage: string) {
+  const recentUser = history
+    .filter((m) => m.role === "user")
+    .map((m) => m.content.trim())
+    .filter((text) => text && !text.startsWith("/"))
+    .slice(-5);
+  return [...recentUser, currentMessage.trim()].filter(Boolean).join("\n");
+}
+
+function inferRecipeQueryFromContext(
+  explicitQuery: string,
+  history: Msg[],
+  currentMessage: string,
+) {
+  if (explicitQuery.trim()) return explicitQuery.trim();
+  const fallback = history
+    .filter((m) => m.role === "user")
+    .map((m) => m.content.trim())
+    .filter((text) => text && !text.startsWith("/"))
+    .slice(-1)[0];
+  return fallback || currentMessage.trim() || "quick dinner ideas";
+}
+
+function buildRecipeRagSteer(
+  query: string,
+  suggestions: Array<{
+    title: string;
+    readyInMinutes: number | null;
+    servings: number | null;
+    sourceUrl: string;
+    spoonacularSourceUrl: string;
+  }>,
+) {
+  if (!suggestions.length) return "";
+  const lines = [
+    "Retrieved recipe grounding (Spoonacular):",
+    `query: ${query}`,
+    "Use these retrieved options as your source of truth for recipe names and suggestions.",
+    "Do not invent extra recipe names outside this list unless you clearly say no exact match was retrieved.",
+    "",
+    "RETRIEVED:",
+  ];
+  suggestions.forEach((item, idx) => {
+    const meta: string[] = [];
+    if (item.readyInMinutes) meta.push(`${item.readyInMinutes} min`);
+    if (item.servings) meta.push(`${item.servings} servings`);
+    const link = item.sourceUrl || item.spoonacularSourceUrl || "";
+    lines.push(
+      `${idx + 1}. ${item.title}${
+        meta.length ? ` (${meta.join(", ")})` : ""
+      }${link ? ` | ${link}` : ""}`,
+    );
+  });
+  return lines.join("\n");
+}
+
 async function getCurrentUser(req: Request) {
   const cookieUser = await getAuthUserFromCookie(req);
   if (!cookieUser) return null;
@@ -291,6 +551,208 @@ export function startServer() {
         }),
         { headers: h },
       );
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/pantry/search") {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(
+        withSecurity({ "Content-Type": "application/json" }),
+      );
+      if (setCookie) h.append("Set-Cookie", setCookie);
+
+      const query = (url.searchParams.get("q") ?? "").trim();
+      if (!query) {
+        return new Response(
+          JSON.stringify({ error: "Missing search query" }),
+          { status: 400, headers: h },
+        );
+      }
+      if (query.length > PANTRY_MAX_QUERY_CHARS) {
+        return new Response(
+          JSON.stringify({ error: `Query too long (max ${PANTRY_MAX_QUERY_CHARS} chars)` }),
+          { status: 400, headers: h },
+        );
+      }
+      if (!SPOONACULAR_API_KEY) {
+        return new Response(
+          JSON.stringify({
+            error: "Pantry search is not configured on this server.",
+            code: "SPOONACULAR_API_KEY_MISSING",
+          }),
+          { status: 503, headers: h },
+        );
+      }
+
+      const number = parsePantryResultCount(url.searchParams.get("number"));
+      const offset = parsePantryOffset(url.searchParams.get("offset"));
+      const diet = (url.searchParams.get("diet") ?? "").trim();
+      const cuisine = (url.searchParams.get("cuisine") ?? "").trim();
+      const maxReadyTime = parsePantryMaxReadyTime(
+        url.searchParams.get("maxReadyTime"),
+      );
+      const apiUrl = new URL("https://api.spoonacular.com/recipes/complexSearch");
+      apiUrl.searchParams.set("apiKey", SPOONACULAR_API_KEY);
+      apiUrl.searchParams.set("query", query);
+      const upstreamNumber = diet
+        ? Math.min(PANTRY_MAX_RESULTS * 4, 96)
+        : number;
+      apiUrl.searchParams.set("number", String(upstreamNumber));
+      apiUrl.searchParams.set("offset", String(offset));
+      if (diet) apiUrl.searchParams.set("diet", diet);
+      if (cuisine) apiUrl.searchParams.set("cuisine", cuisine);
+      if (maxReadyTime) {
+        apiUrl.searchParams.set("maxReadyTime", String(maxReadyTime));
+      }
+      apiUrl.searchParams.set("sort", "popularity");
+      apiUrl.searchParams.set("sortDirection", "desc");
+      apiUrl.searchParams.set("addRecipeInformation", "true");
+
+      try {
+        const upstream = await fetch(apiUrl, {
+          headers: { "Accept": "application/json" },
+        });
+        const upstreamText = await upstream.text();
+        const upstreamData = upstreamText ? JSON.parse(upstreamText) : {};
+
+        if (!upstream.ok) {
+          const message = typeof upstreamData?.message === "string"
+            ? upstreamData.message
+            : `Recipe search failed (${upstream.status})`;
+          const status = upstream.status === 401 || upstream.status === 402 ||
+              upstream.status === 429
+            ? upstream.status
+            : 502;
+          return new Response(JSON.stringify({ error: message }), {
+            status,
+            headers: h,
+          });
+        }
+
+        const rawResults = Array.isArray(upstreamData?.results)
+          ? upstreamData.results
+          : [];
+        const filteredResults = diet
+          ? rawResults.filter((item: Record<string, unknown>) =>
+            recipeMatchesDiet(item, diet)
+          )
+          : rawResults;
+        const results = filteredResults
+          .slice(0, number)
+          .map((item: Record<string, unknown>) => ({
+          id: item.id,
+          title: String(item.title ?? ""),
+          image: String(item.image ?? ""),
+          readyInMinutes: item.readyInMinutes ?? null,
+          servings: item.servings ?? null,
+          sourceUrl: String(item.sourceUrl ?? ""),
+          spoonacularSourceUrl: String(item.spoonacularSourceUrl ?? ""),
+        }));
+
+        return new Response(
+          JSON.stringify({
+            query,
+            totalResults: Number(upstreamData?.totalResults ?? results.length),
+            offset,
+            number,
+            results,
+          }),
+          { headers: h },
+        );
+      } catch (err) {
+        const safe = redact(String((err as Error)?.message ?? err));
+        console.warn("[pantry-search] error:", safe);
+        return new Response(JSON.stringify({ error: "Pantry search failed" }), {
+          status: 502,
+          headers: h,
+        });
+      }
+    }
+
+    if (
+      req.method === "GET" &&
+      url.pathname.startsWith("/api/pantry/recipe/")
+    ) {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(
+        withSecurity({ "Content-Type": "application/json" }),
+      );
+      if (setCookie) h.append("Set-Cookie", setCookie);
+
+      const rawId = decodeURIComponent(
+        url.pathname.replace("/api/pantry/recipe/", ""),
+      );
+      const recipeId = parsePantryRecipeId(rawId);
+      if (!recipeId) {
+        return new Response(JSON.stringify({ error: "Invalid recipe id" }), {
+          status: 400,
+          headers: h,
+        });
+      }
+      if (!SPOONACULAR_API_KEY) {
+        return new Response(
+          JSON.stringify({
+            error: "Pantry search is not configured on this server.",
+            code: "SPOONACULAR_API_KEY_MISSING",
+          }),
+          { status: 503, headers: h },
+        );
+      }
+
+      const apiUrl = new URL(
+        `https://api.spoonacular.com/recipes/${recipeId}/information`,
+      );
+      apiUrl.searchParams.set("apiKey", SPOONACULAR_API_KEY);
+      apiUrl.searchParams.set("includeNutrition", "false");
+
+      try {
+        const upstream = await fetch(apiUrl, {
+          headers: { "Accept": "application/json" },
+        });
+        const upstreamText = await upstream.text();
+        const data = upstreamText ? JSON.parse(upstreamText) : {};
+
+        if (!upstream.ok) {
+          const message = typeof data?.message === "string"
+            ? data.message
+            : `Recipe details failed (${upstream.status})`;
+          const status = upstream.status === 401 || upstream.status === 402 ||
+              upstream.status === 404 || upstream.status === 429
+            ? upstream.status
+            : 502;
+          return new Response(JSON.stringify({ error: message }), {
+            status,
+            headers: h,
+          });
+        }
+
+        const ingredients = Array.isArray(data?.extendedIngredients)
+          ? data.extendedIngredients.map((item: Record<string, unknown>) =>
+            stripHtml(item.original || item.name)
+          ).filter(Boolean)
+          : [];
+
+        const payload = {
+          id: data?.id ?? recipeId,
+          title: stripHtml(data?.title),
+          image: String(data?.image ?? ""),
+          readyInMinutes: data?.readyInMinutes ?? null,
+          servings: data?.servings ?? null,
+          summary: stripHtml(data?.summary),
+          instructions: stripHtml(data?.instructions),
+          ingredients,
+          sourceUrl: String(data?.sourceUrl ?? ""),
+          spoonacularSourceUrl: String(data?.spoonacularSourceUrl ?? ""),
+        };
+
+        return new Response(JSON.stringify(payload), { headers: h });
+      } catch (err) {
+        const safe = redact(String((err as Error)?.message ?? err));
+        console.warn("[pantry-recipe] error:", safe);
+        return new Response(
+          JSON.stringify({ error: "Recipe details failed" }),
+          { status: 502, headers: h },
+        );
+      }
     }
     // Auth
     if (req.method === "GET" && url.pathname === "/me") {
@@ -1249,6 +1711,8 @@ export function startServer() {
             { status: 413, headers: h },
           );
         }
+
+        const recipeCommand = parseRecipeCommand(message);
         if (!isNewChatControl) {
           const quota = await consumeDailyChatQuota(
             ownerKey,
@@ -1273,6 +1737,32 @@ export function startServer() {
               { status: 429, headers: h },
             );
           }
+        }
+
+        if (recipeCommand) {
+          const h = new Headers(
+            withSecurity({ "Content-Type": "application/json" }),
+          );
+          if (setCookie) h.append("Set-Cookie", setCookie);
+          if (body.newChat) await clearHistory(ownerKey);
+          await ensureHistory(ownerKey, SYSTEM_PROMPT);
+          const history = await getHistory(ownerKey);
+          const query = inferRecipeQueryFromContext(
+            recipeCommand.query,
+            history,
+            message,
+          );
+          const context = recentRecipeContext(history, message);
+          const suggestions = await fetchRecipeSuggestions(query, 5, context);
+          const markdown = recipeSuggestionsToMarkdown(
+            query,
+            suggestions,
+          );
+          await pushAndClamp(ownerKey, { role: "user", content: message });
+          await pushAndClamp(ownerKey, { role: "assistant", content: markdown });
+          return new Response(JSON.stringify({ reply: markdown, markdown }), {
+            headers: h,
+          });
         }
 
         // Prompt-injection guard
@@ -1335,6 +1825,20 @@ export function startServer() {
         // Choose mode
         const mode = detectMode(message, lastAssistant);
         const steer = steerForMode(mode);
+        let recipeRagSteer = "";
+        if (mode !== "CHAT") {
+          try {
+            const ragContext = recentRecipeContext(history, message);
+            const ragQuery = inferRecipeQueryFromContext("", history, message);
+            const retrieved = await fetchRecipeSuggestions(ragQuery, 8, ragContext);
+            recipeRagSteer = buildRecipeRagSteer(ragQuery, retrieved);
+          } catch (err) {
+            console.warn(
+              "[chat-rag] recipe retrieval failed:",
+              redact(String((err as Error)?.message ?? err)),
+            );
+          }
+        }
         const profileSteer = profile
           ? [
             "Apply user profile preferences when generating food responses:",
@@ -1381,6 +1885,9 @@ export function startServer() {
             : []),
           ...(learnedProfileSteer
             ? [{ role: "system" as const, content: learnedProfileSteer }]
+            : []),
+          ...(recipeRagSteer
+            ? [{ role: "system" as const, content: recipeRagSteer }]
             : []),
           { role: "user" as const, content: message },
         ];

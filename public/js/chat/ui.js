@@ -44,6 +44,7 @@ function makeActions({ onCopy, onDelete }){
 export function appendMessage(sender, text) {
   const wrapper = document.createElement("div");
   const isUser = sender === "You";
+  const isCommand = isUser && text.trim().startsWith("/");
   wrapper.className = [
     "msg", isUser ? "msg-user" : "msg-assistant", "skeuo-surface", "skeuo-card-pad", "relative",
     "max-w-[92%]", "md:max-w-[78%]",
@@ -56,7 +57,20 @@ export function appendMessage(sender, text) {
 
   const textEl = document.createElement("div");
   textEl.className = "chat-message-body whitespace-pre-wrap leading-relaxed";
-  textEl.textContent = text;
+  if (isCommand) {
+    const commandMatch = text.match(/^\/\S+/);
+    if (commandMatch) {
+      const token = document.createElement("span");
+      token.className = "command-token";
+      token.textContent = commandMatch[0];
+      textEl.appendChild(token);
+      textEl.appendChild(document.createTextNode(text.slice(commandMatch[0].length)));
+    } else {
+      textEl.textContent = text;
+    }
+  } else {
+    textEl.textContent = text;
+  }
 
   wrapper.appendChild(senderEl);
   wrapper.appendChild(textEl);

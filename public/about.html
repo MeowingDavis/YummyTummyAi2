@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="/industrial.css" />
   </head>
   <body
-    class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0"
+    class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis text-industrial-text antialiased industrial-texture"
   >
     <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary"
     >Skip to content</a>
@@ -38,8 +38,8 @@
           <nav class="flex items-center gap-4" aria-label="Primary">
             <a href="/" class="skeuo-link">Home</a>
             <a href="/about.html" class="skeuo-link">About</a>
-            <a href="/recipes.html" class="skeuo-link">Recipes</a>
-            <a href="/chat.html" class="skeuo-link">Open Chat</a>
+            <a href="/recipes.html" class="skeuo-link">Pantry</a>
+            <a href="/chat.html" class="skeuo-link">YummyBot</a>
           </nav>
           <section
             class="auth-shell auth-shell-compact w-[220px]"
@@ -82,10 +82,48 @@
             </div>
           </section>
         </div>
-        <a
-          href="/chat.html"
-          class="md:hidden skeuo-btn skeuo-btn-primary skeuo-interactive"
-        >Open Chat</a>
+        <div class="relative md:hidden">
+          <button
+            type="button"
+            data-mobile-nav-btn
+            aria-label="Open navigation menu"
+            aria-controls="mobileNavPanel"
+            aria-expanded="false"
+            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+          </button>
+          <nav
+            id="mobileNavPanel"
+            data-mobile-nav-panel
+            class="hidden absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 rounded-2xl border border-slate-700/80 bg-slate-950/95 p-3 shadow-[0_20px_40px_rgba(15,23,42,0.45)] backdrop-blur-md"
+            aria-label="Mobile navigation"
+          >
+            <div class="grid gap-2">
+              <a href="/" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Home</a>
+              <a href="/about.html" class="skeuo-btn skeuo-btn-primary skeuo-btn-sm skeuo-btn-block">About</a>
+              <a href="/recipes.html" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Pantry</a>
+              <a href="/chat.html" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">YummyBot</a>
+            </div>
+            <div class="mt-3 border-t border-slate-700/80 pt-3">
+              <div class="grid gap-2">
+                <a data-auth="signed-out-only" data-auth-link="register" href="/auth.html?mode=register" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Register</a>
+                <a data-auth="signed-out-only" data-auth-link="login" href="/auth.html?mode=login" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Login</a>
+                <a data-auth="signed-in-only" href="/account.html" class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Account</a>
+                <button data-auth="signed-in-only" data-auth-action="logout" type="button" class="hidden skeuo-btn skeuo-btn-danger skeuo-btn-sm skeuo-btn-block">Logout</button>
+              </div>
+            </div>
+          </nav>
+        </div>
       </div>
     </header>
 
@@ -258,7 +296,7 @@
             <a
               href="/chat.html"
               class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full sm:w-auto"
-            >Open Chat</a>
+            >YummyBot</a>
             <a
               href="/"
               class="skeuo-btn skeuo-btn-secondary skeuo-interactive w-full sm:w-auto"
@@ -276,50 +314,13 @@
         <nav class="flex gap-4" aria-label="Footer">
           <a href="/" class="skeuo-link">Home</a>
           <a href="/about.html" class="skeuo-link">About</a>
-          <a href="/recipes.html" class="skeuo-link">Recipes</a>
-          <a href="/chat.html" class="skeuo-link">Open Chat</a>
+          <a href="/recipes.html" class="skeuo-link">Pantry</a>
+          <a href="/chat.html" class="skeuo-link">YummyBot</a>
         </nav>
       </div>
     </footer>
 
-    <nav
-      class="mobile-bottom-nav md:hidden"
-      aria-label="Mobile quick navigation"
-    >
-      <ul class="mx-auto grid max-w-xl grid-cols-5 gap-2 text-center">
-        <li>
-          <a
-            href="/"
-            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
-          >Home</a>
-        </li>
-        <li>
-          <a
-            href="/about.html"
-            class="skeuo-btn skeuo-btn-primary skeuo-btn-sm skeuo-btn-block"
-          >About</a>
-        </li>
-        <li>
-          <a
-            href="/recipes.html"
-            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
-          >Recipes</a>
-        </li>
-        <li>
-          <a
-            href="/chat.html"
-            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
-          >Chat</a>
-        </li>
-        <li>
-          <a
-            href="/account.html"
-            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
-          >Account</a>
-        </li>
-      </ul>
-    </nav>
-
+    <script src="/js/mobile-nav.js" defer></script>
     <script src="/js/site-auth.js" defer></script>
     <script src="/js/about.js" defer></script>
   </body>

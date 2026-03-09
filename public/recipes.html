@@ -6,10 +6,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <title>Recipes - Yummy Tummy AI</title>
+    <title>Pantry - Yummy Tummy AI</title>
     <meta
       name="description"
-      content="Recipe Explorer is planned for a future Yummy Tummy AI release."
+      content="Pantry is planned for a future Yummy Tummy AI release."
     />
     <meta name="theme-color" content="#173540" />
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="/industrial.css" />
   </head>
   <body
-    class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis pb-24 text-industrial-text antialiased industrial-texture md:pb-0"
+    class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis text-industrial-text antialiased industrial-texture"
   >
     <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary"
     >Skip to content</a>
@@ -42,8 +42,8 @@
           <nav class="flex items-center gap-4" aria-label="Primary">
             <a href="/" class="skeuo-link">Home</a>
             <a href="/about.html" class="skeuo-link">About</a>
-            <a href="/recipes.html" class="skeuo-link">Recipes</a>
-            <a href="/chat.html" class="skeuo-link">Open Chat</a>
+            <a href="/recipes.html" class="skeuo-link">Pantry</a>
+            <a href="/chat.html" class="skeuo-link">YummyBot</a>
           </nav>
           <section
             class="auth-shell auth-shell-compact w-[220px]"
@@ -86,114 +86,256 @@
             </div>
           </section>
         </div>
-        <a
-          href="/chat.html"
-          class="skeuo-btn skeuo-btn-primary skeuo-btn-sm md:hidden"
-        >Open Chat</a>
+        <div class="relative md:hidden">
+          <button
+            type="button"
+            data-mobile-nav-btn
+            aria-label="Open navigation menu"
+            aria-controls="mobileNavPanel"
+            aria-expanded="false"
+            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+          </button>
+          <nav
+            id="mobileNavPanel"
+            data-mobile-nav-panel
+            class="hidden absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 rounded-2xl border border-slate-700/80 bg-slate-950/95 p-3 shadow-[0_20px_40px_rgba(15,23,42,0.45)] backdrop-blur-md"
+            aria-label="Mobile navigation"
+          >
+            <div class="grid gap-2">
+              <a href="/" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Home</a>
+              <a href="/about.html" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">About</a>
+              <a href="/recipes.html" class="skeuo-btn skeuo-btn-primary skeuo-btn-sm skeuo-btn-block">Pantry</a>
+              <a href="/chat.html" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">YummyBot</a>
+            </div>
+            <div class="mt-3 border-t border-slate-700/80 pt-3">
+              <div class="grid gap-2">
+                <a data-auth="signed-out-only" data-auth-link="register" href="/auth.html?mode=register" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Register</a>
+                <a data-auth="signed-out-only" data-auth-link="login" href="/auth.html?mode=login" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Login</a>
+                <a data-auth="signed-in-only" href="/account.html" class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block">Account</a>
+                <button data-auth="signed-in-only" data-auth-action="logout" type="button" class="hidden skeuo-btn skeuo-btn-danger skeuo-btn-sm skeuo-btn-block">Logout</button>
+              </div>
+            </div>
+          </nav>
+        </div>
       </div>
     </header>
 
     <main id="main-content" class="skeuo-wrap skeuo-section mb-14">
       <div class="skeuo-container-wide max-w-6xl grid gap-5">
-        <section
-          class="recipe-explorer-hero glass skeuo-surface skeuo-section-tight overflow-hidden"
-        >
-          <div class="recipe-explorer-hero-grid">
-            <div class="recipe-explorer-copy">
-              <p class="skeuo-label">Recipe Explorer</p>
-              <h1 class="mt-3 text-4xl sm:text-6xl">
-                Recipe Explorer is coming soon.
-              </h1>
-              <p
-                class="recipe-explorer-lede mt-4 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg"
-              >
-                We are building a dedicated place to discover, save, and return
-                to recipes you love. It is not live yet, but it is already
-                planned as a major part of the Yummy Tummy experience.
+        <section class="glass skeuo-surface skeuo-card-pad-lg">
+          <p class="skeuo-label">Coming Soon</p>
+          <h3 class="mt-2 text-2xl sm:text-3xl">Full Pantry Features</h3>
+          <p class="mt-3 max-w-3xl text-slate-600">
+            We are bringing back a complete Pantry workflow with bookmarking,
+            personal recipe books, and fast ways to organize what you want to
+            cook later.
+          </p>
+          <div class="mt-5 grid gap-4 md:grid-cols-3">
+            <article
+              class="rounded-[1.25rem] border border-[rgba(0,255,204,0.16)] bg-white/55 p-4"
+            >
+              <p class="skeuo-label">Planned</p>
+              <h4 class="mt-2 text-xl text-[#1A3D37]">Bookmark Recipes</h4>
+              <p class="mt-2 text-sm text-slate-600">
+                Save a recipe from results with one tap and revisit it later.
               </p>
-              <div
-                class="recipe-explorer-chips mt-6"
-                aria-label="Explorer benefits"
-              >
-                <span class="recipe-explorer-chip">Coming soon</span>
-                <span class="recipe-explorer-chip">Personal recipe book</span>
-                <span class="recipe-explorer-chip">Future user recipes</span>
-              </div>
+            </article>
+            <article
+              class="rounded-[1.25rem] border border-[rgba(0,255,204,0.16)] bg-white/55 p-4"
+            >
+              <p class="skeuo-label">Planned</p>
+              <h4 class="mt-2 text-xl text-[#1A3D37]">Recipe Book</h4>
+              <p class="mt-2 text-sm text-slate-600">
+                Build your own collection of favorites and pantry go-to meals.
+              </p>
+            </article>
+            <article
+              class="rounded-[1.25rem] border border-[rgba(0,255,204,0.16)] bg-white/55 p-4"
+            >
+              <p class="skeuo-label">Planned</p>
+              <h4 class="mt-2 text-xl text-[#1A3D37]">Smart Collections</h4>
+              <p class="mt-2 text-sm text-slate-600">
+                Group recipes into themes like weeknights, high-protein, or
+                family meals.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="glass skeuo-surface skeuo-card-pad-lg">
+          <p class="skeuo-label">Pantry Search</p>
+          <h1 class="mt-3 text-4xl sm:text-6xl">Find recipes in seconds.</h1>
+          <p
+            class="mt-4 max-w-3xl text-base leading-8 text-slate-600 sm:text-lg"
+          >
+            Search by ingredient, dish, or cuisine and browse recipe matches
+            from our pantry data provider.
+          </p>
+          <form
+            id="pantrySearchForm"
+            class="mt-6 flex flex-col gap-3 sm:flex-row"
+            aria-label="Pantry recipe search"
+          >
+            <label for="pantryQuery" class="sr-only">Search pantry recipes</label>
+            <input
+              id="pantryQuery"
+              type="search"
+              required
+              maxlength="120"
+              placeholder="Try: chicken, pasta, thai curry, vegan breakfast..."
+              class="skeuo-input w-full px-4 py-3 text-base"
+              autocomplete="off"
+            />
+            <button
+              type="submit"
+              class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full sm:w-auto"
+            >
+              Search Pantry
+            </button>
+          </form>
+          <div class="mt-3 grid gap-3 md:grid-cols-3">
+            <div>
+              <label for="pantryDiet" class="skeuo-label">Diet</label>
+              <select id="pantryDiet" class="skeuo-input mt-1 w-full px-3 py-2">
+                <option value="">Any</option>
+                <option value="vegetarian">Vegetarian</option>
+                <option value="vegan">Vegan</option>
+                <option value="gluten free">Gluten Free</option>
+                <option value="ketogenic">Keto</option>
+                <option value="paleo">Paleo</option>
+              </select>
             </div>
-            <div class="recipe-explorer-visual">
-              <img
-                src="/assets/images/illustrations/recipe-explorer-hero.svg"
-                alt="Yummy Tummy chef robot curating recipe cards beside a plated dish"
-                width="1600"
-                height="900"
-                class="recipe-explorer-illustration"
-                loading="eager"
-                fetchpriority="high"
-                decoding="async"
-              />
+            <div>
+              <label for="pantryCuisine" class="skeuo-label">Cuisine</label>
+              <select id="pantryCuisine" class="skeuo-input mt-1 w-full px-3 py-2">
+                <option value="">Any</option>
+                <option value="italian">Italian</option>
+                <option value="mexican">Mexican</option>
+                <option value="american">American</option>
+                <option value="indian">Indian</option>
+                <option value="thai">Thai</option>
+                <option value="japanese">Japanese</option>
+              </select>
+            </div>
+            <div>
+              <label for="pantryMaxReadyTime" class="skeuo-label">Max minutes</label>
+              <select id="pantryMaxReadyTime" class="skeuo-input mt-1 w-full px-3 py-2">
+                <option value="">Any</option>
+                <option value="15">15</option>
+                <option value="30">30</option>
+                <option value="45">45</option>
+                <option value="60">60</option>
+              </select>
             </div>
           </div>
+          <div class="mt-4">
+            <p class="skeuo-label">Quick Categories</p>
+            <div id="pantryQuickFilters" class="mt-2 flex flex-wrap gap-2">
+              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="high protein dinner">High Protein</button>
+              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="quick weeknight dinner">Quick Meals</button>
+              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="healthy lunch">Healthy Lunch</button>
+              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="comfort food">Comfort Food</button>
+              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="breakfast">Breakfast</button>
+              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="snacks">Snacks</button>
+            </div>
+          </div>
+          <p
+            id="pantryStatus"
+            class="mt-4 text-sm text-slate-200"
+            role="status"
+            aria-live="polite"
+          >
+            Enter an ingredient or dish name to start searching.
+          </p>
         </section>
 
         <section
           class="glass skeuo-surface skeuo-card-pad-lg"
-          aria-labelledby="recipes-status-heading"
+          aria-labelledby="pantry-results-heading"
         >
-          <p class="skeuo-label">Status</p>
-          <h2 id="recipes-status-heading" class="mt-3 text-3xl">
-            What to expect
-          </h2>
-          <div
-            class="mt-4 rounded-[1.25rem] border border-amber-400/40 bg-amber-500/10 px-5 py-4 text-sm leading-7 text-amber-100"
-            role="status"
-          >
-            Recipe Explorer is coming soon. We are focused on making the core
-            cooking AI experience stable, then we will expand into a richer
-            recipe discovery experience.
-          </div>
-          <div class="mt-6 grid gap-4 md:grid-cols-3">
-            <article
-              class="rounded-[1.25rem] border border-[rgba(0,255,204,0.16)] bg-white/55 p-4"
-            >
-              <p class="skeuo-label">Planned feature</p>
-              <h3 class="mt-3 text-xl">Complete recipe lookup</h3>
-              <p class="mt-3 text-slate-600">
-                Search across a fuller recipe database to find meals by dish,
-                ingredient, mood, or cooking style.
-              </p>
-            </article>
-            <article
-              class="rounded-[1.25rem] border border-[rgba(0,255,204,0.16)] bg-white/55 p-4"
-            >
-              <p class="skeuo-label">Planned feature</p>
-              <h3 class="mt-3 text-xl">Save to your recipe book</h3>
-              <p class="mt-3 text-slate-600">
-                Keep favorite finds in a personal recipe book so your go-to
-                meals are always easy to come back to.
-              </p>
-            </article>
-            <article
-              class="rounded-[1.25rem] border border-[rgba(0,255,204,0.16)] bg-white/55 p-4"
-            >
-              <p class="skeuo-label">In the future</p>
-              <h3 class="mt-3 text-xl">User recipes</h3>
-              <p class="mt-3 text-slate-600">
-                Once the core features are stable, user-submitted recipes are in
-                the works so the platform can grow with the community.
-              </p>
-            </article>
-          </div>
-          <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+          <div class="flex items-center justify-between gap-3">
+            <h2 id="pantry-results-heading" class="text-2xl sm:text-3xl">
+              Results
+            </h2>
             <a
               href="/chat.html"
-              class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full sm:w-auto"
-            >Open Cooking Chat</a>
-            <a
-              href="/"
-              class="skeuo-btn skeuo-btn-secondary skeuo-interactive w-full sm:w-auto"
-            >Back Home</a>
+              class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm"
+            >
+              Ask YummyBot
+            </a>
+          </div>
+          <div
+            id="pantryResults"
+            class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+          >
+          </div>
+          <div class="mt-5 flex items-center justify-between gap-3">
+            <button
+              id="pantryPrevPage"
+              type="button"
+              class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+              disabled
+            >
+              Previous
+            </button>
+            <p id="pantryPageInfo" class="text-sm text-slate-500">Page 1</p>
+            <button
+              id="pantryNextPage"
+              type="button"
+              class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+              disabled
+            >
+              Next
+            </button>
           </div>
         </section>
+
+        <section
+          id="pantryRecipeSection"
+          class="hidden glass skeuo-surface skeuo-card-pad-lg"
+          aria-labelledby="pantry-recipe-title"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="skeuo-label">Recipe Details</p>
+              <h3 id="pantry-recipe-title" class="mt-2 text-2xl sm:text-3xl"></h3>
+            </div>
+            <button
+              id="pantryRecipeClose"
+              type="button"
+              class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+            >
+              Close
+            </button>
+          </div>
+          <p id="pantryRecipeMeta" class="mt-3 text-sm text-slate-600"></p>
+          <p id="pantryRecipeSummary" class="mt-4 text-slate-600"></p>
+          <h4 class="mt-6 text-xl text-[#1A3D37]">Ingredients</h4>
+          <ul id="pantryRecipeIngredients" class="mt-3 list-disc space-y-1 pl-5 text-slate-600"></ul>
+          <h4 class="mt-6 text-xl text-[#1A3D37]">Instructions</h4>
+          <p id="pantryRecipeInstructions" class="mt-3 whitespace-pre-line text-slate-600"></p>
+          <a
+            id="pantryRecipeSource"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-5 inline-flex skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+          >
+            Open original source
+          </a>
+        </section>
+
       </div>
     </main>
 
@@ -205,50 +347,14 @@
         <nav class="flex gap-4" aria-label="Footer">
           <a href="/" class="skeuo-link">Home</a>
           <a href="/about.html" class="skeuo-link">About</a>
-          <a href="/recipes.html" class="skeuo-link">Recipes</a>
-          <a href="/chat.html" class="skeuo-link">Open Chat</a>
+          <a href="/recipes.html" class="skeuo-link">Pantry</a>
+          <a href="/chat.html" class="skeuo-link">YummyBot</a>
         </nav>
       </div>
     </footer>
 
-    <nav
-      class="mobile-bottom-nav md:hidden"
-      aria-label="Mobile quick navigation"
-    >
-      <ul class="mx-auto grid max-w-xl grid-cols-5 gap-2 text-center">
-        <li>
-          <a
-            href="/"
-            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
-          >Home</a>
-        </li>
-        <li>
-          <a
-            href="/about.html"
-            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
-          >About</a>
-        </li>
-        <li>
-          <a
-            href="/recipes.html"
-            class="skeuo-btn skeuo-btn-primary skeuo-btn-sm skeuo-btn-block"
-          >Recipes</a>
-        </li>
-        <li>
-          <a
-            href="/chat.html"
-            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
-          >Chat</a>
-        </li>
-        <li>
-          <a
-            href="/account.html"
-            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
-          >Account</a>
-        </li>
-      </ul>
-    </nav>
-
+    <script src="/js/mobile-nav.js" defer></script>
     <script src="/js/site-auth.js" defer></script>
+    <script src="/js/pantry-page.js" defer></script>
   </body>
 </html>

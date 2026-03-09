@@ -6,7 +6,7 @@ frontend and a backend chat endpoint that calls the Groq Chat Completions API.
 ## Features
 
 - Ingredient-aware recipe help and cooking Q&A
-- Recipe Explorer placeholder page for a future release (`/recipes.html`)
+- Pantry search page backed by Spoonacular (`/recipes.html`)
 - Off-topic guard that steers conversation back to food
 - Session-based chat history persisted in Supabase
 - Saved chats persisted in Supabase
@@ -36,6 +36,7 @@ export SUPABASE_URL="https://<project-ref>.supabase.co"
 export SUPABASE_ANON_KEY="your_supabase_anon_key"
 # required for server-side Supabase data access (saved chats, account deletion)
 export SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
+export SPOONACULAR_API_KEY="your_spoonacular_api_key"
 # optional
 export MODEL="llama-3.1-8b-instant"
 # optional: models shown in the UI picker (comma-separated)
@@ -103,6 +104,7 @@ http://localhost:8000
 ```
 
 - `POST /upload` -> currently a stub, returns `[]`
+- `GET /api/pantry/search?q=<term>&number=<1..24>` -> pantry recipe search
 - `GET /saved-chats` -> account saved chats
 - `POST /saved-chats` -> save chat `{ title, history }`
 - `GET /saved-chats/:id` -> fetch one saved chat
@@ -131,7 +133,7 @@ http://localhost:8000
 - Run the SQL in `supabase/app_state.sql` and `supabase/saved_chats.sql` before
   using auth-backed chat features.
 - The current MVP intentionally keeps recipe generation simple and does not
-  depend on a local recipe database or third-party recipe search API.
+  store a local recipe database. Pantry search is powered by Spoonacular.
 
 ## Supabase Auth Settings
 

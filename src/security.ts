@@ -18,7 +18,7 @@ function buildConnectSrc() {
 export const baseHeaders: HeadersInit = {
   "Content-Security-Policy": [
     "default-src 'self'",
-    "img-src 'self' data: blob:",
+    "img-src 'self' data: blob: https://img.spoonacular.com https://spoonacular.com",
     "script-src 'self'",
     "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
     `connect-src ${buildConnectSrc()}`,

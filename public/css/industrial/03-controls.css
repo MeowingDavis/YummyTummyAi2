@@ -71,32 +71,32 @@
 }
 
 .skeuo-btn-primary {
-  background: linear-gradient(180deg, #64e6bc 0%, #34c99a 100%);
-  color: #0b1320 !important;
-  border-color: #5bdcb4;
+  background: linear-gradient(180deg, #c7f6de 0%, #86e1be 100%);
+  color: #10262d !important;
+  border-color: #b8efd5;
 }
 
 .skeuo-btn-primary:hover {
-  background: linear-gradient(180deg, #72ecc6 0%, #3bd2a3 100%);
+  background: linear-gradient(180deg, #d4f9e6 0%, #93e7c5 100%);
 }
 
 .skeuo-btn-secondary {
-  background: linear-gradient(180deg, #27384f 0%, #1f2d42 100%);
+  background: linear-gradient(180deg, #355462 0%, #243d48 100%);
   color: var(--text-primary) !important;
-  border-color: rgba(184, 203, 227, 0.45);
+  border-color: rgba(214, 236, 236, 0.34);
 }
 
 .skeuo-btn-ghost {
   background: transparent;
   color: var(--text-primary) !important;
-  border-color: rgba(184, 203, 227, 0.34);
+  border-color: rgba(214, 236, 236, 0.28);
   box-shadow: none;
 }
 
 .skeuo-btn-danger {
-  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+  background: linear-gradient(180deg, #f58e9a 0%, #e56878 100%);
   color: #fff !important;
-  border-color: #f87171;
+  border-color: #f1a2ac;
 }
 
 .skeuo-input {
@@ -104,8 +104,8 @@
   font-size: 16px;
   line-height: 1.4;
   border-radius: 0.75rem;
-  background: linear-gradient(180deg, #162235 0%, #111b2b 100%);
-  border: 1px solid rgba(184, 203, 227, 0.35);
+  background: linear-gradient(180deg, #1b313b 0%, #152730 100%);
+  border: 1px solid rgba(214, 236, 236, 0.28);
   color: var(--text-primary);
   box-shadow: var(--shadow-pressed);
 }

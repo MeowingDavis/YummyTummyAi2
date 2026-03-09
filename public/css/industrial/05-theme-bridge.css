@@ -1,7 +1,7 @@
 .skeuo-invert {
-  background: linear-gradient(180deg, #dbe5f2 0%, #cdd9ea 100%) !important;
-  color: #132033 !important;
-  border: 1px solid rgba(6, 16, 30, 0.16);
+  background: linear-gradient(180deg, #eef7f4 0%, #dbeaf0 100%) !important;
+  color: #163039 !important;
+  border: 1px solid rgba(22, 48, 57, 0.14);
 }
 
 .skeuo-invert h1,
@@ -12,13 +12,13 @@
 .skeuo-invert span,
 .skeuo-invert [class*="text-slate-"],
 .skeuo-invert [class*="text-emerald-"] {
-  color: #132033 !important;
+  color: #163039 !important;
 }
 
 .skeuo-invert .skeuo-btn-secondary {
-  background: #132033;
+  background: #1c3a45;
   color: #eaf0f8 !important;
-  border-color: #132033;
+  border-color: #1c3a45;
 }
 
 /* Tailwind utility harmonization */
@@ -44,7 +44,7 @@
 
 [class*="bg-emerald-"] {
   background-color: var(--accent) !important;
-  color: #0b1320 !important;
+  color: #10262d !important;
 }
 
 [class*="text-emerald-"] {

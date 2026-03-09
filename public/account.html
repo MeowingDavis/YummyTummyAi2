@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Account - Yummy Tummy AI</title>
-  <meta name="theme-color" content="#0e1622" />
+  <meta name="theme-color" content="#173540" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <script src="/industrial-tailwind.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -19,11 +19,26 @@
         <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20" aria-hidden="true">🍳</span>
         <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy Tummy <span class="text-emerald-400">AI</span></span>
       </a>
-      <nav class="flex items-center gap-4" aria-label="Primary">
-        <a href="/" class="skeuo-link">Home</a>
-        <a href="/chat.html" class="skeuo-link">Open Chat</a>
-        <a data-auth-action="logout" href="#" class="skeuo-link">Logout</a>
-      </nav>
+      <div class="hidden items-center gap-4 md:flex">
+        <nav class="flex items-center gap-4" aria-label="Primary">
+          <a href="/" class="skeuo-link">Home</a>
+          <a href="/chat.html" class="skeuo-link">Open Chat</a>
+        </nav>
+        <section class="auth-shell w-[248px]" data-auth-shell data-auth-ready="false" aria-label="Account menu">
+          <div class="auth-shell-head">
+            <p class="skeuo-label">Account</p>
+            <p data-auth-status class="auth-shell-status" aria-live="polite"></p>
+            <p data-auth-email class="auth-shell-email hidden"></p>
+          </div>
+          <div class="auth-shell-actions">
+            <a data-auth="signed-out-only" data-auth-link="register" href="/auth.html?mode=register" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Register</a>
+            <a data-auth="signed-out-only" data-auth-link="login" href="/auth.html?mode=login" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Login</a>
+            <a data-auth="signed-in-only" href="/account.html" class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Account</a>
+            <button data-auth="signed-in-only" data-auth-action="logout" type="button" class="hidden skeuo-btn skeuo-btn-danger skeuo-interactive skeuo-btn-sm">Logout</button>
+          </div>
+        </section>
+      </div>
+      <a href="/chat.html" class="md:hidden skeuo-btn skeuo-btn-primary skeuo-btn-sm">Open Chat</a>
     </div>
   </header>
 
@@ -31,7 +46,7 @@
     <div class="skeuo-container-narrow max-w-md space-y-4">
       <section class="stack-surface skeuo-surface skeuo-card-pad-lg" aria-labelledby="account-title">
         <h1 id="account-title" class="text-xl font-semibold tracking-tight">Account settings</h1>
-        <p id="accountStatus" class="mt-2 text-sm text-slate-200">Checking session...</p>
+        <p id="accountStatus" class="mt-2 min-h-5 text-sm text-slate-200 opacity-0 transition-opacity"> </p>
         <div class="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100" role="status" aria-live="polite">
           Notice: User profiles are new. We are building a way for users to define dietary needs in their profile for use when talking to the AI.
         </div>

@@ -1,15 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Playfair+Display:wght@600;700;800&display=swap");
 
 :root {
-  --chassis: #0e1622;
-  --panel: #1b2737;
-  --recessed: #142033;
-  --text-primary: #eaf0f8;
-  --text-muted: #aebbd0;
-  --accent: #4fd1a5;
-  --border-light: rgba(255, 255, 255, 0.12);
-  --border-shadow: rgba(5, 10, 20, 0.72);
-  --focus: #4fd1a5;
+  --chassis: #122a33;
+  --panel: #1d3741;
+  --recessed: #162b34;
+  --text-primary: #edf7f6;
+  --text-muted: #bfd4da;
+  --accent: #8be8c0;
+  --border-light: rgba(221, 241, 239, 0.16);
+  --border-shadow: rgba(8, 18, 24, 0.68);
+  --focus: #8be8c0;
 
   --shadow-base:
     0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px rgba(3, 8, 18, 0.45);
@@ -39,6 +39,10 @@
 body {
   font-family: "Inter", sans-serif;
   background-color: var(--chassis);
+  background-image:
+    radial-gradient(circle at top left, rgba(191, 239, 216, 0.24), transparent 34%),
+    radial-gradient(circle at top right, rgba(205, 227, 243, 0.22), transparent 36%),
+    linear-gradient(180deg, #173540 0%, #122a33 45%, #10232b 100%);
   color: var(--text-primary);
   line-height: 1.65;
   overflow-x: hidden;
@@ -100,7 +104,7 @@ html {
 .industrial-texture {
   background-image: radial-gradient(
     circle at 1px 1px,
-    rgba(130, 154, 184, 0.08) 1px,
+    rgba(218, 239, 236, 0.06) 1px,
     transparent 0
   );
   background-size: 22px 22px;
@@ -175,7 +179,7 @@ html {
   bottom: 0;
   z-index: 40;
   border-top: 1px solid var(--border-light);
-  background: rgba(14, 22, 34, 0.95);
+  background: rgba(18, 42, 51, 0.92);
   backdrop-filter: blur(14px);
   padding: 0.5rem max(0.75rem, env(safe-area-inset-right))
     calc(0.5rem + env(safe-area-inset-bottom))

@@ -65,6 +65,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function setAccountStatus(message, html = false) {
+    if (!accountStatusEl) return;
+    if (html) accountStatusEl.innerHTML = message;
+    else accountStatusEl.textContent = message;
+    accountStatusEl.classList.remove('opacity-0');
+  }
+
   try {
     const me = await request('/me');
     currentUser = me?.user ?? null;
@@ -73,15 +80,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (!currentUser) {
-    if (accountStatusEl) {
-      accountStatusEl.innerHTML = 'You are not logged in. <a href="/auth.html?mode=login&next=%2Faccount.html" class="skeuo-link">Go to login</a>.';
-    }
+    setAccountStatus('You are not logged in. <a href="/auth.html?mode=login&next=%2Faccount.html" class="skeuo-link">Go to login</a>.', true);
     return;
   }
 
-  if (accountStatusEl) {
-    accountStatusEl.textContent = `Signed in as ${currentUser.email}`;
-  }
+  setAccountStatus(`Signed in as ${currentUser.email}`);
 
   changePasswordSection?.classList.remove('hidden');
   deleteSection?.classList.remove('hidden');

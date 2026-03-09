@@ -12,18 +12,51 @@ async function request(url, options = {}) {
   return data;
 }
 
+function toggleVisibility(nodes, hidden) {
+  nodes.forEach((el) => {
+    el.classList.toggle("hidden", hidden);
+    el.setAttribute("aria-hidden", hidden ? "true" : "false");
+  });
+}
+
+function statusNodes() {
+  return document.querySelectorAll("[data-chat-auth-status]");
+}
+
+function emailNodes() {
+  return document.querySelectorAll("[data-chat-auth-email]");
+}
+
+function shellNodes() {
+  return document.querySelectorAll("[data-chat-auth-shell]");
+}
+
+function signedOutNodes() {
+  return document.querySelectorAll('[data-chat-auth-state="signed-out"]');
+}
+
+function signedInNodes() {
+  return document.querySelectorAll('[data-chat-auth-state="signed-in"]');
+}
+
 function setAuthUI(user) {
   refs.currentUser = user || null;
+  const signedIn = Boolean(user);
 
-  if (refs.authStatus) {
-    refs.authStatus.textContent = user ? `Signed in as ${user.email}` : "Not signed in";
-    refs.authStatus.classList.toggle("hidden", false);
-  }
-
-  refs.authRegisterBtn?.classList.toggle("hidden", !!user);
-  refs.authLoginBtn?.classList.toggle("hidden", !!user);
-  refs.authAccountBtn?.classList.toggle("hidden", !user);
-  refs.authLogoutBtn?.classList.toggle("hidden", !user);
+  statusNodes().forEach((el) => {
+    el.textContent = signedIn ? "Signed in" : "Sign in to save chats";
+  });
+  emailNodes().forEach((el) => {
+    const show = signedIn && Boolean(user?.email);
+    el.textContent = show ? user.email : "";
+    el.classList.toggle("hidden", !show);
+    el.setAttribute("aria-hidden", show ? "false" : "true");
+  });
+  toggleVisibility(signedOutNodes(), signedIn);
+  toggleVisibility(signedInNodes(), !signedIn);
+  shellNodes().forEach((el) => {
+    el.setAttribute("data-auth-ready", "true");
+  });
 
   if (refs.saveBtn) {
     refs.saveBtn.disabled = !user;
@@ -50,31 +83,42 @@ async function logoutFlow() {
   await loadMe();
 }
 
+function setErrorStatus(message) {
+  statusNodes().forEach((el) => {
+    el.textContent = message;
+  });
+  shellNodes().forEach((el) => {
+    el.setAttribute("data-auth-ready", "true");
+  });
+}
+
 export async function initAuth() {
-  refs.authStatus = document.getElementById("authStatus");
-  refs.authRegisterBtn = document.getElementById("authRegisterBtn");
-  refs.authLoginBtn = document.getElementById("authLoginBtn");
-  refs.authAccountBtn = document.getElementById("authAccountBtn");
-  refs.authLogoutBtn = document.getElementById("authLogoutBtn");
-
-  refs.authRegisterBtn?.addEventListener("click", async () => {
-    goToAuth("register");
+  document.querySelectorAll('[data-chat-auth-action="register"]').forEach((el) => {
+    el.addEventListener("click", async () => {
+      goToAuth("register");
+    });
   });
 
-  refs.authLoginBtn?.addEventListener("click", async () => {
-    goToAuth("login");
+  document.querySelectorAll('[data-chat-auth-action="login"]').forEach((el) => {
+    el.addEventListener("click", async () => {
+      goToAuth("login");
+    });
   });
 
-  refs.authLogoutBtn?.addEventListener("click", async () => {
-    try {
-      await logoutFlow();
-    } catch (err) {
-      if (refs.authStatus) refs.authStatus.textContent = (err && err.message) || "Logout failed";
-    }
+  document.querySelectorAll('[data-chat-auth-action="logout"]').forEach((el) => {
+    el.addEventListener("click", async () => {
+      try {
+        await logoutFlow();
+      } catch (err) {
+        setErrorStatus((err && err.message) || "Logout failed");
+      }
+    });
   });
 
-  refs.authAccountBtn?.addEventListener("click", async () => {
-    window.location.href = "/account.html";
+  document.querySelectorAll('[data-chat-auth-action="account"]').forEach((el) => {
+    el.addEventListener("click", async () => {
+      window.location.href = "/account.html";
+    });
   });
 
   try {

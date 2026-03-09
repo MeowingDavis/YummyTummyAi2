@@ -1,4 +1,5 @@
 window.addEventListener('DOMContentLoaded', () => {
+  const shellEls = document.querySelectorAll('[data-auth-shell]');
   const statusEls = document.querySelectorAll('[data-auth-status]');
   const signedInEls = document.querySelectorAll('[data-auth="signed-in-only"]');
   const signedOutEls = document.querySelectorAll('[data-auth="signed-out-only"]');
@@ -29,16 +30,26 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function setReady() {
+    shellEls.forEach((el) => {
+      el.setAttribute('data-auth-ready', 'true');
+    });
+  }
+
   function setUI(user) {
     const signedIn = Boolean(user);
     statusEls.forEach((el) => {
-      el.textContent = signedIn ? `Signed in as ${user.email}` : 'Not signed in';
+      el.textContent = signedIn ? 'Signed in' : 'Sign in to save chats';
     });
     emailEls.forEach((el) => {
-      el.textContent = user?.email || '';
+      const show = signedIn && Boolean(user?.email);
+      el.textContent = show ? user.email : '';
+      el.classList.toggle('hidden', !show);
+      el.setAttribute('aria-hidden', show ? 'false' : 'true');
     });
     toggleVisibility(signedInEls, !signedIn);
     toggleVisibility(signedOutEls, signedIn);
+    setReady();
   }
 
   async function init() {
@@ -62,6 +73,7 @@ window.addEventListener('DOMContentLoaded', () => {
         statusEls.forEach((statusEl) => {
           statusEl.textContent = msg;
         });
+        setReady();
       }
     });
   });

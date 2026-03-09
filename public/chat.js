@@ -7,8 +7,12 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function setHomeAuthUI(user) {
+    const shell = document.getElementById('homeAuthShell');
+    const shellMobile = document.getElementById('homeAuthShellMobile');
     const status = document.getElementById('homeAuthStatus');
     const statusMobile = document.getElementById('homeAuthStatusMobile');
+    const email = document.getElementById('homeAuthEmail');
+    const emailMobile = document.getElementById('homeAuthEmailMobile');
     const reg = document.getElementById('homeRegisterBtn');
     const login = document.getElementById('homeLoginBtn');
     const account = document.getElementById('homeAccountBtn');
@@ -17,10 +21,18 @@ window.addEventListener('DOMContentLoaded', () => {
     const accountMobile = document.getElementById('homeAccountBtnMobile');
     const loginMobile = document.getElementById('homeLoginBtnMobile');
     const logoutMobile = document.getElementById('homeLogoutBtnMobile');
-    const signedInText = user ? `Signed in as ${user.email}` : 'Not signed in';
+    const signedInText = user ? 'Signed in' : 'Sign in to save chats';
 
     if (status) status.textContent = signedInText;
     if (statusMobile) statusMobile.textContent = signedInText;
+    if (email) {
+      email.textContent = user?.email || '';
+      email.classList.toggle('hidden', !user);
+    }
+    if (emailMobile) {
+      emailMobile.textContent = user?.email || '';
+      emailMobile.classList.toggle('hidden', !user);
+    }
     reg?.classList.toggle('hidden', !!user);
     regMobile?.classList.toggle('hidden', !!user);
     login?.classList.toggle('hidden', !!user);
@@ -29,6 +41,8 @@ window.addEventListener('DOMContentLoaded', () => {
     accountMobile?.classList.toggle('hidden', !user);
     loginMobile?.classList.toggle('hidden', !!user);
     logoutMobile?.classList.toggle('hidden', !user);
+    shell?.setAttribute('data-auth-ready', 'true');
+    shellMobile?.setAttribute('data-auth-ready', 'true');
   }
 
   function showAccountDeletedMessage() {
@@ -129,7 +143,7 @@ window.addEventListener('DOMContentLoaded', () => {
   menu?.addEventListener('click', (e) => {
     const target = e.target;
     if (!(target instanceof Element)) return;
-    if (target.closest('a')) closeMenu();
+    if (target.closest('a,button')) closeMenu();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeMenu();

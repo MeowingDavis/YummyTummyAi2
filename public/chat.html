@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Yummy Tummy AI Chat</title>
-  <meta name="theme-color" content="#0e1622" />
+  <meta name="theme-color" content="#173540" />
   <link rel="manifest" href="/manifest.webmanifest" />
 
   <script src="/industrial-tailwind.js"></script>
@@ -29,11 +29,26 @@
           </div>
           <ul id="savedChats" class="mt-3 space-y-2 text-sm" aria-label="Saved chats list"></ul>
           <div class="flex-1"></div>
-          <nav class="mt-4 flex items-center gap-4 text-sm" aria-label="Secondary">
-            <a href="/" class="skeuo-link">Home</a>
-            <a href="/about.html" class="skeuo-link">About</a>
-            <a href="/recipes.html" class="skeuo-link">Recipes</a>
-          </nav>
+          <div class="mt-4 space-y-4">
+            <nav class="flex items-center gap-4 text-sm" aria-label="Secondary">
+              <a href="/" class="skeuo-link">Home</a>
+              <a href="/about.html" class="skeuo-link">About</a>
+              <a href="/recipes.html" class="skeuo-link">Recipes</a>
+            </nav>
+            <section class="auth-shell auth-shell-flat" data-chat-auth-shell data-auth-ready="false" aria-label="Account menu">
+              <div class="auth-shell-head">
+                <p class="skeuo-label">Account</p>
+                <p class="auth-shell-status" data-chat-auth-status aria-live="polite"></p>
+                <p class="auth-shell-email hidden" data-chat-auth-email></p>
+              </div>
+              <div class="auth-shell-actions">
+                <button type="button" data-chat-auth-state="signed-out" data-chat-auth-action="register" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Register</button>
+                <button type="button" data-chat-auth-state="signed-out" data-chat-auth-action="login" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Login</button>
+                <button type="button" data-chat-auth-state="signed-in" data-chat-auth-action="account" class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Account</button>
+                <button type="button" data-chat-auth-state="signed-in" data-chat-auth-action="logout" class="hidden skeuo-btn skeuo-btn-danger skeuo-interactive skeuo-btn-sm">Logout</button>
+              </div>
+            </section>
+          </div>
         </section>
       </aside>
 
@@ -61,14 +76,10 @@
                   <h2 class="text-base font-semibold text-emerald-300">Chat options</h2>
                   <button id="mobileOptionsCloseBtn" class="skeuo-btn skeuo-btn-secondary skeuo-btn-icon" type="button" aria-label="Close chat options">✕</button>
                 </div>
-                <label for="modelSelect" class="sr-only">Model</label>
-                <select id="modelSelect" class="skeuo-input skeuo-btn-sm w-full px-3 text-sm md:w-auto md:max-w-[170px]" title="Choose model" aria-label="Choose AI model"></select>
-
-                <button id="authRegisterBtn" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm skeuo-btn-block md:w-auto">Register</button>
-                <button id="authLoginBtn" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm skeuo-btn-block md:w-auto">Login</button>
-                <button id="authAccountBtn" type="button" class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm skeuo-btn-block md:w-auto">Account</button>
-                <button id="authLogoutBtn" type="button" class="hidden skeuo-btn skeuo-btn-danger skeuo-interactive skeuo-btn-sm skeuo-btn-block md:w-auto">Logout</button>
-                <p id="authStatus" class="text-xs text-slate-200 md:max-w-[220px]" aria-live="polite">Checking login status...</p>
+                <div class="flex flex-col gap-2 md:min-w-[170px]">
+                  <label for="modelSelect" class="skeuo-label">Model</label>
+                  <select id="modelSelect" class="skeuo-input skeuo-btn-sm w-full px-3 text-sm md:w-auto md:max-w-[170px]" title="Choose model" aria-label="Choose AI model"></select>
+                </div>
               </div>
             </div>
           </header>
@@ -145,18 +156,34 @@
 
   <div class="fixed inset-0 z-40 hidden bg-black/70 sm:bg-black/60" id="mobileSavedModalBg"></div>
   <aside class="stack-drawer stack-compact skeuo-surface fixed left-0 top-0 z-50 hidden h-[100dvh] w-[92vw] max-w-xs overflow-y-auto p-5 sm:w-[82vw]" id="mobileSavedModal" role="dialog" aria-modal="true" aria-labelledby="mobileSavedHeading">
-    <div class="mb-3 flex items-center justify-between">
-      <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-300">Saved Chats</h2>
-      <button class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-icon" aria-label="Close" id="mobileCloseBtn" type="button">✕</button>
+    <div class="flex min-h-full flex-col">
+      <div class="mb-3 flex items-center justify-between">
+        <h2 id="mobileSavedHeading" class="text-base font-semibold tracking-tight text-emerald-300">Saved Chats</h2>
+        <button class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-icon" aria-label="Close" id="mobileCloseBtn" type="button">✕</button>
+      </div>
+      <ul id="mobileSavedChats" class="space-y-2 text-sm" aria-label="Saved chats list"></ul>
+      <div class="flex-1"></div>
+      <div class="mt-4 space-y-4">
+        <nav class="flex items-center gap-4" aria-label="Mobile drawer navigation">
+          <a href="/" class="skeuo-link">Home</a>
+          <a href="/about.html" class="skeuo-link">About</a>
+          <a href="/recipes.html" class="skeuo-link">Recipes</a>
+        </nav>
+        <section class="auth-shell auth-shell-flat" data-chat-auth-shell data-auth-ready="false" aria-label="Account menu">
+          <div class="auth-shell-head">
+            <p class="skeuo-label">Account</p>
+            <p class="auth-shell-status" data-chat-auth-status aria-live="polite"></p>
+            <p class="auth-shell-email hidden" data-chat-auth-email></p>
+          </div>
+          <div class="auth-shell-actions">
+            <button type="button" data-chat-auth-state="signed-out" data-chat-auth-action="register" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Register</button>
+            <button type="button" data-chat-auth-state="signed-out" data-chat-auth-action="login" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Login</button>
+            <button type="button" data-chat-auth-state="signed-in" data-chat-auth-action="account" class="hidden skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm">Account</button>
+            <button type="button" data-chat-auth-state="signed-in" data-chat-auth-action="logout" class="hidden skeuo-btn skeuo-btn-danger skeuo-interactive skeuo-btn-sm">Logout</button>
+          </div>
+        </section>
+      </div>
     </div>
-    <ul id="mobileSavedChats" class="space-y-2 text-sm" aria-label="Saved chats list"></ul>
-    <hr class="my-4 border-slate-800">
-
-    <nav class="flex items-center gap-4" aria-label="Mobile drawer navigation">
-      <a href="/" class="skeuo-link">Home</a>
-      <a href="/about.html" class="skeuo-link">About</a>
-      <a href="/recipes.html" class="skeuo-link">Recipes</a>
-    </nav>
   </aside>
 
   <div class="fixed inset-0 z-20 hidden bg-black/65 md:hidden" id="mobileOptionsBg"></div>

@@ -13,10 +13,13 @@
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  box-shadow: var(--shadow-base);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 0 20px rgba(0, 255, 204, 0.12),
+    0 14px 28px rgba(26, 61, 55, 0.1);
   transition:
-    transform 160ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
-    box-shadow 160ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    transform 180ms ease,
+    box-shadow 180ms ease,
     background-color 160ms ease,
     border-color 160ms ease,
     color 160ms ease;
@@ -36,6 +39,8 @@
   width: 44px;
   height: 44px;
   padding: 0;
+  border-radius: 1rem;
+  background: #f0f9f7;
 }
 
 .skeuo-btn-block {
@@ -50,14 +55,16 @@
 
 .skeuo-interactive {
   transition:
-    transform 160ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
-    box-shadow 160ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .skeuo-btn:hover,
 .skeuo-interactive:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-floating);
+  transform: translateY(-1px) scale(1.05);
+  box-shadow:
+    0 0 20px rgba(0, 255, 204, 0.3),
+    0 24px 42px rgba(26, 61, 55, 0.14);
 }
 
 .skeuo-btn:hover {
@@ -66,37 +73,37 @@
 
 .skeuo-btn:active,
 .skeuo-interactive:active {
-  transform: translateY(2px);
+  transform: translateY(1px) scale(1.01);
   box-shadow: var(--shadow-pressed);
 }
 
 .skeuo-btn-primary {
-  background: linear-gradient(180deg, #c7f6de 0%, #86e1be 100%);
-  color: #10262d !important;
-  border-color: #b8efd5;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: var(--secondary) !important;
+  border-color: rgba(0, 255, 204, 0.34);
 }
 
 .skeuo-btn-primary:hover {
-  background: linear-gradient(180deg, #d4f9e6 0%, #93e7c5 100%);
+  background: linear-gradient(135deg, #33ffd6 0%, #00ad89 100%);
 }
 
 .skeuo-btn-secondary {
-  background: linear-gradient(180deg, #355462 0%, #243d48 100%);
+  background: rgba(255, 255, 255, 0.68);
   color: var(--text-primary) !important;
-  border-color: rgba(214, 236, 236, 0.34);
+  border-color: rgba(0, 255, 204, 0.22);
 }
 
 .skeuo-btn-ghost {
   background: transparent;
   color: var(--text-primary) !important;
-  border-color: rgba(214, 236, 236, 0.28);
+  border-color: rgba(0, 255, 204, 0.24);
   box-shadow: none;
 }
 
 .skeuo-btn-danger {
-  background: linear-gradient(180deg, #f58e9a 0%, #e56878 100%);
+  background: linear-gradient(135deg, #ff9ba8 0%, #e56474 100%);
   color: #fff !important;
-  border-color: #f1a2ac;
+  border-color: rgba(229, 100, 116, 0.5);
 }
 
 .skeuo-input {
@@ -104,10 +111,12 @@
   font-size: 16px;
   line-height: 1.4;
   border-radius: 0.75rem;
-  background: linear-gradient(180deg, #1b313b 0%, #152730 100%);
-  border: 1px solid rgba(214, 236, 236, 0.28);
+  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(0, 255, 204, 0.18);
   color: var(--text-primary);
-  box-shadow: var(--shadow-pressed);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
 }
 
 textarea.skeuo-input {
@@ -116,4 +125,11 @@ textarea.skeuo-input {
 
 .skeuo-input::placeholder {
   color: var(--text-muted);
+}
+
+.skeuo-input:focus {
+  border-color: rgba(0, 255, 204, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    0 0 0 4px rgba(0, 255, 204, 0.16);
 }

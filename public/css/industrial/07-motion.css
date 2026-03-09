@@ -1,3 +1,48 @@
+@keyframes holo-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0);
+  }
+}
+
+@keyframes holo-orb {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 0.85;
+  }
+}
+
+@keyframes holo-border-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 24px 54px rgba(26, 61, 55, 0.12),
+      0 0 0 1px rgba(255, 255, 255, 0.34),
+      0 0 16px rgba(0, 255, 204, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 24px 54px rgba(26, 61, 55, 0.14),
+      0 0 0 1px rgba(255, 255, 255, 0.34),
+      0 0 28px rgba(0, 255, 204, 0.24);
+  }
+}
+
+.floating-avatar {
+  animation: holo-float 6s ease-in-out infinite;
+}
+
+.hero-glow-orb {
+  animation: holo-orb 7s ease-in-out infinite alternate;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skeuo-ticker-track {
     animation: none;

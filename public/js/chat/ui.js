@@ -45,7 +45,7 @@ export function appendMessage(sender, text) {
   const wrapper = document.createElement("div");
   const isUser = sender === "You";
   wrapper.className = [
-    "msg", "skeuo-surface", "skeuo-card-pad", "relative",
+    "msg", isUser ? "msg-user" : "msg-assistant", "skeuo-surface", "skeuo-card-pad", "relative",
     "max-w-[92%]", "md:max-w-[78%]",
     isUser ? "ml-auto" : "mr-auto",
   ].join(" ");
@@ -73,7 +73,7 @@ export function appendMarkdown(sender, markdown) {
   const wrapper = document.createElement("div");
   const isUser = sender === "You";
   wrapper.className = [
-    "msg", "skeuo-surface", "skeuo-card-pad", "relative",
+    "msg", isUser ? "msg-user" : "msg-assistant", "skeuo-surface", "skeuo-card-pad", "relative",
     "max-w-[96%]", "md:max-w-[86%]",
     isUser ? "ml-auto" : "mr-auto",
   ].join(" ");

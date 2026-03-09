@@ -17,14 +17,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/industrial.css" />
 </head>
-<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis text-industrial-text antialiased industrial-texture">
+<body class="home-page-gradient min-h-[100svh] overflow-x-hidden bg-industrial-chassis text-industrial-text antialiased industrial-texture">
   <a href="#main-content" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to content</a>
 
   <header class="skeuo-wrap skeuo-header sticky top-0 z-40 border-b border-slate-800/60 bg-slate-950/85 backdrop-blur-md">
     <div class="skeuo-container-wide flex min-h-14 items-center justify-between gap-3">
       <a href="/" class="inline-flex items-center gap-3" aria-label="Yummy Tummy AI home">
-        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/20" aria-hidden="true">🍳</span>
-        <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy Tummy <span class="text-emerald-400">AI</span></span>
+        <span class="holo-icon-chip" aria-hidden="true">🍳</span>
+        <span class="text-lg font-semibold tracking-tight sm:text-xl">Yummy Tummy <span class="brand-gradient">AI</span></span>
       </a>
       <div class="hidden items-center gap-4 md:flex">
         <nav class="flex items-center gap-4" aria-label="Primary">
@@ -70,36 +70,33 @@
 
     <section class="skeuo-wrap skeuo-section-tight">
       <div class="skeuo-container-wide">
-        <article class="glass skeuo-surface relative isolate overflow-hidden rounded-[1.75rem] ring-1 ring-emerald-200/15 shadow-[0_28px_80px_-30px_rgba(15,23,42,0.72)]">
+        <article class="glass skeuo-surface relative isolate aspect-[1377/768] overflow-hidden rounded-[2rem]">
+          <div class="absolute inset-0 bg-[linear-gradient(105deg,#B7EEDC_0%,#D9E8F5_100%)]"></div>
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_left_center,rgba(0,255,204,0.14),transparent_32%)]"></div>
           <img
-            src="/yumtum.png"
-            alt="Yummy Tummy AI chef robot mascot smiling"
-            width="1376"
+            src="/YumTumRight.png"
+            alt="Yummy Tummy AI chef robot mascot"
+            width="1377"
             height="768"
             sizes="100vw"
-            class="absolute inset-0 block h-full w-full object-cover object-center"
+            class="absolute inset-0 h-full w-full object-contain object-right"
             loading="eager"
             fetchpriority="high"
             decoding="async"
           />
-          <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0.02)_100%)]"></div>
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,232,192,0.14),transparent_36%)]"></div>
-          <div class="relative z-10 flex min-h-[420px] items-end sm:min-h-[520px] lg:min-h-[560px]">
-            <div class="mx-5 mb-6 max-w-2xl rounded-[1.5rem] bg-[rgba(13,32,38,0.38)] px-5 py-5 ring-1 ring-white/12 shadow-[0_18px_48px_-26px_rgba(6,16,24,0.85)] sm:mx-8 sm:mb-9 sm:px-7 sm:py-6 lg:mx-12 lg:mb-12 lg:px-8 lg:py-7">
-              <p class="skeuo-label text-emerald-200">Your AI kitchen guide</p>
-              <h1 class="mt-3 text-4xl font-extrabold leading-[0.96] tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Turn your <span class="text-emerald-300">ingredients</span> into dinner.
+          <div class="relative z-10 flex h-full items-center">
+            <div class="max-w-2xl px-5 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10">
+              <p class="skeuo-label text-emerald-700">High-end AI kitchen assistant</p>
+              <h1 class="mt-4 max-w-xl text-5xl leading-[0.92] text-[#1A3D37] sm:text-6xl lg:text-7xl">
+                Your Kitchen, Powered by Intelligence.
               </h1>
-              <p class="mt-4 max-w-xl text-base leading-relaxed text-slate-100 sm:text-lg">
-                Paste your pantry list or ask a cooking question. Yummy Tummy AI chats back with recipes, swaps, and step-by-step help.
+              <p class="mt-5 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
+                From leftover-logic to gourmet meal planning, chat with TummyBot to transform your ingredients into masterpieces.
               </p>
-              <div class="mt-6 flex flex-col gap-3 sm:flex-row">
-                <a id="cta" href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Start chatting</a>
-                <a href="#how" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">How it works</a>
+              <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                <a id="cta" href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-interactive">Start Cooking</a>
+                <a href="/recipes.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">Explore Recipes</a>
               </div>
-              <p class="mt-5 inline-flex max-w-fit items-center rounded-full bg-slate-950/35 px-3 py-2 text-sm text-emerald-100 ring-1 ring-white/10 backdrop-blur-sm">
-                Private by default. Login-enabled server-side chat history and saved sessions.
-              </p>
             </div>
           </div>
         </article>
@@ -107,23 +104,78 @@
     </section>
 
     <section id="how" class="skeuo-wrap skeuo-section" aria-labelledby="how-heading">
+      <div class="skeuo-container-wide grid gap-5 lg:grid-cols-[0.95fr,1.05fr]">
+        <article class="glass skeuo-surface skeuo-card-pad-lg">
+          <p class="skeuo-label">Smart Pantry</p>
+          <h2 id="how-heading" class="mt-3 text-3xl sm:text-4xl">Stop Staring at the Fridge.</h2>
+          <p class="mt-4 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
+            Tell TummyBot what you have, and get instant, chef-validated recipes tailored to your dietary needs.
+          </p>
+        </article>
+        <article class="glass skeuo-surface skeuo-card-pad-lg">
+          <div class="grid gap-4 md:grid-cols-[1fr,auto,1fr] md:items-center">
+            <div class="rounded-[1.4rem] border border-[rgba(0,255,204,0.16)] bg-white/70 p-4">
+              <p class="skeuo-label">Pantry input</p>
+              <ul class="mt-4 space-y-3 text-sm text-slate-700">
+                <li>Tomatoes</li>
+                <li>Chickpeas</li>
+                <li>Lemon</li>
+                <li>Spinach</li>
+              </ul>
+            </div>
+            <div class="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[rgba(0,255,204,0.18)] bg-[#F0F9F7] text-lg text-[#00997A] shadow-[0_0_16px_rgba(0,255,204,0.14)]">→</div>
+            <div class="rounded-[1.4rem] border border-[rgba(0,255,204,0.16)] bg-white/70 p-4">
+              <p class="skeuo-label">Suggested recipe</p>
+              <h3 class="mt-4 text-2xl">Lemon Chickpea Braise</h3>
+              <p class="mt-3 text-sm leading-7 text-slate-600">Chef-validated, pantry-friendly, and ready with swap guidance for vegan or high-protein planning.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="skeuo-wrap skeuo-section" aria-labelledby="features-heading">
       <div class="skeuo-container-wide">
-        <h2 id="how-heading" class="sr-only">How it works</h2>
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="max-w-2xl">
+          <p class="skeuo-label">Feature Highlights</p>
+          <h2 id="features-heading" class="mt-3 text-3xl sm:text-4xl">Built for real kitchens, not demo prompts.</h2>
+        </div>
+        <div class="mt-6 grid gap-4 md:grid-cols-3">
           <article class="glass skeuo-surface skeuo-card-pad-lg">
-            <p class="skeuo-label">Step 1</p>
-            <h3 class="mt-2 text-lg font-semibold">Tell it what you have</h3>
-            <p class="mt-3 text-slate-200">Type or paste your ingredients and any preferences.</p>
+            <p class="skeuo-label">Dietary Architect</p>
+            <h3 class="mt-3 text-2xl">Personalized planning</h3>
+            <p class="mt-3 text-slate-600">Personalized Keto, Vegan, or Macro-balanced planning that adapts recipes to the way you actually cook.</p>
           </article>
           <article class="glass skeuo-surface skeuo-card-pad-lg">
-            <p class="skeuo-label">Step 2</p>
-            <h3 class="mt-2 text-lg font-semibold">Chat through options</h3>
-            <p class="mt-3 text-slate-200">Get substitutions, dietary tweaks, and timings as you cook.</p>
+            <p class="skeuo-label">Waste Warrior</p>
+            <h3 class="mt-3 text-2xl">Less waste, more dinners</h3>
+            <p class="mt-3 text-slate-600">Uses AI to suggest recipes that make the most of ingredients nearing their expiration instead of letting them go unused.</p>
           </article>
           <article class="glass skeuo-surface skeuo-card-pad-lg">
-            <p class="skeuo-label">Step 3</p>
-            <h3 class="mt-2 text-lg font-semibold">Save your favourites</h3>
-            <p class="mt-3 text-slate-200">Save favorite chats with your account and pick up where you left off.</p>
+            <p class="skeuo-label">Lightning Fast</p>
+            <h3 class="mt-3 text-2xl">Edge-speed guidance</h3>
+            <p class="mt-3 text-slate-600">Leveraging Deno's edge runtime for instant, lag-free culinary advice when you need an answer right now.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="skeuo-wrap mb-10 skeuo-section" aria-labelledby="stats-heading">
+      <div class="skeuo-container-wide">
+        <div class="max-w-2xl">
+          <p class="skeuo-label">Social Proof</p>
+          <h2 id="stats-heading" class="mt-3 text-3xl sm:text-4xl">Static proof, clear outcomes.</h2>
+        </div>
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+          <article class="glass skeuo-surface skeuo-card-pad-lg">
+            <p class="text-sm uppercase tracking-[0.18em] text-slate-500">Meals inspired</p>
+            <p class="mt-3 text-4xl text-[#1A3D37]">10,000+</p>
+            <p class="mt-2 text-slate-600">Over 10,000 meals inspired this month.</p>
+          </article>
+          <article class="glass skeuo-surface skeuo-card-pad-lg">
+            <p class="text-sm uppercase tracking-[0.18em] text-slate-500">Prep savings</p>
+            <p class="mt-3 text-4xl text-[#1A3D37]">15 min</p>
+            <p class="mt-2 text-slate-600">Average prep time reduced by 15 minutes.</p>
           </article>
         </div>
       </div>
@@ -132,10 +184,10 @@
     <section class="skeuo-wrap mb-10 mt-8">
       <div class="skeuo-container-wide glass skeuo-surface skeuo-invert skeuo-card-pad-lg flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h2 class="text-xl font-semibold">Ready to cook smarter?</h2>
-          <p class="mt-2 text-slate-200">Open the chat and ask away.</p>
+          <h2 class="text-xl">Ready to cook smarter?</h2>
+          <p class="mt-2 text-slate-200">Open the chat and start with what is already in your kitchen.</p>
         </div>
-        <a id="cta2" href="/chat.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">Start chatting</a>
+        <a id="cta2" href="/chat.html" class="skeuo-btn skeuo-btn-secondary skeuo-interactive">Start Cooking</a>
       </div>
     </section>
   </main>

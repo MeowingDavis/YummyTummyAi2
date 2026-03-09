@@ -1,3 +1,36 @@
+.chat-dock {
+  position: relative;
+  border-color: rgba(0, 255, 204, 0.24) !important;
+  box-shadow:
+    0 24px 54px rgba(26, 61, 55, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.34),
+    0 0 24px rgba(0, 255, 204, 0.12) !important;
+  animation: holo-border-pulse 4.5s ease-in-out infinite;
+}
+
+.msg {
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.msg-assistant {
+  border-left: 4px solid var(--accent) !important;
+  background: rgba(0, 255, 204, 0.05) !important;
+}
+
+.msg-user {
+  background: rgba(255, 255, 255, 0.82) !important;
+}
+
+.msg-assistant .prose,
+.msg-user .prose,
+.msg .prose,
+.msg .text-slate-100 {
+  color: var(--secondary) !important;
+}
+
 .msg:hover .msg-actions {
   opacity: 1;
 }
@@ -36,6 +69,9 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.65rem;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .saved-chat-title {
@@ -64,12 +100,12 @@
 }
 
 .saved-chat-action-danger {
-  color: #fda4af;
+  color: #d85e71;
 }
 
 .saved-chat-action-danger:hover,
 .saved-chat-action-danger:focus-visible {
-  color: #fecdd3;
+  color: #bf4961;
 }
 
 @supports (padding: max(0px)) {

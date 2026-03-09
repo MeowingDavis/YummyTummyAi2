@@ -173,7 +173,35 @@
           </div>
         </section>
 
-        <section class="glass skeuo-surface skeuo-card-pad-lg">
+        <section
+          id="pantryLockedNotice"
+          class="hidden glass skeuo-surface skeuo-card-pad-lg"
+        >
+          <p class="skeuo-label">Members Only</p>
+          <h3 class="mt-2 text-2xl sm:text-3xl">Unlock Full Pantry Access</h3>
+          <p class="mt-3 text-slate-600">
+            Pantry browsing is public, but active features are for signed-in
+            users so your saved recipes and future recipe book stay tied to your
+            account.
+          </p>
+          <ul class="mt-4 list-disc space-y-1 pl-5 text-slate-600">
+            <li>Live recipe search and filters</li>
+            <li>Open full recipe details inside Pantry</li>
+            <li>Upcoming bookmarks and recipe book collections</li>
+          </ul>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <a
+              href="/auth.html?mode=login&next=%2Frecipes.html"
+              class="skeuo-btn skeuo-btn-primary skeuo-interactive"
+            >Login to unlock</a>
+            <a
+              href="/auth.html?mode=register&next=%2Frecipes.html"
+              class="skeuo-btn skeuo-btn-secondary skeuo-interactive"
+            >Create account</a>
+          </div>
+        </section>
+
+        <section class="glass skeuo-surface skeuo-card-pad-lg relative">
           <p class="skeuo-label">Pantry Search</p>
           <h1 class="mt-3 text-4xl sm:text-6xl">Find recipes in seconds.</h1>
           <p
@@ -258,10 +286,15 @@
           >
             Enter an ingredient or dish name to start searching.
           </p>
+          <div
+            id="pantrySearchOverlay"
+            class="hidden absolute inset-0 z-10 rounded-[inherit] bg-white/70 backdrop-blur-[2px]"
+            aria-hidden="true"
+          ></div>
         </section>
 
         <section
-          class="glass skeuo-surface skeuo-card-pad-lg"
+          class="glass skeuo-surface skeuo-card-pad-lg relative"
           aria-labelledby="pantry-results-heading"
         >
           <div class="flex items-center justify-between gap-3">
@@ -299,6 +332,11 @@
               Next
             </button>
           </div>
+          <div
+            id="pantryResultsOverlay"
+            class="hidden absolute inset-0 z-10 rounded-[inherit] bg-white/65 backdrop-blur-[2px]"
+            aria-hidden="true"
+          ></div>
         </section>
 
         <section

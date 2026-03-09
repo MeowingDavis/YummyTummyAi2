@@ -1876,17 +1876,6 @@ export function startServer() {
       req.method === "GET" &&
       (url.pathname === "/recipes" || url.pathname === "/recipes/")
     ) {
-      const user = await getCurrentUser(req);
-      if (!user) {
-        const next = encodeURIComponent("/recipes.html");
-        return new Response(null, {
-          status: 307,
-          headers: withSecurity({
-            "Location": `/auth.html?mode=login&next=${next}`,
-            "Cache-Control": "no-store",
-          }),
-        });
-      }
       return new Response(null, {
         status: 307,
         headers: withSecurity({
@@ -1944,20 +1933,6 @@ export function startServer() {
           "Cache-Control": "no-store",
         }),
       });
-    }
-
-    if (req.method === "GET" && url.pathname === "/recipes.html") {
-      const user = await getCurrentUser(req);
-      if (!user) {
-        const next = encodeURIComponent("/recipes.html");
-        return new Response(null, {
-          status: 307,
-          headers: withSecurity({
-            "Location": `/auth.html?mode=login&next=${next}`,
-            "Cache-Control": "no-store",
-          }),
-        });
-      }
     }
 
     // Chat

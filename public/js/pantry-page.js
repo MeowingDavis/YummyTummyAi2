@@ -18,13 +18,17 @@ window.addEventListener("DOMContentLoaded", () => {
   const cuisineSelect = document.getElementById("pantryCuisine");
   const maxReadyTimeSelect = document.getElementById("pantryMaxReadyTime");
   const quickFilters = document.getElementById("pantryQuickFilters");
+  const lockedNotice = document.getElementById("pantryLockedNotice");
+  const searchOverlay = document.getElementById("pantrySearchOverlay");
+  const resultsOverlay = document.getElementById("pantryResultsOverlay");
 
   if (
     !form || !queryInput || !statusEl || !resultsEl || !recipeSection ||
     !recipeTitle || !recipeMeta || !recipeSummary || !recipeIngredients ||
     !recipeInstructions || !recipeSource || !recipeClose || !prevPageBtn ||
     !nextPageBtn || !pageInfo || !dietSelect || !cuisineSelect ||
-    !maxReadyTimeSelect || !quickFilters
+    !maxReadyTimeSelect || !quickFilters || !lockedNotice || !searchOverlay ||
+    !resultsOverlay
   ) return;
 
   const PAGE_SIZE = 6;
@@ -32,6 +36,7 @@ window.addEventListener("DOMContentLoaded", () => {
   let currentPage = 1;
   let totalResults = 0;
   let lastRenderedIds = [];
+  let pantryLocked = false;
 
   const setStatus = (message, isError = false) => {
     statusEl.textContent = message;
@@ -47,6 +52,29 @@ window.addEventListener("DOMContentLoaded", () => {
 
   const clearResults = () => {
     resultsEl.replaceChildren();
+  };
+
+  const applyLockedState = (locked) => {
+    pantryLocked = locked;
+    const controls = [
+      queryInput,
+      dietSelect,
+      cuisineSelect,
+      maxReadyTimeSelect,
+      prevPageBtn,
+      nextPageBtn,
+      ...quickFilters.querySelectorAll("button"),
+      ...form.querySelectorAll("button"),
+    ];
+    controls.forEach((el) => {
+      if ("disabled" in el) el.disabled = locked;
+    });
+    lockedNotice.classList.toggle("hidden", !locked);
+    searchOverlay.classList.toggle("hidden", !locked);
+    resultsOverlay.classList.toggle("hidden", !locked);
+    if (locked) {
+      setStatus("Sign in to unlock Pantry search and recipe details.", true);
+    }
   };
 
   const updatePaginationUI = () => {
@@ -166,6 +194,10 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 
   const openRecipeDetails = async (recipeId) => {
+    if (pantryLocked) {
+      setStatus("Sign in to open recipe details in Pantry.", true);
+      return;
+    }
     setStatus("Loading recipe details…");
     try {
       const response = await fetch(`/api/pantry/recipe/${encodeURIComponent(String(recipeId))}`);
@@ -213,6 +245,10 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 
   const searchPantry = async (query, page = 1) => {
+    if (pantryLocked) {
+      setStatus("Sign in to unlock Pantry search.", true);
+      return;
+    }
     currentQuery = query;
     currentPage = page;
     const filters = getActiveFilters();
@@ -292,6 +328,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
   quickFilters.querySelectorAll("button[data-query]").forEach((btn) => {
     btn.addEventListener("click", () => {
+      if (pantryLocked) {
+        setStatus("Sign in to use quick Pantry categories.", true);
+        return;
+      }
       const suggestedQuery = String(btn.getAttribute("data-query") || "").trim();
       if (!suggestedQuery) return;
       queryInput.value = suggestedQuery;
@@ -300,10 +340,22 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  const urlRecipeId = new URLSearchParams(window.location.search).get("recipeId");
-  if (urlRecipeId) {
-    openRecipeDetails(urlRecipeId);
-  }
+  const initAuthGate = async () => {
+    try {
+      const res = await fetch("/me", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      applyLockedState(!Boolean(data?.user));
+    } catch {
+      applyLockedState(true);
+    }
+  };
+
+  initAuthGate().then(() => {
+    const deepLinkRecipeId = new URLSearchParams(window.location.search).get("recipeId");
+    if (deepLinkRecipeId && !pantryLocked) {
+      openRecipeDetails(deepLinkRecipeId);
+    }
+  });
 
   updatePaginationUI();
 });

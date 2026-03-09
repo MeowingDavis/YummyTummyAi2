@@ -19,6 +19,14 @@ function showNotice(message) {
   window.alert(message);
 }
 
+async function handleUnauthorized(message) {
+  refs.currentUser = null;
+  savedChatsCache = [];
+  await renderSavedChats();
+  await renderMobileSavedChats();
+  showNotice(message);
+}
+
 function actionButton(label, classes, onClick) {
   const btn = document.createElement("button");
   btn.type = "button";
@@ -139,7 +147,7 @@ export async function saveChat() {
     await renderMobileSavedChats();
   } catch (err) {
     if (err?.status === 401) {
-      showNotice("Your session expired. Log in again to save chats.");
+      await handleUnauthorized("Your session expired. Log in again to save chats.");
       return;
     }
     if (err?.status === 400) {
@@ -151,33 +159,57 @@ export async function saveChat() {
 }
 
 export async function loadChat(id) {
-  let chat = savedChatsCache.find((c) => c.id === id);
-  if (!chat) {
-    const data = await requestJSON(`/saved-chats/${encodeURIComponent(id)}`);
-    chat = data?.chat;
+  try {
+    let chat = savedChatsCache.find((c) => c.id === id);
+    if (!chat) {
+      const data = await requestJSON(`/saved-chats/${encodeURIComponent(id)}`);
+      chat = data?.chat;
+    }
+    if (!chat) return;
+    state.chatHistory = Array.isArray(chat.history) ? chat.history : [];
+    loadChatToDom(state.chatHistory);
+    hideMobileSavedChats();
+  } catch (err) {
+    if (err?.status === 401) {
+      await handleUnauthorized("Your session expired. Log in again to load saved chats.");
+      return;
+    }
+    showNotice(err?.message || "Unable to load this chat right now.");
   }
-  if (!chat) return;
-  state.chatHistory = Array.isArray(chat.history) ? chat.history : [];
-  loadChatToDom(state.chatHistory);
-  hideMobileSavedChats();
 }
 
 export async function deleteChat(id) {
-  await requestJSON(`/saved-chats/${encodeURIComponent(id)}`, { method: "DELETE" });
-  savedChatsCache = savedChatsCache.filter((c) => c.id !== id);
-  await renderSavedChats();
-  await renderMobileSavedChats();
+  try {
+    await requestJSON(`/saved-chats/${encodeURIComponent(id)}`, { method: "DELETE" });
+    savedChatsCache = savedChatsCache.filter((c) => c.id !== id);
+    await renderSavedChats();
+    await renderMobileSavedChats();
+  } catch (err) {
+    if (err?.status === 401) {
+      await handleUnauthorized("Your session expired. Log in again to manage saved chats.");
+      return;
+    }
+    showNotice(err?.message || "Unable to delete this chat right now.");
+  }
 }
 
 export async function exportChat(id) {
-  const data = await requestJSON(`/saved-chats/${encodeURIComponent(id)}`);
-  const saved = data?.chat;
-  if (!saved) return;
-  const blob = new Blob([JSON.stringify(saved, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = (saved.title || "chat") + ".json";
-  a.click();
-  URL.revokeObjectURL(url);
+  try {
+    const data = await requestJSON(`/saved-chats/${encodeURIComponent(id)}`);
+    const saved = data?.chat;
+    if (!saved) return;
+    const blob = new Blob([JSON.stringify(saved, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (saved.title || "chat") + ".json";
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    if (err?.status === 401) {
+      await handleUnauthorized("Your session expired. Log in again to export saved chats.");
+      return;
+    }
+    showNotice(err?.message || "Unable to export this chat right now.");
+  }
 }

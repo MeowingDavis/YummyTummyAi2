@@ -22,6 +22,19 @@ export function autoresize() {
   refs.input.style.height = next + "px";
 }
 
+function updateCommandPreview() {
+  if (!refs.commandPreview || !refs.input) return;
+  const value = refs.input.value || "";
+  const match = value.match(/^\/\S+/);
+  const tokenEl = refs.commandPreview.querySelector(".command-live-token");
+  if (!match || !tokenEl) {
+    refs.commandPreview.classList.add("hidden");
+    return;
+  }
+  tokenEl.textContent = match[0];
+  refs.commandPreview.classList.remove("hidden");
+}
+
 export async function send() {
   const message = refs.input.value.trim();
   if (!message) return;
@@ -36,6 +49,7 @@ export async function send() {
   clearDraft();
   autoresize();
   refreshSendState();
+  updateCommandPreview();
 
   let attachments = [];
   try {
@@ -76,6 +90,7 @@ export function newChat() {
   clearDraft();
   autoresize();
   refreshSendState();
+  updateCommandPreview();
   renderEmptyState();
   refs.input.focus();
   postJSON("/chat", {
@@ -93,6 +108,7 @@ export function wireComposer() {
     autoresize();
     refreshSendState();
     saveDraft(refs.input.value);
+    updateCommandPreview();
   });
   refs.input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey && !composing) {

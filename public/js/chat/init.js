@@ -14,6 +14,7 @@ export function initCore() {
     refs.typingEl = document.getElementById('typing');
     refs.tray     = document.getElementById('previewTray');
     refs.input    = document.getElementById('input');
+    refs.commandPreview = document.getElementById('commandPreview');
     refs.sendBtn  = document.getElementById('sendBtn');
     refs.newChatBtn = document.getElementById('newChatBtn');
     refs.saveBtn  = document.getElementById('saveBtn');

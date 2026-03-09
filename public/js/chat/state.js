@@ -5,6 +5,7 @@ export const refs = {
   typingEl: null,
   tray: null,
   input: null,
+  commandPreview: null,
   sendBtn: null,
   newChatBtn: null,
   saveBtn: null,

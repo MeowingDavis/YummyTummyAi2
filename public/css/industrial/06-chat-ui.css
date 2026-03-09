@@ -66,6 +66,11 @@
   font-weight: 600;
 }
 
+.command-live-token {
+  color: #b45309;
+  font-weight: 600;
+}
+
 .msg-assistant .prose,
 .msg-user .prose,
 .msg .prose,

@@ -81,10 +81,26 @@ const PANTRY_DEFAULT_RESULTS = 12;
 const PANTRY_MAX_RESULTS = 24;
 const PANTRY_MAX_QUERY_CHARS = 120;
 const PANTRY_MAX_OFFSET = 900;
+const LAST_RECIPE_SUGGESTIONS_TTL_MS = 2 * 60 * 60 * 1000;
 
 let modelResolutionCache:
   | { at: number; models: string[]; defaultModel: string }
   | null = null;
+const lastRecipeSuggestionsByOwner = new Map<
+  string,
+  {
+    at: number;
+    query: string;
+    suggestions: Array<{
+      id: number;
+      title: string;
+      readyInMinutes: number | null;
+      servings: number | null;
+      sourceUrl: string;
+      spoonacularSourceUrl: string;
+    }>;
+  }
+>();
 
 if (IS_PRODUCTION) {
   if (!CANONICAL_URL) {
@@ -344,6 +360,235 @@ function stripHtml(value: unknown) {
     .trim();
 }
 
+function setLastRecipeSuggestions(
+  ownerKey: string,
+  query: string,
+  suggestions: Array<{
+    id: number;
+    title: string;
+    readyInMinutes: number | null;
+    servings: number | null;
+    sourceUrl: string;
+    spoonacularSourceUrl: string;
+  }>,
+) {
+  lastRecipeSuggestionsByOwner.set(ownerKey, {
+    at: Date.now(),
+    query,
+    suggestions,
+  });
+}
+
+function getLastRecipeSuggestions(ownerKey: string) {
+  const value = lastRecipeSuggestionsByOwner.get(ownerKey);
+  if (!value) return null;
+  if (Date.now() - value.at > LAST_RECIPE_SUGGESTIONS_TTL_MS) {
+    lastRecipeSuggestionsByOwner.delete(ownerKey);
+    return null;
+  }
+  return value;
+}
+
+function clearLastRecipeSuggestions(ownerKey: string) {
+  lastRecipeSuggestionsByOwner.delete(ownerKey);
+}
+
+function parseSuggestedRecipeIndex(message: string) {
+  const t = message.toLowerCase();
+  const ordinalMap: Array<[RegExp, number]> = [
+    [/\b(first|1st)\b/, 0],
+    [/\b(second|2nd)\b/, 1],
+    [/\b(third|3rd)\b/, 2],
+    [/\b(fourth|4th)\b/, 3],
+    [/\b(fifth|5th)\b/, 4],
+    [/\b(sixth|6th)\b/, 5],
+    [/\b(seventh|7th)\b/, 6],
+    [/\b(eighth|8th)\b/, 7],
+  ];
+  for (const [rx, idx] of ordinalMap) {
+    if (rx.test(t)) return idx;
+  }
+  const numMatch = t.match(/\b(?:#|number\s*)?(\d{1,2})(?:st|nd|rd|th)?\b/);
+  if (numMatch) {
+    const n = Number(numMatch[1]);
+    if (Number.isFinite(n) && n > 0) return n - 1;
+  }
+  return null;
+}
+
+function tokenizeForMatch(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .filter((t) =>
+      ![
+        "the",
+        "a",
+        "an",
+        "that",
+        "this",
+        "sounds",
+        "good",
+        "great",
+        "nice",
+        "please",
+        "can",
+        "could",
+        "would",
+        "like",
+        "want",
+        "get",
+        "give",
+        "me",
+        "recipe",
+        "recipes",
+        "for",
+        "to",
+        "of",
+        "with",
+        "one",
+      ].includes(t)
+    );
+}
+
+function isRecipeSelectionFollowup(message: string) {
+  const t = message.toLowerCase();
+  return /\b(sounds good|sounds great|i'?ll take|i want|i'd like|give me that|that one|this one|the first|the second|the third|recipe for|make that)\b/
+    .test(t);
+}
+
+function resolveSuggestedRecipeFromMessage(
+  message: string,
+  suggestions: Array<{
+    id: number;
+    title: string;
+    readyInMinutes: number | null;
+    servings: number | null;
+    sourceUrl: string;
+    spoonacularSourceUrl: string;
+  }>,
+) {
+  if (!suggestions.length) return null;
+  const idx = parseSuggestedRecipeIndex(message);
+  if (idx !== null && idx >= 0 && idx < suggestions.length) {
+    return suggestions[idx];
+  }
+  const t = message.toLowerCase();
+  const byTitle = suggestions.find((s) => {
+    const title = s.title.toLowerCase();
+    return t.includes(title);
+  });
+  if (byTitle) return byTitle;
+
+  const queryTokens = tokenizeForMatch(message);
+  if (!queryTokens.length) return null;
+  let best:
+    | {
+      score: number;
+      suggestion: (typeof suggestions)[number];
+    }
+    | null = null;
+  for (const suggestion of suggestions) {
+    const titleTokens = new Set(tokenizeForMatch(suggestion.title));
+    if (!titleTokens.size) continue;
+    let score = 0;
+    for (const token of queryTokens) {
+      if (titleTokens.has(token)) score += 1;
+    }
+    if (score > 0 && (!best || score > best.score)) {
+      best = { score, suggestion };
+    }
+  }
+  return best?.suggestion ?? null;
+}
+
+async function fetchRecipeDetailById(id: number) {
+  if (!SPOONACULAR_API_KEY) {
+    throw new HttpError(
+      503,
+      "Recipe search is not configured on this server.",
+    );
+  }
+  const apiUrl = new URL(`https://api.spoonacular.com/recipes/${id}/information`);
+  apiUrl.searchParams.set("apiKey", SPOONACULAR_API_KEY);
+  apiUrl.searchParams.set("includeNutrition", "false");
+
+  const upstream = await fetch(apiUrl, {
+    headers: { "Accept": "application/json" },
+  });
+  const upstreamText = await upstream.text();
+  const data = upstreamText ? JSON.parse(upstreamText) : {};
+  if (!upstream.ok) {
+    const message = typeof data?.message === "string"
+      ? data.message
+      : `Recipe details failed (${upstream.status})`;
+    const status = upstream.status === 401 || upstream.status === 402 ||
+        upstream.status === 404 || upstream.status === 429
+      ? upstream.status
+      : 502;
+    throw new HttpError(status, message);
+  }
+
+  const ingredients = Array.isArray(data?.extendedIngredients)
+    ? data.extendedIngredients.map((item: Record<string, unknown>) =>
+      stripHtml(item.original || item.name)
+    ).filter(Boolean)
+    : [];
+
+  return {
+    id: Number(data?.id ?? id) || id,
+    title: stripHtml(data?.title),
+    readyInMinutes: Number(data?.readyInMinutes ?? 0) || null,
+    servings: Number(data?.servings ?? 0) || null,
+    summary: stripHtml(data?.summary),
+    instructions: stripHtml(data?.instructions),
+    ingredients,
+    sourceUrl: String(data?.sourceUrl ?? ""),
+    spoonacularSourceUrl: String(data?.spoonacularSourceUrl ?? ""),
+  };
+}
+
+function recipeDetailToMarkdown(detail: {
+  title: string;
+  readyInMinutes: number | null;
+  servings: number | null;
+  summary: string;
+  instructions: string;
+  ingredients: string[];
+  sourceUrl: string;
+  spoonacularSourceUrl: string;
+}) {
+  const lines: string[] = [];
+  lines.push(`## ${detail.title || "Recipe"}`);
+  const meta: string[] = [];
+  if (detail.readyInMinutes) meta.push(`${detail.readyInMinutes} min`);
+  if (detail.servings) meta.push(`${detail.servings} servings`);
+  if (meta.length) lines.push(meta.join(" • "));
+  if (detail.summary) {
+    lines.push("");
+    lines.push(detail.summary);
+  }
+  lines.push("");
+  lines.push("### Ingredients");
+  if (detail.ingredients.length) {
+    detail.ingredients.forEach((item) => lines.push(`- ${item}`));
+  } else {
+    lines.push("- Ingredient list not available");
+  }
+  lines.push("");
+  lines.push("### Instructions");
+  lines.push(detail.instructions || "Instructions not available.");
+  const link = detail.sourceUrl || detail.spoonacularSourceUrl;
+  if (link) {
+    lines.push("");
+    lines.push(`Source: ${link}`);
+  }
+  return lines.join("\n");
+}
+
 function parseRecipeCommand(message: string) {
   const match = message.match(/^\/recipe(?:\s+(.+))?$/i);
   if (!match) return null;
@@ -416,6 +661,7 @@ async function fetchRecipeSuggestions(
 
   const rawResults = Array.isArray(data?.results) ? data.results : [];
   return rawResults.map((item: Record<string, unknown>) => ({
+    id: Number(item.id ?? 0) || 0,
     title: String(item.title ?? "Untitled recipe"),
     readyInMinutes: Number(item.readyInMinutes ?? 0) || null,
     servings: Number(item.servings ?? 0) || null,
@@ -1744,7 +1990,10 @@ export function startServer() {
             withSecurity({ "Content-Type": "application/json" }),
           );
           if (setCookie) h.append("Set-Cookie", setCookie);
-          if (body.newChat) await clearHistory(ownerKey);
+          if (body.newChat) {
+            await clearHistory(ownerKey);
+            clearLastRecipeSuggestions(ownerKey);
+          }
           await ensureHistory(ownerKey, SYSTEM_PROMPT);
           const history = await getHistory(ownerKey);
           const query = inferRecipeQueryFromContext(
@@ -1754,6 +2003,7 @@ export function startServer() {
           );
           const context = recentRecipeContext(history, message);
           const suggestions = await fetchRecipeSuggestions(query, 5, context);
+          setLastRecipeSuggestions(ownerKey, query, suggestions);
           const markdown = recipeSuggestionsToMarkdown(
             query,
             suggestions,
@@ -1783,7 +2033,10 @@ export function startServer() {
           );
         }
 
-        if (body.newChat) await clearHistory(ownerKey);
+        if (body.newChat) {
+          await clearHistory(ownerKey);
+          clearLastRecipeSuggestions(ownerKey);
+        }
         await ensureHistory(ownerKey, SYSTEM_PROMPT);
 
         const history = await getHistory(ownerKey);
@@ -1825,6 +2078,33 @@ export function startServer() {
         // Choose mode
         const mode = detectMode(message, lastAssistant);
         const steer = steerForMode(mode);
+
+        const lastSuggestions = getLastRecipeSuggestions(ownerKey);
+        const shouldTryExactRecipe =
+          mode === "EXPAND" || isRecipeSelectionFollowup(message);
+        if (shouldTryExactRecipe && lastSuggestions?.suggestions?.length) {
+          const selected = resolveSuggestedRecipeFromMessage(
+            message,
+            lastSuggestions.suggestions,
+          );
+          if (selected?.id) {
+            const detail = await fetchRecipeDetailById(selected.id);
+            const markdown = recipeDetailToMarkdown(detail);
+            await pushAndClamp(ownerKey, { role: "user", content: message });
+            await pushAndClamp(ownerKey, {
+              role: "assistant",
+              content: markdown,
+            });
+            const h = new Headers(
+              withSecurity({ "Content-Type": "application/json" }),
+            );
+            if (setCookie) h.append("Set-Cookie", setCookie);
+            return new Response(JSON.stringify({ reply: markdown, markdown }), {
+              headers: h,
+            });
+          }
+        }
+
         let recipeRagSteer = "";
         if (mode !== "CHAT") {
           try {

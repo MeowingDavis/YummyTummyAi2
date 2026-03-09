@@ -122,8 +122,13 @@
 
             <section class="chat-section-shell stack-surface stack-compact composer-safe sticky bottom-0 border-t px-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-[calc(1rem+env(safe-area-inset-bottom))]" aria-label="Message composer">
               <div class="flex flex-col gap-2 md:flex-row md:items-end">
-                <label for="input" class="sr-only">Your message</label>
-                <textarea id="input" rows="1" enterkeyhint="send" inputmode="text" autocomplete="off" autocapitalize="sentences" class="skeuo-input min-h-[52px] max-h-56 w-full resize-none px-3 py-3 text-base leading-6 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 md:flex-1" placeholder="Message YummyBot..."></textarea>
+                <div class="md:flex-1">
+                  <label for="input" class="sr-only">Your message</label>
+                  <textarea id="input" rows="1" enterkeyhint="send" inputmode="text" autocomplete="off" autocapitalize="sentences" class="skeuo-input min-h-[52px] max-h-56 w-full resize-none px-3 py-3 text-base leading-6 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30" placeholder="Message YummyBot..."></textarea>
+                  <p id="commandPreview" class="mt-1 hidden text-xs text-slate-500" aria-live="polite">
+                    Command detected: <span class="command-live-token"></span>
+                  </p>
+                </div>
 
                 <div class="flex shrink-0 items-center justify-end gap-2">
                   <button id="saveBtn" type="button" class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-icon" title="Save chat" aria-label="Save chat">

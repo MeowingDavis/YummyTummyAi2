@@ -58,6 +58,12 @@ import {
   sanitizeSavedChatHistory,
   sanitizeSavedChatTitle,
 } from "./savedChats.ts";
+import {
+  addRecipeToBook,
+  deleteRecipeBookEntry,
+  listRecipeBook,
+  upsertPantryRecipe,
+} from "./recipeBook.ts";
 
 const NODE_ENV = Deno.env.get("NODE_ENV")?.trim().toLowerCase() ?? "";
 const IS_PRODUCTION = NODE_ENV === "production";
@@ -223,6 +229,8 @@ function requiresSameOriginWrite(req: Request, url: URL) {
   if (url.pathname === "/auth/logout") return true;
   if (url.pathname === "/auth/change-password") return true;
   if (url.pathname === "/auth/delete-account") return true;
+  if (url.pathname === "/api/pantry/book") return true;
+  if (url.pathname.startsWith("/api/pantry/book/")) return true;
   return url.pathname === "/saved-chats" ||
     url.pathname.startsWith("/saved-chats/");
 }
@@ -541,6 +549,7 @@ async function fetchRecipeDetailById(id: number) {
   return {
     id: Number(data?.id ?? id) || id,
     title: stripHtml(data?.title),
+    image: String(data?.image ?? ""),
     readyInMinutes: Number(data?.readyInMinutes ?? 0) || null,
     servings: Number(data?.servings ?? 0) || null,
     summary: stripHtml(data?.summary),
@@ -1027,6 +1036,135 @@ export function startServer() {
         return new Response(
           JSON.stringify({ error: "Recipe details failed" }),
           { status: 502, headers: h },
+        );
+      }
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/pantry/book") {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(
+        withSecurity({ "Content-Type": "application/json" }),
+      );
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return new Response(
+          JSON.stringify({
+            error: "Please sign in to view your Pantry recipe book.",
+            code: "AUTH_REQUIRED",
+          }),
+          { status: 401, headers: h },
+        );
+      }
+      try {
+        const entries = await listRecipeBook(user.id);
+        return new Response(JSON.stringify({ entries }), { headers: h });
+      } catch (err) {
+        const safe = redact(String((err as Error)?.message ?? err));
+        console.warn("[pantry-book-list] error:", safe);
+        return new Response(
+          JSON.stringify({ error: "Unable to load recipe book" }),
+          { status: 500, headers: h },
+        );
+      }
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/pantry/book") {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(
+        withSecurity({ "Content-Type": "application/json" }),
+      );
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return new Response(
+          JSON.stringify({
+            error: "Please sign in to save recipes.",
+            code: "AUTH_REQUIRED",
+          }),
+          { status: 401, headers: h },
+        );
+      }
+      try {
+        const body = await readJson<{ spoonacularId?: number | string }>(req);
+        const spoonacularId = Number(body.spoonacularId ?? 0);
+        if (!Number.isFinite(spoonacularId) || spoonacularId <= 0) {
+          return new Response(
+            JSON.stringify({ error: "Invalid spoonacularId" }),
+            { status: 400, headers: h },
+          );
+        }
+
+        const detail = await fetchRecipeDetailById(Math.trunc(spoonacularId));
+        const stored = await upsertPantryRecipe({
+          spoonacularId: detail.id,
+          title: detail.title,
+          image: detail.image,
+          readyInMinutes: detail.readyInMinutes,
+          servings: detail.servings,
+          summary: detail.summary,
+          instructions: detail.instructions,
+          ingredients: detail.ingredients,
+          sourceUrl: detail.sourceUrl,
+          spoonacularSourceUrl: detail.spoonacularSourceUrl,
+        });
+        const entryId = await addRecipeToBook(user.id, stored.id);
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            entryId,
+            recipe: stored,
+          }),
+          { status: 201, headers: h },
+        );
+      } catch (err) {
+        const status = err instanceof HttpError ? err.status : 500;
+        const message = err instanceof HttpError
+          ? err.message
+          : "Unable to save recipe";
+        return new Response(JSON.stringify({ error: message }), {
+          status,
+          headers: h,
+        });
+      }
+    }
+
+    if (
+      req.method === "DELETE" && url.pathname.startsWith("/api/pantry/book/")
+    ) {
+      const { setCookie } = await getOrSetSessionId(req);
+      const h = new Headers(
+        withSecurity({ "Content-Type": "application/json" }),
+      );
+      if (setCookie) h.append("Set-Cookie", setCookie);
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return new Response(
+          JSON.stringify({
+            error: "Please sign in to edit your recipe book.",
+            code: "AUTH_REQUIRED",
+          }),
+          { status: 401, headers: h },
+        );
+      }
+      const entryId = decodeURIComponent(
+        url.pathname.replace("/api/pantry/book/", ""),
+      ).trim();
+      if (!entryId) {
+        return new Response(JSON.stringify({ error: "Missing entry id" }), {
+          status: 400,
+          headers: h,
+        });
+      }
+      try {
+        await deleteRecipeBookEntry(user.id, entryId);
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
+      } catch (err) {
+        const safe = redact(String((err as Error)?.message ?? err));
+        console.warn("[pantry-book-delete] error:", safe);
+        return new Response(
+          JSON.stringify({ error: "Unable to remove recipe" }),
+          { status: 500, headers: h },
         );
       }
     }

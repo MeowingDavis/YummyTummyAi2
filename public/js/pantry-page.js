@@ -21,6 +21,10 @@ window.addEventListener("DOMContentLoaded", () => {
   const lockedNotice = document.getElementById("pantryLockedNotice");
   const searchOverlay = document.getElementById("pantrySearchOverlay");
   const resultsOverlay = document.getElementById("pantryResultsOverlay");
+  const pantryBookSection = document.getElementById("pantryBookSection");
+  const pantryBookStatus = document.getElementById("pantryBookStatus");
+  const pantryBookList = document.getElementById("pantryBookList");
+  const pantryBookRefresh = document.getElementById("pantryBookRefresh");
 
   if (
     !form || !queryInput || !statusEl || !resultsEl || !recipeSection ||
@@ -28,7 +32,8 @@ window.addEventListener("DOMContentLoaded", () => {
     !recipeInstructions || !recipeSource || !recipeClose || !prevPageBtn ||
     !nextPageBtn || !pageInfo || !dietSelect || !cuisineSelect ||
     !maxReadyTimeSelect || !quickFilters || !lockedNotice || !searchOverlay ||
-    !resultsOverlay
+    !resultsOverlay || !pantryBookSection || !pantryBookStatus || !pantryBookList ||
+    !pantryBookRefresh
   ) return;
 
   const PAGE_SIZE = 6;
@@ -37,6 +42,7 @@ window.addEventListener("DOMContentLoaded", () => {
   let totalResults = 0;
   let lastRenderedIds = [];
   let pantryLocked = false;
+  const savedBySpoonacularId = new Map();
 
   const setStatus = (message, isError = false) => {
     statusEl.textContent = message;
@@ -54,6 +60,12 @@ window.addEventListener("DOMContentLoaded", () => {
     resultsEl.replaceChildren();
   };
 
+  const setBookStatus = (message, isError = false) => {
+    pantryBookStatus.textContent = message;
+    pantryBookStatus.classList.toggle("text-red-200", isError);
+    pantryBookStatus.classList.toggle("text-slate-500", !isError);
+  };
+
   const applyLockedState = (locked) => {
     pantryLocked = locked;
     const controls = [
@@ -69,11 +81,14 @@ window.addEventListener("DOMContentLoaded", () => {
     controls.forEach((el) => {
       if ("disabled" in el) el.disabled = locked;
     });
+    pantryBookRefresh.disabled = locked;
     lockedNotice.classList.toggle("hidden", !locked);
     searchOverlay.classList.toggle("hidden", !locked);
     resultsOverlay.classList.toggle("hidden", !locked);
     if (locked) {
       setStatus("Sign in to unlock Pantry search and recipe details.", true);
+      setBookStatus("Sign in to save recipes to your personal recipe book.");
+      pantryBookList.replaceChildren();
     }
   };
 
@@ -144,10 +159,50 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const bookmark = document.createElement("button");
     bookmark.type = "button";
-    bookmark.disabled = true;
-    bookmark.className = "inline-flex skeuo-btn skeuo-btn-secondary skeuo-btn-sm opacity-60 cursor-not-allowed";
-    bookmark.textContent = "Bookmark (soon)";
-    bookmark.setAttribute("aria-label", "Bookmark feature coming soon");
+    bookmark.className = "inline-flex skeuo-btn skeuo-btn-secondary skeuo-btn-sm";
+    const spoonacularId = Number(recipe.id ?? 0) || 0;
+    const savedEntry = spoonacularId
+      ? savedBySpoonacularId.get(String(spoonacularId))
+      : null;
+    if (pantryLocked) {
+      bookmark.disabled = true;
+      bookmark.classList.add("opacity-60", "cursor-not-allowed");
+      bookmark.textContent = "Login to save";
+    } else if (!spoonacularId) {
+      bookmark.disabled = true;
+      bookmark.classList.add("opacity-60", "cursor-not-allowed");
+      bookmark.textContent = "Unavailable";
+    } else if (savedEntry) {
+      bookmark.disabled = true;
+      bookmark.classList.add("opacity-60", "cursor-not-allowed");
+      bookmark.textContent = "Saved";
+    } else {
+      bookmark.textContent = "Save to Book";
+      bookmark.addEventListener("click", async () => {
+        bookmark.disabled = true;
+        const prev = bookmark.textContent;
+        bookmark.textContent = "Saving...";
+        try {
+          const response = await fetch("/api/pantry/book", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ spoonacularId }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(data?.error || `Save failed (${response.status})`);
+          }
+          savedBySpoonacularId.set(String(spoonacularId), data?.entryId || "saved");
+          bookmark.textContent = "Saved";
+          bookmark.classList.add("opacity-60", "cursor-not-allowed");
+          await loadRecipeBook();
+        } catch (error) {
+          bookmark.disabled = false;
+          bookmark.textContent = prev || "Save to Book";
+          setStatus((error && error.message) || "Could not save recipe.", true);
+        }
+      });
+    }
     buttonRow.appendChild(bookmark);
 
     card.appendChild(buttonRow);
@@ -220,6 +275,97 @@ window.addEventListener("DOMContentLoaded", () => {
       frag.appendChild(createCard(recipe));
     });
     resultsEl.appendChild(frag);
+  };
+
+  const createBookCard = (entry) => {
+    const recipe = entry.recipe || {};
+    const card = document.createElement("article");
+    card.className = "glass skeuo-surface skeuo-card-pad overflow-hidden";
+
+    if (recipe.image) {
+      const img = document.createElement("img");
+      img.src = recipe.image;
+      img.alt = recipe.title || "Saved recipe image";
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.className = "h-40 w-full rounded-2xl object-cover";
+      card.appendChild(img);
+    }
+
+    const title = document.createElement("h4");
+    title.className = "mt-4 text-xl text-[#1A3D37]";
+    title.textContent = recipe.title || "Saved recipe";
+    card.appendChild(title);
+    card.appendChild(createMeta(recipe.readyInMinutes, recipe.servings));
+
+    const actions = document.createElement("div");
+    actions.className = "mt-4 flex flex-wrap gap-2";
+
+    const openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.className = "inline-flex skeuo-btn skeuo-btn-secondary skeuo-btn-sm";
+    openBtn.textContent = "Open";
+    openBtn.addEventListener("click", () => renderRecipeDetails(recipe));
+    actions.appendChild(openBtn);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "inline-flex skeuo-btn skeuo-btn-danger skeuo-btn-sm";
+    removeBtn.textContent = "Remove";
+    removeBtn.addEventListener("click", async () => {
+      removeBtn.disabled = true;
+      try {
+        const response = await fetch(`/api/pantry/book/${encodeURIComponent(String(entry.id))}`, {
+          method: "DELETE",
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data?.error || `Delete failed (${response.status})`);
+        }
+        await loadRecipeBook();
+      } catch (error) {
+        removeBtn.disabled = false;
+        setBookStatus((error && error.message) || "Could not remove recipe.", true);
+      }
+    });
+    actions.appendChild(removeBtn);
+
+    card.appendChild(actions);
+    return card;
+  };
+
+  const renderBook = (entries) => {
+    pantryBookList.replaceChildren();
+    savedBySpoonacularId.clear();
+    if (!Array.isArray(entries) || !entries.length) {
+      setBookStatus("No saved recipes yet. Search Pantry and save your favorites.");
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    entries.forEach((entry) => {
+      const spoonacularId = Number(entry?.recipe?.spoonacularId ?? 0) || 0;
+      if (spoonacularId) {
+        savedBySpoonacularId.set(String(spoonacularId), String(entry.id));
+      }
+      frag.appendChild(createBookCard(entry));
+    });
+    pantryBookList.appendChild(frag);
+    setBookStatus(`Saved ${entries.length} recipe${entries.length === 1 ? "" : "s"} in your recipe book.`);
+  };
+
+  const loadRecipeBook = async () => {
+    if (pantryLocked) return;
+    setBookStatus("Loading your recipe book...");
+    try {
+      const response = await fetch("/api/pantry/book", { cache: "no-store" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.error || `Recipe book failed (${response.status})`);
+      }
+      renderBook(Array.isArray(data?.entries) ? data.entries : []);
+    } catch (error) {
+      setBookStatus((error && error.message) || "Could not load recipe book.", true);
+    }
   };
 
   const fetchPage = async (query, offset, filters) => {
@@ -313,6 +459,9 @@ window.addEventListener("DOMContentLoaded", () => {
   recipeClose.addEventListener("click", () => {
     recipeSection.classList.add("hidden");
   });
+  pantryBookRefresh.addEventListener("click", () => {
+    loadRecipeBook();
+  });
 
   prevPageBtn.addEventListener("click", () => {
     if (!currentQuery || currentPage <= 1) return;
@@ -345,6 +494,9 @@ window.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/me", { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       applyLockedState(!Boolean(data?.user));
+      if (data?.user) {
+        await loadRecipeBook();
+      }
     } catch {
       applyLockedState(true);
     }

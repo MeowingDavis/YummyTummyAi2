@@ -7,6 +7,7 @@ frontend and a backend chat endpoint that calls the Groq Chat Completions API.
 
 - Ingredient-aware recipe help and cooking Q&A
 - Pantry search page backed by Spoonacular (`/recipes.html`)
+- Account-backed Pantry recipe book with saved API recipes
 - Off-topic guard that steers conversation back to food
 - Session-based chat history persisted in Supabase
 - Saved chats persisted in Supabase
@@ -105,6 +106,9 @@ http://localhost:8000
 
 - `POST /upload` -> currently a stub, returns `[]`
 - `GET /api/pantry/search?q=<term>&number=<1..24>` -> pantry recipe search
+- `GET /api/pantry/book` -> list signed-in user's saved recipe book entries
+- `POST /api/pantry/book` -> save recipe to recipe book `{ spoonacularId }`
+- `DELETE /api/pantry/book/:id` -> remove saved recipe entry
 - `GET /saved-chats` -> account saved chats
 - `POST /saved-chats` -> save chat `{ title, history }`
 - `GET /saved-chats/:id` -> fetch one saved chat

@@ -42,6 +42,15 @@ import {
   validateCredentials,
   verifyPassword,
 } from "./auth.ts";
+import {
+  createSavedChat,
+  deleteAllSavedChats,
+  deleteSavedChat,
+  getSavedChat,
+  listSavedChats,
+  sanitizeSavedChatHistory,
+  sanitizeSavedChatTitle,
+} from "./savedChats.ts";
 
 const NODE_ENV = Deno.env.get("NODE_ENV")?.trim().toLowerCase() ?? "";
 const IS_PRODUCTION = NODE_ENV === "production";
@@ -55,21 +64,11 @@ const CONFIGURED_MODELS = (() => {
 })();
 const IP_RE = /^[0-9a-fA-F:.]+$/;
 const CANONICAL_URL = parseCanonicalOrigin(CANONICAL_ORIGIN);
-const MAX_SAVED_CHATS = 50;
-const MAX_CHAT_TITLE = 120;
 const MODELS_REFRESH_MS = 5 * 60 * 1000;
 const CHAT_WINDOW_MS = 24 * 60 * 60 * 1000;
 const GUEST_DAILY_CHAT_LIMIT = 15;
 const USER_DAILY_CHAT_LIMIT = 40;
 const CHAT_DEBUG_SOURCES = (Deno.env.get("CHAT_DEBUG_SOURCES") ?? "").trim() === "1";
-
-type SavedChat = {
-  id: string;
-  title: string;
-  history: Msg[];
-  createdAt: number;
-  updatedAt: number;
-};
 
 type ChatQuotaState = {
   timestamps: number[];
@@ -169,30 +168,6 @@ function chatOwnerKey(sessionId: string, userId?: string) {
 
 async function getKv() {
   return await getAppKv();
-}
-
-function sanitizeHistory(input: unknown): Msg[] {
-  if (!Array.isArray(input)) return [];
-  return input
-    .map((row) => {
-      if (!row || typeof row !== "object") return null;
-      const role = (row as { role?: string }).role;
-      const content = (row as { content?: unknown }).content;
-      if ((role !== "system" && role !== "user" && role !== "assistant") || typeof content !== "string") return null;
-      return { role, content: content.trim() } as Msg;
-    })
-    .filter((m): m is Msg => !!m && !!m.content)
-    .slice(-200);
-}
-
-async function listSavedChats(ownerKey: string) {
-  const kv = await getKv();
-  const items: SavedChat[] = [];
-  for await (const e of kv.list<SavedChat>({ prefix: ["savedChats", ownerKey] })) {
-    if (e.value) items.push(e.value);
-  }
-  items.sort((a, b) => b.updatedAt - a.updatedAt);
-  return items;
 }
 
 function limitForUser(userId?: string) {
@@ -600,11 +575,10 @@ export function startServer() {
         await deleteLocalUserData(user.id);
         await unlinkSession(sessionId);
 
+        await deleteAllSavedChats(user.id);
+
         const kv = await getKv();
         const owner = chatOwnerKey(sessionId, user.id);
-        for await (const e of kv.list({ prefix: ["savedChats", owner] })) {
-          await kv.delete(e.key);
-        }
         await kv.delete(["chatHistory", owner]);
         await kv.delete(["chatQuota", `user:${user.id}`]);
 
@@ -658,20 +632,27 @@ export function startServer() {
       }
     }
 
-    // Saved chats (session-scoped in Deno KV)
+    // Saved chats (Supabase-backed, account required)
     if (req.method === "GET" && url.pathname === "/saved-chats") {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       const user = await getUserForSession(sessionId);
       if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
-      const chats = await listSavedChats(chatOwnerKey(sessionId, user.id));
-      return new Response(JSON.stringify({ chats }), { headers: h });
+      try {
+        const chats = await listSavedChats(user.id);
+        return new Response(JSON.stringify({ chats }), { headers: h });
+      } catch (err) {
+        const status = err instanceof SupabaseApiError ? err.status : 500;
+        return new Response(JSON.stringify({ error: status === 404 ? "Saved chats table not found" : "Unable to load saved chats" }), {
+          status,
+          headers: h,
+        });
+      }
     }
     if (req.method === "POST" && url.pathname === "/saved-chats") {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);
       const user = await getUserForSession(sessionId);
-      const ownerKey = chatOwnerKey(sessionId, user?.id);
       try {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
         if (setCookie) h.append("Set-Cookie", setCookie);
@@ -679,28 +660,13 @@ export function startServer() {
           return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
         }
         const body = await readJson<{ title?: string; history?: unknown }>(req);
-        const title = (body.title ?? "").trim().slice(0, MAX_CHAT_TITLE);
-        const history = sanitizeHistory(body.history);
+        const title = sanitizeSavedChatTitle(body.title);
+        const history = sanitizeSavedChatHistory(body.history);
         if (!title || !history.length) {
           return new Response(JSON.stringify({ error: "title and history are required" }), { status: 400, headers: h });
         }
 
-        const kv = await getKv();
-        const existing = await listSavedChats(ownerKey);
-        if (existing.length >= MAX_SAVED_CHATS) {
-          const oldest = existing[existing.length - 1];
-          await kv.delete(["savedChats", ownerKey, oldest.id]);
-        }
-
-        const now = Date.now();
-        const saved: SavedChat = {
-          id: crypto.randomUUID(),
-          title,
-          history,
-          createdAt: now,
-          updatedAt: now,
-        };
-        await kv.set(["savedChats", ownerKey, saved.id], saved);
+        const saved = await createSavedChat(user.id, title, history);
         return new Response(JSON.stringify({ chat: saved }), { status: 201, headers: h });
       } catch (err) {
         const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
@@ -708,22 +674,33 @@ export function startServer() {
         if (err instanceof HttpError) {
           return new Response(JSON.stringify({ error: err.message }), { status: err.status, headers: h });
         }
-        return new Response(JSON.stringify({ error: "Server error" }), { status: 500, headers: h });
+        const status = err instanceof SupabaseApiError ? err.status : 500;
+        return new Response(JSON.stringify({ error: status === 404 ? "Saved chats table not found" : "Server error" }), {
+          status,
+          headers: h,
+        });
       }
     }
     if (req.method === "GET" && url.pathname.startsWith("/saved-chats/")) {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);
       const id = decodeURIComponent(url.pathname.replace("/saved-chats/", ""));
-      const kv = await getKv();
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       const user = await getUserForSession(sessionId);
       if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
-      const found = await kv.get<SavedChat>(["savedChats", chatOwnerKey(sessionId, user.id), id]);
-      if (!found.value) {
-        return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: h });
+      try {
+        const found = await getSavedChat(user.id, id);
+        if (!found) {
+          return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: h });
+        }
+        return new Response(JSON.stringify({ chat: found }), { headers: h });
+      } catch (err) {
+        const status = err instanceof SupabaseApiError ? err.status : 500;
+        return new Response(JSON.stringify({ error: status === 404 ? "Saved chats table not found" : "Unable to load chat" }), {
+          status,
+          headers: h,
+        });
       }
-      return new Response(JSON.stringify({ chat: found.value }), { headers: h });
     }
     if (req.method === "DELETE" && url.pathname.startsWith("/saved-chats/")) {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);
@@ -732,9 +709,16 @@ export function startServer() {
       const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
       if (setCookie) h.append("Set-Cookie", setCookie);
       if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: h });
-      const kv = await getKv();
-      await kv.delete(["savedChats", chatOwnerKey(sessionId, user.id), id]);
-      return new Response(JSON.stringify({ ok: true }), { headers: h });
+      try {
+        await deleteSavedChat(user.id, id);
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
+      } catch (err) {
+        const status = err instanceof SupabaseApiError ? err.status : 500;
+        return new Response(JSON.stringify({ error: status === 404 ? "Saved chats table not found" : "Unable to delete chat" }), {
+          status,
+          headers: h,
+        });
+      }
     }
 
     // Sitemap + robots (templated with request origin)

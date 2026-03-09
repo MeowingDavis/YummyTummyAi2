@@ -10,7 +10,7 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 - Recipe Explorer page for manual search + categories (`/recipes.html`)
 - Off-topic guard that steers conversation back to food
 - Session-based chat history persisted in Deno KV
-- Saved chats persisted in Deno KV
+- Saved chats persisted in Supabase
 - Optional account auth (register/login/logout) with profile fields
 - Basic in-memory rate limiting (IP + session cooldown)
 - Security headers and custom 404/500 pages
@@ -35,7 +35,7 @@ Yummy Tummy AI is a Deno web app for food-focused chat. It serves a static front
 export GROQ_API_KEY="your_groq_api_key"
 export SUPABASE_URL="https://<project-ref>.supabase.co"
 export SUPABASE_ANON_KEY="your_supabase_anon_key"
-# required for secure server-side delete-account admin API
+# required for server-side Supabase data access (saved chats, account deletion)
 export SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
 # optional
 export MODEL="llama-3.1-8b-instant"
@@ -108,7 +108,7 @@ http://localhost:8000
 ```
 
 - `POST /upload` -> currently a stub, returns `[]`
-- `GET /saved-chats` -> session-scope saved chats
+- `GET /saved-chats` -> account saved chats
 - `POST /saved-chats` -> save chat `{ title, history }`
 - `GET /saved-chats/:id` -> fetch one saved chat
 - `DELETE /saved-chats/:id` -> delete saved chat
@@ -128,9 +128,10 @@ http://localhost:8000
 
 - `GROQ_API_KEY` is required at startup.
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY` are required for auth flows.
-- `SUPABASE_SERVICE_ROLE_KEY` is required for secure server-side account deletion. Never expose this key in browser code.
+- `SUPABASE_SERVICE_ROLE_KEY` is required for server-side saved chat access and secure account deletion. Never expose this key in browser code.
 - If `MODEL` is unset, the app defaults to `llama-3.1-8b-instant`.
-- Rate limit state remains in-memory; chat history and saved chats are persisted in Deno KV.
+- Rate limit state remains in-memory; chat history is persisted in Deno KV and saved chats are persisted in Supabase.
+- Run the SQL in `supabase/saved_chats.sql` before using saved chats.
 - If RAG finds strong recipe matches, the assistant uses those titles/details.
 - If no strong RAG match exists, the assistant still generates a fresh recipe.
 - If `API_NINJAS_API_KEY` is set, the app also fetches API Ninjas recipe matches when local recipe matches are weak.

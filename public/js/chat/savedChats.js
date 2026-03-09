@@ -1,4 +1,4 @@
-import { state } from "./state.js";
+import { refs, state } from "./state.js";
 import { loadChatToDom } from "./ui.js";
 import { hideMobileSavedChats } from "./drawer.js";
 
@@ -13,6 +13,10 @@ async function requestJSON(url, options = {}) {
     throw err;
   }
   return data;
+}
+
+function showNotice(message) {
+  window.alert(message);
 }
 
 function actionButton(label, classes, onClick) {
@@ -108,15 +112,42 @@ export async function renderMobileSavedChats() {
 }
 
 export async function saveChat() {
+  if (!refs.currentUser) {
+    showNotice("Log in to save chats.");
+    return;
+  }
+
+  const history = Array.isArray(state.chatHistory)
+    ? state.chatHistory.filter((msg) => msg && typeof msg.content === "string" && msg.content.trim())
+    : [];
+  if (!history.length) {
+    showNotice("Send at least one message before saving this chat.");
+    return;
+  }
+
   const title = prompt("Name this chat:", "Recipe Chat");
-  if (!title) return;
-  await requestJSON("/saved-chats", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, history: state.chatHistory }),
-  });
-  await renderSavedChats();
-  await renderMobileSavedChats();
+  const cleanTitle = title?.trim();
+  if (!cleanTitle) return;
+
+  try {
+    await requestJSON("/saved-chats", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: cleanTitle, history }),
+    });
+    await renderSavedChats();
+    await renderMobileSavedChats();
+  } catch (err) {
+    if (err?.status === 401) {
+      showNotice("Your session expired. Log in again to save chats.");
+      return;
+    }
+    if (err?.status === 400) {
+      showNotice(err.message || "A title and at least one message are required.");
+      return;
+    }
+    showNotice(err?.message || "Unable to save chat right now.");
+  }
 }
 
 export async function loadChat(id) {

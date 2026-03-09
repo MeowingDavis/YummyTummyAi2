@@ -109,6 +109,10 @@ async function supabaseRequest(path: string, options: RequestInit, useServiceRol
   return data;
 }
 
+export async function supabaseAdminRequest(path: string, options: RequestInit) {
+  return await supabaseRequest(path, options, true);
+}
+
 function assertSupabaseServiceEnv() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error("Missing Supabase env: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");

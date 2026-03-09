@@ -201,250 +201,250 @@
           </div>
         </section>
 
-        <section class="glass skeuo-surface skeuo-card-pad-lg relative">
-          <p class="skeuo-label">Pantry Search</p>
-          <h1 class="mt-3 text-4xl sm:text-6xl">Find recipes in seconds.</h1>
-          <p
-            class="mt-4 max-w-3xl text-base leading-8 text-slate-600 sm:text-lg"
-          >
-            Search by ingredient, dish, or cuisine and browse recipe matches
-            from our pantry data provider.
-          </p>
-          <form
-            id="pantrySearchForm"
-            class="mt-6 flex flex-col gap-3 sm:flex-row"
-            aria-label="Pantry recipe search"
-          >
-            <label for="pantryQuery" class="sr-only">Search pantry recipes</label>
-            <input
-              id="pantryQuery"
-              type="search"
-              required
-              maxlength="120"
-              placeholder="Try: chicken, pasta, thai curry, vegan breakfast..."
-              class="skeuo-input w-full px-4 py-3 text-base"
-              autocomplete="off"
-            />
-            <button
-              type="submit"
-              class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full sm:w-auto"
-            >
-              Search Pantry
-            </button>
-          </form>
-          <div class="mt-3 grid gap-3 md:grid-cols-3">
-            <div>
-              <label for="pantryDiet" class="skeuo-label">Diet</label>
-              <select id="pantryDiet" class="skeuo-input mt-1 w-full px-3 py-2">
-                <option value="">Any</option>
-                <option value="vegetarian">Vegetarian</option>
-                <option value="vegan">Vegan</option>
-                <option value="gluten free">Gluten Free</option>
-                <option value="ketogenic">Keto</option>
-                <option value="paleo">Paleo</option>
-              </select>
-            </div>
-            <div>
-              <label for="pantryCuisine" class="skeuo-label">Cuisine</label>
-              <select id="pantryCuisine" class="skeuo-input mt-1 w-full px-3 py-2">
-                <option value="">Any</option>
-                <option value="italian">Italian</option>
-                <option value="mexican">Mexican</option>
-                <option value="american">American</option>
-                <option value="indian">Indian</option>
-                <option value="thai">Thai</option>
-                <option value="japanese">Japanese</option>
-              </select>
-            </div>
-            <div>
-              <label for="pantryMaxReadyTime" class="skeuo-label">Max minutes</label>
-              <select id="pantryMaxReadyTime" class="skeuo-input mt-1 w-full px-3 py-2">
-                <option value="">Any</option>
-                <option value="15">15</option>
-                <option value="30">30</option>
-                <option value="45">45</option>
-                <option value="60">60</option>
-              </select>
-            </div>
-          </div>
-          <div class="mt-4">
-            <p class="skeuo-label">Quick Categories</p>
-            <div id="pantryQuickFilters" class="mt-2 flex flex-wrap gap-2">
-              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="high protein dinner">High Protein</button>
-              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="quick weeknight dinner">Quick Meals</button>
-              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="healthy lunch">Healthy Lunch</button>
-              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="comfort food">Comfort Food</button>
-              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="breakfast">Breakfast</button>
-              <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="snacks">Snacks</button>
-            </div>
-          </div>
-          <p
-            id="pantryStatus"
-            class="mt-4 text-sm text-slate-200"
-            role="status"
-            aria-live="polite"
-          >
-            Enter an ingredient or dish name to start searching.
-          </p>
-          <div
-            id="pantrySearchOverlay"
-            class="hidden absolute inset-0 z-10 rounded-[inherit] bg-white/70 backdrop-blur-[2px]"
-            aria-hidden="true"
-          ></div>
-        </section>
-
-        <section
-          class="glass skeuo-surface skeuo-card-pad-lg relative"
-          aria-labelledby="pantry-results-heading"
-        >
-          <div class="flex items-center justify-between gap-3">
-            <h2 id="pantry-results-heading" class="text-2xl sm:text-3xl">
-              Results
-            </h2>
-            <a
-              href="/chat.html"
-              class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm"
-            >
-              Ask YummyBot
-            </a>
-          </div>
-          <div
-            id="pantryResults"
-            class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-          >
-          </div>
-          <div class="mt-5 flex items-center justify-between gap-3">
-            <button
-              id="pantryPrevPage"
-              type="button"
-              class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
-              disabled
-            >
-              Previous
-            </button>
-            <p id="pantryPageInfo" class="text-sm text-slate-500">Page 1</p>
-            <button
-              id="pantryNextPage"
-              type="button"
-              class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
-              disabled
-            >
-              Next
-            </button>
-          </div>
-          <div
-            id="pantryResultsOverlay"
-            class="hidden absolute inset-0 z-10 rounded-[inherit] bg-white/65 backdrop-blur-[2px]"
-            aria-hidden="true"
-          ></div>
-        </section>
-
-        <section
-          id="pantryRecipeSection"
-          class="hidden glass skeuo-surface skeuo-card-pad-lg"
-          aria-labelledby="pantry-recipe-title"
-        >
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <p class="skeuo-label">Recipe Details</p>
-              <h3 id="pantry-recipe-title" class="mt-2 text-2xl sm:text-3xl"></h3>
-            </div>
-            <button
-              id="pantryRecipeClose"
-              type="button"
-              class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
-            >
-              Close
-            </button>
-          </div>
-          <p id="pantryRecipeMeta" class="mt-3 text-sm text-slate-600"></p>
-          <p id="pantryRecipeSummary" class="mt-4 text-slate-600"></p>
-          <h4 class="mt-6 text-xl text-[#1A3D37]">Ingredients</h4>
-          <ul id="pantryRecipeIngredients" class="mt-3 list-disc space-y-1 pl-5 text-slate-600"></ul>
-          <h4 class="mt-6 text-xl text-[#1A3D37]">Instructions</h4>
-          <p id="pantryRecipeInstructions" class="mt-3 whitespace-pre-line text-slate-600"></p>
-          <a
-            id="pantryRecipeSource"
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="mt-5 inline-flex skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
-          >
-            Open original source
-          </a>
-        </section>
-
-        <section
-          id="pantryBookSection"
-          class="glass skeuo-surface skeuo-card-pad-lg"
-          aria-labelledby="pantry-book-heading"
-        >
-          <div class="flex items-center justify-between gap-3">
-            <h3 id="pantry-book-heading" class="text-2xl sm:text-3xl">
-              My Recipe Book
-            </h3>
-            <button
-              id="pantryBookRefresh"
-              type="button"
-              class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
-            >
-              Refresh
-            </button>
-          </div>
-          <p id="pantryBookStatus" class="mt-3 text-sm text-slate-500">
-            Save recipes from results to build your personal pantry database.
-          </p>
-          <div
-            id="pantryBookList"
-            class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-          ></div>
-        </section>
-
-        <section
-          id="pantryCustomSection"
-          class="glass skeuo-surface skeuo-card-pad-lg"
-          aria-labelledby="pantry-custom-heading"
-        >
-          <h3 id="pantry-custom-heading" class="text-2xl sm:text-3xl">
-            Add Your Own Recipe
-          </h3>
-          <p class="mt-2 text-sm text-slate-600">
-            Save your own recipes directly to your Pantry recipe book.
-          </p>
-          <form id="pantryCustomForm" class="mt-4 grid gap-3">
-            <div>
-              <label for="customTitle" class="skeuo-label">Title</label>
-              <input id="customTitle" class="skeuo-input mt-1 w-full px-3 py-2" maxlength="220" required />
-            </div>
-            <div class="grid gap-3 md:grid-cols-2">
-              <div>
-                <label for="customReady" class="skeuo-label">Ready in minutes (optional)</label>
-                <input id="customReady" type="number" min="1" max="600" class="skeuo-input mt-1 w-full px-3 py-2" />
+        <section class="grid gap-5 xl:grid-cols-[1.45fr,0.95fr] xl:items-start">
+          <div class="grid gap-5">
+            <section class="glass skeuo-surface skeuo-card-pad-lg relative">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p class="skeuo-label">Pantry Search</p>
+                  <h1 class="mt-2 text-3xl sm:text-4xl">Find recipes in seconds.</h1>
+                </div>
+                <a
+                  href="/chat.html"
+                  class="skeuo-btn skeuo-btn-secondary skeuo-interactive skeuo-btn-sm"
+                >
+                  Ask YummyBot
+                </a>
               </div>
-              <div>
-                <label for="customServings" class="skeuo-label">Servings (optional)</label>
-                <input id="customServings" type="number" min="1" max="100" class="skeuo-input mt-1 w-full px-3 py-2" />
+              <form
+                id="pantrySearchForm"
+                class="mt-5 flex flex-col gap-3 sm:flex-row"
+                aria-label="Pantry recipe search"
+              >
+                <label for="pantryQuery" class="sr-only">Search pantry recipes</label>
+                <input
+                  id="pantryQuery"
+                  type="search"
+                  required
+                  maxlength="120"
+                  placeholder="Try: cheesy chicken meal, thai curry, vegan breakfast..."
+                  class="skeuo-input w-full px-4 py-3 text-base"
+                  autocomplete="off"
+                />
+                <button
+                  type="submit"
+                  class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full sm:w-auto"
+                >
+                  Search
+                </button>
+              </form>
+              <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label for="pantryDiet" class="skeuo-label">Diet</label>
+                  <select id="pantryDiet" class="skeuo-input mt-1 w-full px-3 py-2">
+                    <option value="">Any</option>
+                    <option value="vegetarian">Vegetarian</option>
+                    <option value="vegan">Vegan</option>
+                    <option value="gluten free">Gluten Free</option>
+                    <option value="ketogenic">Keto</option>
+                    <option value="paleo">Paleo</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="pantryCuisine" class="skeuo-label">Cuisine</label>
+                  <select id="pantryCuisine" class="skeuo-input mt-1 w-full px-3 py-2">
+                    <option value="">Any</option>
+                    <option value="italian">Italian</option>
+                    <option value="mexican">Mexican</option>
+                    <option value="american">American</option>
+                    <option value="indian">Indian</option>
+                    <option value="thai">Thai</option>
+                    <option value="japanese">Japanese</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="pantryMaxReadyTime" class="skeuo-label">Max minutes</label>
+                  <select id="pantryMaxReadyTime" class="skeuo-input mt-1 w-full px-3 py-2">
+                    <option value="">Any</option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                    <option value="45">45</option>
+                    <option value="60">60</option>
+                  </select>
+                </div>
               </div>
-            </div>
-            <div>
-              <label for="customIngredients" class="skeuo-label">Ingredients (one per line)</label>
-              <textarea id="customIngredients" rows="5" class="skeuo-input mt-1 w-full px-3 py-2" required></textarea>
-            </div>
-            <div>
-              <label for="customInstructions" class="skeuo-label">Instructions</label>
-              <textarea id="customInstructions" rows="7" class="skeuo-input mt-1 w-full px-3 py-2" required></textarea>
-            </div>
-            <div>
-              <label for="customSummary" class="skeuo-label">Summary (optional)</label>
-              <textarea id="customSummary" rows="3" class="skeuo-input mt-1 w-full px-3 py-2"></textarea>
-            </div>
-            <div class="flex items-center gap-3">
-              <button id="customSaveBtn" type="submit" class="skeuo-btn skeuo-btn-primary skeuo-interactive">
-                Save to Recipe Book
-              </button>
-              <p id="customStatus" class="text-sm text-slate-500" aria-live="polite"></p>
-            </div>
-          </form>
+              <div class="mt-4">
+                <p class="skeuo-label">Quick Categories</p>
+                <div id="pantryQuickFilters" class="mt-2 flex flex-wrap gap-2">
+                  <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="high protein dinner">High Protein</button>
+                  <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="quick weeknight dinner">Quick Meals</button>
+                  <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="healthy lunch">Healthy Lunch</button>
+                  <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="comfort food">Comfort Food</button>
+                  <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="breakfast">Breakfast</button>
+                  <button type="button" class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm" data-query="snacks">Snacks</button>
+                </div>
+              </div>
+              <p
+                id="pantryStatus"
+                class="mt-4 text-sm text-slate-200"
+                role="status"
+                aria-live="polite"
+              >
+                Enter an ingredient or dish name to start searching.
+              </p>
+              <div
+                id="pantrySearchOverlay"
+                class="hidden absolute inset-0 z-10 rounded-[inherit] bg-white/70 backdrop-blur-[2px]"
+                aria-hidden="true"
+              ></div>
+            </section>
+
+            <section
+              class="glass skeuo-surface skeuo-card-pad-lg relative"
+              aria-labelledby="pantry-results-heading"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <h2 id="pantry-results-heading" class="text-2xl sm:text-3xl">
+                  Results
+                </h2>
+                <p id="pantryPageInfo" class="text-sm text-slate-500">Page 1</p>
+              </div>
+              <div
+                id="pantryResults"
+                class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-2"
+              >
+              </div>
+              <div class="mt-5 flex items-center justify-between gap-3">
+                <button
+                  id="pantryPrevPage"
+                  type="button"
+                  class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+                  disabled
+                >
+                  Previous
+                </button>
+                <button
+                  id="pantryNextPage"
+                  type="button"
+                  class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+                  disabled
+                >
+                  Next
+                </button>
+              </div>
+              <div
+                id="pantryResultsOverlay"
+                class="hidden absolute inset-0 z-10 rounded-[inherit] bg-white/65 backdrop-blur-[2px]"
+                aria-hidden="true"
+              ></div>
+            </section>
+
+            <section
+              id="pantryRecipeSection"
+              class="hidden glass skeuo-surface skeuo-card-pad-lg"
+              aria-labelledby="pantry-recipe-title"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="skeuo-label">Recipe Details</p>
+                  <h3 id="pantry-recipe-title" class="mt-2 text-2xl sm:text-3xl"></h3>
+                </div>
+                <button
+                  id="pantryRecipeClose"
+                  type="button"
+                  class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+                >
+                  Close
+                </button>
+              </div>
+              <p id="pantryRecipeMeta" class="mt-3 text-sm text-slate-600"></p>
+              <p id="pantryRecipeSummary" class="mt-4 text-slate-600"></p>
+              <h4 class="mt-6 text-xl text-[#1A3D37]">Ingredients</h4>
+              <ul id="pantryRecipeIngredients" class="mt-3 list-disc space-y-1 pl-5 text-slate-600"></ul>
+              <h4 class="mt-6 text-xl text-[#1A3D37]">Instructions</h4>
+              <p id="pantryRecipeInstructions" class="mt-3 whitespace-pre-line text-slate-600"></p>
+              <a
+                id="pantryRecipeSource"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-5 inline-flex skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+              >
+                Open original source
+              </a>
+            </section>
+          </div>
+
+          <aside class="grid gap-5 xl:sticky xl:top-24">
+            <section
+              id="pantryBookSection"
+              class="glass skeuo-surface skeuo-card-pad-lg"
+              aria-labelledby="pantry-book-heading"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <h3 id="pantry-book-heading" class="text-2xl">My Recipe Book</h3>
+                <button
+                  id="pantryBookRefresh"
+                  type="button"
+                  class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
+                >
+                  Refresh
+                </button>
+              </div>
+              <p id="pantryBookStatus" class="mt-3 text-sm text-slate-500">
+                Save recipes from results to build your personal pantry database.
+              </p>
+              <div
+                id="pantryBookList"
+                class="mt-4 grid gap-4"
+              ></div>
+            </section>
+
+            <section
+              id="pantryCustomSection"
+              class="glass skeuo-surface skeuo-card-pad-lg"
+              aria-labelledby="pantry-custom-heading"
+            >
+              <h3 id="pantry-custom-heading" class="text-2xl">Add Your Own Recipe</h3>
+              <p class="mt-2 text-sm text-slate-600">
+                Save your own recipes directly to your Pantry recipe book.
+              </p>
+              <form id="pantryCustomForm" class="mt-4 grid gap-3">
+                <div>
+                  <label for="customTitle" class="skeuo-label">Title</label>
+                  <input id="customTitle" class="skeuo-input mt-1 w-full px-3 py-2" maxlength="220" required />
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label for="customReady" class="skeuo-label">Ready in minutes</label>
+                    <input id="customReady" type="number" min="1" max="600" class="skeuo-input mt-1 w-full px-3 py-2" />
+                  </div>
+                  <div>
+                    <label for="customServings" class="skeuo-label">Servings</label>
+                    <input id="customServings" type="number" min="1" max="100" class="skeuo-input mt-1 w-full px-3 py-2" />
+                  </div>
+                </div>
+                <div>
+                  <label for="customIngredients" class="skeuo-label">Ingredients (one per line)</label>
+                  <textarea id="customIngredients" rows="4" class="skeuo-input mt-1 w-full px-3 py-2" required></textarea>
+                </div>
+                <div>
+                  <label for="customInstructions" class="skeuo-label">Instructions</label>
+                  <textarea id="customInstructions" rows="5" class="skeuo-input mt-1 w-full px-3 py-2" required></textarea>
+                </div>
+                <div>
+                  <label for="customSummary" class="skeuo-label">Summary</label>
+                  <textarea id="customSummary" rows="2" class="skeuo-input mt-1 w-full px-3 py-2"></textarea>
+                </div>
+                <div class="flex items-center gap-3">
+                  <button id="customSaveBtn" type="submit" class="skeuo-btn skeuo-btn-primary skeuo-interactive">
+                    Save to Recipe Book
+                  </button>
+                  <p id="customStatus" class="text-sm text-slate-500" aria-live="polite"></p>
+                </div>
+              </form>
+            </section>
+          </aside>
         </section>
 
       </div>
@@ -467,5 +467,6 @@
     <script src="/js/mobile-nav.js" defer></script>
     <script src="/js/site-auth.js" defer></script>
     <script src="/js/pantry-page.js" defer></script>
-  </body>
+    <script src="/js/cookie-consent.js" defer></script>
+</body>
 </html>

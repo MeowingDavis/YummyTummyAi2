@@ -24,31 +24,31 @@ function actionButton(label, classes, onClick) {
   return btn;
 }
 
-function buildSavedChatItem(chat, mobile = false) {
+function buildSavedChatItem(chat) {
   const li = document.createElement("li");
-  li.className = mobile
-    ? "flex items-center justify-between skeuo-surface px-3 py-2"
-    : "flex items-center justify-between skeuo-surface px-3 py-2";
+  li.className = "saved-chat-item skeuo-surface px-3 py-3";
 
-  const title = document.createElement("span");
-  title.className = "truncate max-w-[160px] text-slate-200 skeuo-ui";
-  title.textContent = chat.title || "Untitled Chat";
+  const titleText = chat.title || "Untitled Chat";
+  const title = document.createElement("p");
+  title.className = "saved-chat-title skeuo-ui";
+  title.textContent = titleText;
+  title.title = titleText;
 
-  const actions = document.createElement("span");
-  actions.className = "shrink-0 space-x-2";
+  const actions = document.createElement("div");
+  actions.className = "saved-chat-actions";
   actions.appendChild(actionButton(
     "Load",
-    "skeuo-btn skeuo-btn-secondary skeuo-interactive px-2 py-1 text-xs",
+    "saved-chat-action msg-action-link skeuo-link",
     () => loadChat(chat.id),
   ));
   actions.appendChild(actionButton(
     "Export",
-    "skeuo-btn skeuo-btn-secondary skeuo-interactive px-2 py-1 text-xs",
+    "saved-chat-action msg-action-link skeuo-link",
     () => exportChat(chat.id),
   ));
   actions.appendChild(actionButton(
     "Delete",
-    "skeuo-btn skeuo-btn-danger skeuo-interactive px-2 py-1 text-xs",
+    "saved-chat-action saved-chat-action-danger msg-action-link skeuo-link",
     () => deleteChat(chat.id),
   ));
 
@@ -63,7 +63,7 @@ async function fetchSavedChats() {
   return savedChatsCache;
 }
 
-function renderList(ul, chats, mobile) {
+function renderList(ul, chats) {
   if (!ul) return;
   ul.innerHTML = "";
   if (!chats.length) {
@@ -73,7 +73,7 @@ function renderList(ul, chats, mobile) {
     ul.appendChild(li);
     return;
   }
-  chats.forEach((chat) => ul.appendChild(buildSavedChatItem(chat, mobile)));
+  chats.forEach((chat) => ul.appendChild(buildSavedChatItem(chat)));
 }
 
 function renderAuthRequired(ul) {
@@ -89,10 +89,10 @@ export async function renderSavedChats() {
   const ul = document.getElementById("savedChats");
   try {
     const chats = await fetchSavedChats();
-    renderList(ul, chats, false);
+    renderList(ul, chats);
   } catch (err) {
     if (err?.status === 401) return renderAuthRequired(ul);
-    renderList(ul, [], false);
+    renderList(ul, []);
   }
 }
 
@@ -100,10 +100,10 @@ export async function renderMobileSavedChats() {
   const ul = document.getElementById("mobileSavedChats");
   try {
     const chats = await fetchSavedChats();
-    renderList(ul, chats, true);
+    renderList(ul, chats);
   } catch (err) {
     if (err?.status === 401) return renderAuthRequired(ul);
-    renderList(ul, [], true);
+    renderList(ul, []);
   }
 }
 

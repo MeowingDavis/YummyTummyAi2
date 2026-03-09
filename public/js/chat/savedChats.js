@@ -80,7 +80,7 @@ function renderList(ul, chats) {
   ul.innerHTML = "";
   if (!chats.length) {
     const li = document.createElement("li");
-    li.className = "skeuo-surface px-3 py-2 text-slate-300";
+    li.className = "chat-saved-state skeuo-surface px-3 py-2";
     li.textContent = "No saved chats yet.";
     ul.appendChild(li);
     return;
@@ -92,7 +92,7 @@ function renderAuthRequired(ul) {
   if (!ul) return;
   ul.innerHTML = "";
   const li = document.createElement("li");
-  li.className = "skeuo-surface px-3 py-2 text-slate-300";
+  li.className = "chat-saved-state skeuo-surface px-3 py-2";
   li.textContent = "Login required to access saved chats.";
   ul.appendChild(li);
 }

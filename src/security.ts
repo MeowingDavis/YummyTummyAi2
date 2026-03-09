@@ -4,7 +4,7 @@
 const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") ?? "").trim();
 
 function buildConnectSrc() {
-  const values = new Set(["'self'", "https://api.groq.com", "https://cdn.jsdelivr.net"]);
+  const values = new Set(["'self'", "https://api.groq.com"]);
   if (SUPABASE_URL) {
     try {
       values.add(new URL(SUPABASE_URL).origin);
@@ -19,10 +19,10 @@ export const baseHeaders: HeadersInit = {
   "Content-Security-Policy": [
     "default-src 'self'",
     "img-src 'self' data: blob:",
-    "script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net",
-    "style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'",
+    "script-src 'self'",
+    "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
     `connect-src ${buildConnectSrc()}`,
-    "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
+    "font-src 'self' https://fonts.gstatic.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "object-src 'none'",

@@ -8,15 +8,15 @@
   <link rel="manifest" href="/manifest.webmanifest" />
 
   <script src="/industrial-tailwind.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/vendor/tailwindcss-browser.js"></script>
   <link rel="stylesheet" href="/industrial.css" />
 
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked@13.0.3/marked.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
+  <script src="/vendor/dompurify.min.js"></script>
+  <script src="/vendor/marked.min.js"></script>
+  <link rel="stylesheet" href="/vendor/highlight-github-dark.min.css">
+  <script src="/vendor/highlight.min.js"></script>
 </head>
-<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis text-industrial-text antialiased">
+<body class="min-h-[100svh] overflow-x-hidden bg-industrial-chassis text-industrial-text antialiased industrial-texture">
   <a href="#chat-main" class="skip-link skeuo-btn skeuo-btn-secondary">Skip to chat</a>
 
   <div class="skeuo-wrap skeuo-container-wide py-2 sm:py-6">
@@ -54,7 +54,7 @@
 
       <main id="chat-main" class="flex-1">
         <div class="chat-dock stack-surface skeuo-surface grid h-[calc(100svh-1.5rem)] grid-rows-[auto,1fr] overflow-visible md:h-auto md:min-h-[80svh]">
-          <header class="sticky top-0 z-30 border-b border-slate-800/60 bg-slate-950/90 px-2 py-2 backdrop-blur md:static md:bg-transparent md:px-6 md:pb-4 md:pt-5 md:backdrop-blur-0">
+          <header class="chat-section-shell sticky top-0 z-30 border-b px-2 py-2 md:static md:px-6 md:pb-4 md:pt-5">
             <div class="relative flex items-center justify-between gap-2">
               <h1 class="min-w-0 text-lg font-bold tracking-tight sm:text-3xl">Yummy Tummy <span class="brand-gradient">AI</span></h1>
 
@@ -90,7 +90,7 @@
                 <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                 </svg>
-                <div class="text-sm leading-6 text-slate-100">
+                <div class="chat-copy text-sm leading-6">
                   <strong class="font-semibold">Privacy:</strong>
                   We save chats so you can revisit them. If you are logged in, chats are linked to your account.
                   <button id="privacyLearnMore" class="ml-1 underline decoration-emerald-300/70 hover:decoration-emerald-200">Learn more</button>
@@ -104,12 +104,12 @@
             <button id="jumpLatest" class="hidden absolute bottom-24 right-4 skeuo-btn skeuo-btn-secondary skeuo-interactive text-sm" type="button">Jump to latest ↓</button>
 
             <div id="typing" class="hidden px-3 md:px-6" aria-live="polite">
-              <div class="inline-flex items-center gap-2 skeuo-surface px-3 py-2 text-slate-300">
+              <div class="chat-status inline-flex items-center gap-2 skeuo-surface px-3 py-2">
                 <span>Chef is typing</span>
                 <span class="inline-flex gap-1" aria-hidden="true">
-                  <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.2s]"></span>
-                  <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.1s]"></span>
-                  <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400"></span>
+                  <span class="chat-status-dot h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:-0.2s]"></span>
+                  <span class="chat-status-dot h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:-0.1s]"></span>
+                  <span class="chat-status-dot h-1.5 w-1.5 animate-bounce rounded-full"></span>
                 </span>
               </div>
             </div>
@@ -120,7 +120,7 @@
 
             <div id="srLive" class="sr-only" aria-live="polite"></div>
 
-            <section class="stack-surface stack-compact composer-safe sticky bottom-0 border-t border-slate-800/60 bg-slate-950/90 px-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:px-6 md:pb-[calc(1rem+env(safe-area-inset-bottom))]" aria-label="Message composer">
+            <section class="chat-section-shell stack-surface stack-compact composer-safe sticky bottom-0 border-t px-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-[calc(1rem+env(safe-area-inset-bottom))]" aria-label="Message composer">
               <div class="flex flex-col gap-2 md:flex-row md:items-end">
                 <label for="input" class="sr-only">Your message</label>
                 <textarea id="input" rows="1" enterkeyhint="send" inputmode="text" autocomplete="off" autocapitalize="sentences" class="skeuo-input min-h-[52px] max-h-56 w-full resize-none px-3 py-3 text-base leading-6 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 md:flex-1" placeholder="Message Yummy Tummy..."></textarea>

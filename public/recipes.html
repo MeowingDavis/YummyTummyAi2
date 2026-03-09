@@ -14,7 +14,7 @@
     <meta name="theme-color" content="#173540" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <script src="/industrial-tailwind.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/vendor/tailwindcss-browser.js"></script>
     <link rel="stylesheet" href="/industrial.css" />
   </head>
   <body
@@ -41,9 +41,9 @@
         <div class="hidden items-center gap-4 md:flex">
           <nav class="flex items-center gap-4" aria-label="Primary">
             <a href="/" class="skeuo-link">Home</a>
-            <a href="/chat.html" class="skeuo-link">Chat</a>
-            <a href="/recipes.html" class="skeuo-link">Recipes</a>
             <a href="/about.html" class="skeuo-link">About</a>
+            <a href="/recipes.html" class="skeuo-link">Recipes</a>
+            <a href="/chat.html" class="skeuo-link">Open Chat</a>
           </nav>
           <section
             class="auth-shell auth-shell-compact w-[220px]"
@@ -86,21 +86,10 @@
             </div>
           </section>
         </div>
-        <div class="flex items-center gap-2 md:hidden">
-          <a
-            data-auth="signed-out-only"
-            data-auth-link="login"
-            href="/auth.html?mode=login"
-            class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
-          >Login</a>
-          <a
-            data-auth="signed-in-only"
-            href="/account.html"
-            class="hidden skeuo-btn skeuo-btn-secondary skeuo-btn-sm"
-          >Account</a>
-          <a href="/chat.html" class="skeuo-btn skeuo-btn-primary skeuo-btn-sm"
-          >Open Chat</a>
-        </div>
+        <a
+          href="/chat.html"
+          class="skeuo-btn skeuo-btn-primary skeuo-btn-sm md:hidden"
+        >Open Chat</a>
       </div>
     </header>
 
@@ -215,11 +204,50 @@
         <p>© <span id="year"></span> Yummy Tummy AI</p>
         <nav class="flex gap-4" aria-label="Footer">
           <a href="/" class="skeuo-link">Home</a>
-          <a href="/chat.html" class="skeuo-link">Open Chat</a>
+          <a href="/about.html" class="skeuo-link">About</a>
           <a href="/recipes.html" class="skeuo-link">Recipes</a>
+          <a href="/chat.html" class="skeuo-link">Open Chat</a>
         </nav>
       </div>
     </footer>
+
+    <nav
+      class="mobile-bottom-nav md:hidden"
+      aria-label="Mobile quick navigation"
+    >
+      <ul class="mx-auto grid max-w-xl grid-cols-5 gap-2 text-center">
+        <li>
+          <a
+            href="/"
+            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
+          >Home</a>
+        </li>
+        <li>
+          <a
+            href="/about.html"
+            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
+          >About</a>
+        </li>
+        <li>
+          <a
+            href="/recipes.html"
+            class="skeuo-btn skeuo-btn-primary skeuo-btn-sm skeuo-btn-block"
+          >Recipes</a>
+        </li>
+        <li>
+          <a
+            href="/chat.html"
+            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
+          >Chat</a>
+        </li>
+        <li>
+          <a
+            href="/account.html"
+            class="skeuo-btn skeuo-btn-secondary skeuo-btn-sm skeuo-btn-block"
+          >Account</a>
+        </li>
+      </ul>
+    </nav>
 
     <script src="/js/site-auth.js" defer></script>
   </body>

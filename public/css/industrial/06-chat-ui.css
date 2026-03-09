@@ -8,6 +8,37 @@
   animation: holo-border-pulse 4.5s ease-in-out infinite;
 }
 
+.chat-section-shell {
+  border-color: var(--border-light) !important;
+  background: rgba(255, 255, 255, 0.62) !important;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.chat-copy,
+.chat-status,
+.chat-saved-state,
+.chat-message-body {
+  color: var(--text-primary) !important;
+}
+
+.chat-status-dot {
+  background: color-mix(in srgb, var(--accent-strong) 72%, white);
+}
+
+.chat-mobile-options-panel {
+  border-color: var(--border-light) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+.chat-preview-card {
+  border-color: var(--border-light) !important;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.5);
+}
+
 .msg {
   transition:
     border-color 180ms ease,
@@ -27,7 +58,7 @@
 .msg-assistant .prose,
 .msg-user .prose,
 .msg .prose,
-.msg .text-slate-100 {
+.msg .chat-message-body {
   color: var(--secondary) !important;
 }
 
@@ -127,6 +158,10 @@
 }
 
 @media (max-width: 767px) {
+  .chat-section-shell {
+    background: rgba(255, 255, 255, 0.78) !important;
+  }
+
   #chatbox {
     scroll-padding-bottom: 96px;
     overscroll-behavior: contain;

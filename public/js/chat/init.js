@@ -62,8 +62,8 @@ function wireMobileOptionsMenu() {
   const isMobile = () => window.matchMedia("(max-width: 767px)").matches;
   const mobilePanelClasses = [
     "fixed", "inset-x-0", "bottom-0", "z-50", "max-h-[86dvh]",
-    "overflow-y-auto", "rounded-t-2xl", "border", "border-slate-700/80",
-    "bg-slate-900", "p-4", "pb-[calc(1rem+env(safe-area-inset-bottom))]",
+    "overflow-y-auto", "rounded-t-2xl", "border", "chat-mobile-options-panel",
+    "p-4", "pb-[calc(1rem+env(safe-area-inset-bottom))]",
     "shadow-2xl", "flex-col", "gap-2",
   ];
 

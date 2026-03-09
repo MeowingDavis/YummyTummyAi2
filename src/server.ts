@@ -10,7 +10,7 @@ import {
   setAuthCookie,
 } from "./session.ts";
 import { HttpError, readJson } from "./http.ts";
-import { allow, allowSession } from "./rateLimit.ts";
+import { allow, allowAuth, allowSession } from "./rateLimit.ts";
 import { INJECTION_REPLY, SYSTEM_PROMPT } from "./chat/prompts.ts";
 import {
   clearHistory,
@@ -34,6 +34,7 @@ import {
   deleteSupabaseUser,
   getPublicSupabaseConfig,
   getUserById,
+  getUserFromAccessToken,
   isSupabaseAlreadyRegisteredError,
   isSupabaseEmailNotConfirmedError,
   isSupabaseInvalidCredentialsError,
@@ -44,6 +45,7 @@ import {
   updateSupabaseUserPassword,
   updateUserProfile,
   validateCredentials,
+  validatePassword,
   verifyPassword,
 } from "./auth.ts";
 import {
@@ -90,6 +92,28 @@ if (IS_PRODUCTION) {
 function parseCsv(value: string | undefined) {
   if (!value) return [];
   return value.split(",").map((v) => v.trim()).filter(Boolean);
+}
+
+function normalizeAuthIdentifier(value: string | undefined) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function rateLimitedResponse(
+  setCookie: string | null,
+  retryAfterSec: number,
+  message = "Too many attempts. Please wait and try again.",
+) {
+  const h = new Headers(withSecurity({ "Content-Type": "application/json" }));
+  if (setCookie) h.append("Set-Cookie", setCookie);
+  h.set("Retry-After", String(Math.max(1, retryAfterSec)));
+  return new Response(
+    JSON.stringify({
+      ok: false,
+      code: "RATE_LIMITED",
+      message,
+    }),
+    { status: 429, headers: h },
+  );
 }
 
 async function resolveAllowedModels() {
@@ -164,6 +188,45 @@ function publicOrigin(url: URL) {
   return CANONICAL_URL?.origin || url.origin;
 }
 
+function allowedRequestOrigins(url: URL) {
+  const origins = new Set([url.origin]);
+  if (CANONICAL_URL?.origin) origins.add(CANONICAL_URL.origin);
+  return origins;
+}
+
+function requiresSameOriginWrite(req: Request, url: URL) {
+  if (!["POST", "PATCH", "PUT", "DELETE"].includes(req.method)) return false;
+  if (url.pathname === "/chat") return true;
+  if (url.pathname === "/me/profile") return true;
+  if (url.pathname === "/auth/logout") return true;
+  if (url.pathname === "/auth/change-password") return true;
+  if (url.pathname === "/auth/delete-account") return true;
+  return url.pathname === "/saved-chats" ||
+    url.pathname.startsWith("/saved-chats/");
+}
+
+function isSameOriginWrite(req: Request, url: URL) {
+  const origin = req.headers.get("origin");
+  if (origin) return allowedRequestOrigins(url).has(origin);
+  const fetchSite = req.headers.get("sec-fetch-site");
+  if (!fetchSite) return true;
+  return fetchSite === "same-origin" || fetchSite === "none";
+}
+
+function csrfRejectedResponse() {
+  return new Response(
+    JSON.stringify({
+      ok: false,
+      code: "CSRF_BLOCKED",
+      message: "Cross-origin write blocked.",
+    }),
+    {
+      status: 403,
+      headers: withSecurity({ "Content-Type": "application/json" }),
+    },
+  );
+}
+
 function getPasswordResetRedirect(url: URL) {
   const host = url.hostname.toLowerCase();
   const isLocalHost = host === "localhost" || host === "127.0.0.1" ||
@@ -199,6 +262,9 @@ export function startServer() {
         "Content-Type": "text/plain; charset=utf-8",
       });
       return new Response("Bad Request", { status: 400, headers });
+    }
+    if (requiresSameOriginWrite(req, url) && !isSameOriginWrite(req, url)) {
+      return csrfRejectedResponse();
     }
 
     // Health
@@ -238,12 +304,17 @@ export function startServer() {
     }
     if (req.method === "POST" && url.pathname === "/auth/register") {
       const { setCookie } = await getOrSetSessionId(req);
+      const ip = getClientIp(req, info);
       try {
         const body = await readJson<
           { email?: string; password?: string; name?: string }
         >(req);
         const email = (body.email ?? "").trim();
         const password = String(body.password ?? "");
+        const authLimit = allowAuth(ip, normalizeAuthIdentifier(email));
+        if (!authLimit.allowed) {
+          return rateLimitedResponse(setCookie, authLimit.retryAfterSec);
+        }
         const err = validateCredentials(email, password);
         if (err) {
           const h = new Headers(
@@ -307,10 +378,15 @@ export function startServer() {
     }
     if (req.method === "POST" && url.pathname === "/auth/login") {
       const { setCookie } = await getOrSetSessionId(req);
+      const ip = getClientIp(req, info);
       try {
         const body = await readJson<{ email?: string; password?: string }>(req);
         const email = (body.email ?? "").trim();
         const password = String(body.password ?? "");
+        const authLimit = allowAuth(ip, normalizeAuthIdentifier(email));
+        if (!authLimit.allowed) {
+          return rateLimitedResponse(setCookie, authLimit.retryAfterSec);
+        }
         if (!email || !password) {
           const h = new Headers(
             withSecurity({ "Content-Type": "application/json" }),
@@ -412,6 +488,7 @@ export function startServer() {
     }
     if (req.method === "POST" && url.pathname === "/auth/forgot-password") {
       const { setCookie } = await getOrSetSessionId(req);
+      const ip = getClientIp(req, info);
       const h = new Headers(
         withSecurity({ "Content-Type": "application/json" }),
       );
@@ -421,6 +498,14 @@ export function startServer() {
         const email = (body.email ?? "").trim();
         if (!email) {
           return new Response(JSON.stringify({ ok: true }), { headers: h });
+        }
+        const authLimit = allowAuth(ip, normalizeAuthIdentifier(email));
+        if (!authLimit.allowed) {
+          return rateLimitedResponse(
+            setCookie,
+            authLimit.retryAfterSec,
+            "Too many requests. Please wait and try again.",
+          );
         }
         await sendPasswordRecoveryEmail(email, getPasswordResetRedirect(url));
         return new Response(JSON.stringify({ ok: true }), { headers: h });
@@ -477,6 +562,121 @@ export function startServer() {
         );
       }
     }
+    if (
+      req.method === "POST" && url.pathname === "/auth/reset-password/complete"
+    ) {
+      const { setCookie } = await getOrSetSessionId(req);
+      const ip = getClientIp(req, info);
+      try {
+        const body = await readJson<
+          { accessToken?: string; newPassword?: string }
+        >(
+          req,
+        );
+        const accessToken = String(body.accessToken ?? "").trim();
+        const newPassword = String(body.newPassword ?? "");
+        const authLimit = allowAuth(ip);
+        if (!authLimit.allowed) {
+          return rateLimitedResponse(setCookie, authLimit.retryAfterSec);
+        }
+        if (!accessToken) {
+          const h = new Headers(
+            withSecurity({ "Content-Type": "application/json" }),
+          );
+          if (setCookie) h.append("Set-Cookie", setCookie);
+          return new Response(
+            JSON.stringify({
+              ok: false,
+              code: "INVALID_RECOVERY_SESSION",
+              message:
+                "Recovery link is invalid or expired. Request a new reset email.",
+            }),
+            { status: 401, headers: h },
+          );
+        }
+        const passwordErr = validatePassword(newPassword);
+        if (passwordErr) {
+          const h = new Headers(
+            withSecurity({ "Content-Type": "application/json" }),
+          );
+          if (setCookie) h.append("Set-Cookie", setCookie);
+          return new Response(
+            JSON.stringify({
+              ok: false,
+              code: "NEW_PASSWORD_INVALID",
+              message: passwordErr,
+            }),
+            { status: 400, headers: h },
+          );
+        }
+        const recoveryUser = await getUserFromAccessToken(accessToken);
+        if (!recoveryUser) {
+          const h = new Headers(
+            withSecurity({ "Content-Type": "application/json" }),
+          );
+          if (setCookie) h.append("Set-Cookie", setCookie);
+          return new Response(
+            JSON.stringify({
+              ok: false,
+              code: "INVALID_RECOVERY_SESSION",
+              message:
+                "Recovery link is invalid or expired. Request a new reset email.",
+            }),
+            { status: 401, headers: h },
+          );
+        }
+        await updateSupabaseUserPassword(recoveryUser.id, newPassword);
+        const h = new Headers(
+          withSecurity({ "Content-Type": "application/json" }),
+        );
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        return new Response(JSON.stringify({ ok: true }), { headers: h });
+      } catch (err) {
+        const h = new Headers(
+          withSecurity({ "Content-Type": "application/json" }),
+        );
+        if (setCookie) h.append("Set-Cookie", setCookie);
+        if (err instanceof HttpError) {
+          return new Response(
+            JSON.stringify({
+              ok: false,
+              code: "INVALID_REQUEST",
+              message: err.message,
+            }),
+            { status: err.status, headers: h },
+          );
+        }
+        if (err instanceof SupabaseApiError && err.status === 401) {
+          return new Response(
+            JSON.stringify({
+              ok: false,
+              code: "INVALID_RECOVERY_SESSION",
+              message:
+                "Recovery link is invalid or expired. Request a new reset email.",
+            }),
+            { status: 401, headers: h },
+          );
+        }
+        if (isSupabaseRateLimitError(err)) {
+          return new Response(
+            JSON.stringify({
+              ok: false,
+              code: "RATE_LIMITED",
+              message: "Too many attempts. Please wait and try again.",
+            }),
+            { status: 429, headers: h },
+          );
+        }
+        return new Response(
+          JSON.stringify({
+            ok: false,
+            code: "RESET_PASSWORD_FAILED",
+            message: "Unable to update password right now.",
+          }),
+          { status: 500, headers: h },
+        );
+      }
+    }
     if (req.method === "POST" && url.pathname === "/auth/logout") {
       const { setCookie } = await getOrSetSessionId(req);
       const h = new Headers(
@@ -488,6 +688,7 @@ export function startServer() {
     }
     if (req.method === "POST" && url.pathname === "/auth/change-password") {
       const { setCookie } = await getOrSetSessionId(req);
+      const ip = getClientIp(req, info);
       const user = await getCurrentUser(req);
       const h = new Headers(
         withSecurity({ "Content-Type": "application/json" }),
@@ -507,6 +708,10 @@ export function startServer() {
         const body = await readJson<
           { currentPassword?: string; newPassword?: string }
         >(req);
+        const authLimit = allowAuth(ip, user.id);
+        if (!authLimit.allowed) {
+          return rateLimitedResponse(setCookie, authLimit.retryAfterSec);
+        }
         const currentPassword = String(body.currentPassword ?? "");
         const newPassword = String(body.newPassword ?? "");
         if (!currentPassword) {
@@ -519,22 +724,13 @@ export function startServer() {
             { status: 400, headers: h },
           );
         }
-        if (newPassword.length < 8) {
+        const passwordErr = validatePassword(newPassword);
+        if (passwordErr) {
           return new Response(
             JSON.stringify({
               ok: false,
               code: "NEW_PASSWORD_INVALID",
-              message: "New password must be at least 8 characters.",
-            }),
-            { status: 400, headers: h },
-          );
-        }
-        if (newPassword.length > 256) {
-          return new Response(
-            JSON.stringify({
-              ok: false,
-              code: "NEW_PASSWORD_INVALID",
-              message: "New password is too long.",
+              message: passwordErr,
             }),
             { status: 400, headers: h },
           );
@@ -597,6 +793,7 @@ export function startServer() {
     }
     if (req.method === "POST" && url.pathname === "/auth/delete-account") {
       const { id: sessionId, setCookie } = await getOrSetSessionId(req);
+      const ip = getClientIp(req, info);
       const user = await getCurrentUser(req);
       const h = new Headers(
         withSecurity({ "Content-Type": "application/json" }),
@@ -614,6 +811,10 @@ export function startServer() {
       }
       try {
         const body = await readJson<{ password?: string }>(req);
+        const authLimit = allowAuth(ip, user.id);
+        if (!authLimit.allowed) {
+          return rateLimitedResponse(setCookie, authLimit.retryAfterSec);
+        }
         const password = String(body.password ?? "");
         if (!password) {
           return new Response(

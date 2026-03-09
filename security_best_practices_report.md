@@ -1,95 +1,105 @@
 # Security Best Practices Report
 
 ## Executive Summary
-This Deno TypeScript web app already has several solid controls in place (input size limits, CSP, HttpOnly/SameSite cookies, server-side error redaction, and DOMPurify for markdown rendering). The main security gaps are insecure-by-default session integrity, host-header-derived origin generation, proxy/TLS cookie hardening ambiguity, and third-party script supply-chain hardening.
 
-Overall risk is **moderate**. There are no obvious critical remote-code-execution paths in the current code, but the top two findings can enable session manipulation and origin poisoning behaviors in common deployments.
+This report has been updated after remediation work.
 
-## Severity: High
+The previously reported high and medium findings have been addressed in code:
 
-### [SBP-001] Session integrity is optional (unsigned session IDs accepted when `SESSION_SECRET` is unset)
-- Rule ID: `EXPRESS-SESS-002` (adapted to this Deno server’s cookie/session model)
-- Severity: High
-- Location: `src/session.ts:5`, `src/session.ts:46`, `src/session.ts:61`, `src/session.ts:77`
+- Auth-sensitive routes now have app-side throttling.
+- Password policy is enforced server-side for registration, password change, and password recovery completion.
+- Cookie-authenticated write routes now reject cross-origin writes.
+- Runtime browser dependencies were vendored locally and the CSP was tightened to stop allowing the prior CDN script origins.
+
+Current residual risk is lower. One notable non-blocking observation remains: the app still imports Google Fonts in `public/css/industrial/01-base.css`, so font delivery is still partially external even though the runtime script and stylesheet dependencies from the prior report are now local.
+
+Report written to `security_best_practices_report.md`.
+
+## Remediated Findings
+
+### SBP-001
+
+- Status: Remediated
+- Original issue: Missing app-side brute-force throttling on auth-sensitive routes.
 - Evidence:
-  - `const SESSION_SECRET = Deno.env.get("SESSION_SECRET")?.trim() ?? "";`
-  - `if (!SESSION_SECRET) return null;`
-  - `if (!key || await hasValidSignature(parsed.id, parsed.sig)) { return { id: parsed.id, setCookie: null }; }`
-- Impact:
-  - If `SESSION_SECRET` is not configured, clients can self-choose valid UUID session IDs and the server will accept them, enabling session fixation-style behavior and reducing confidence in per-session abuse controls.
-- Fix:
-  - Make signing mandatory in production and fail startup if `SESSION_SECRET` is missing.
-  - Reject unsigned/invalid session cookies unconditionally and issue a fresh signed cookie.
-- Mitigation:
-  - At minimum, emit a startup warning and force signed mode via env (for example `REQUIRE_SIGNED_SESSION=1`) until full enforcement is deployed.
-- False positive notes:
-  - Risk is reduced if this service is strictly internal and session ID is never used for anything meaningful; current code uses it for history and rate-control state, so integrity still matters.
+  - [src/rateLimit.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/rateLimit.ts#L17)
+  - [src/rateLimit.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/rateLimit.ts#L111)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L101)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L489)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L565)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L689)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L803)
+- Notes:
+  - The server now uses dedicated auth rate limits with separate IP and identifier buckets.
+  - Responses now include `Retry-After` through the shared `rateLimitedResponse()` path.
 
-## Severity: Medium
+### SBP-002
 
-### [SBP-002] Host header can influence public origin output (origin poisoning risk for sitemap/robots)
-- Rule ID: `NEXT-HOST-001` / host allowlisting best practice (framework-agnostic)
-- Severity: Medium
-- Location: `src/server.ts:15`, `src/server.ts:16`, `src/server.ts:26`, `src/server.ts:53`, `src/server.ts:74`, `src/server.ts:79`, `src/templates.ts:19`
+- Status: Remediated
+- Original issue: Strong password rules existed in the browser but not on the server.
 - Evidence:
-  - `const CANONICAL_ORIGIN = ... ?? "";`
-  - `if (!ALLOWED_HOSTS.size) return true;`
-  - `return CANONICAL_ORIGIN || url.origin;`
-  - Templated replacement into `sitemap.xml`/`robots.txt`: `replaceAll("{{ORIGIN}}", origin)`
-- Impact:
-  - With default envs, attacker-controlled `Host` headers can alter generated absolute URLs, enabling cache/SEO poisoning and confusing crawlers/clients behind some proxy/CDN setups.
-- Fix:
-  - Require `CANONICAL_ORIGIN` in production and always render sitemap/robots from that fixed value.
-  - Require non-empty `ALLOWED_HOSTS` in production and reject unknown hosts.
-- Mitigation:
-  - Enforce host/scheme normalization at edge proxy/CDN and strip untrusted forwarded host headers.
-- False positive notes:
-  - If the edge already strictly rewrites host and blocks unknown domains, exploitability drops; this control is not visible in repo code and should be verified at runtime.
+  - [src/auth.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/auth.ts#L192)
+  - [src/auth.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/auth.ts#L208)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L597)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L727)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L565)
+  - [public/js/reset-password-page.js](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/js/reset-password-page.js#L81)
+  - [public/js/reset-password-page.js](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/js/reset-password-page.js#L99)
+- Notes:
+  - Password validation is centralized in `validatePassword()`.
+  - Password recovery completion now posts through the server endpoint `POST /auth/reset-password/complete`, allowing backend policy enforcement instead of relying on direct browser-only password updates.
 
-### [SBP-003] Secure cookie detection may fail behind TLS-terminating proxies
-- Rule ID: `EXPRESS-COOKIE-001` / cookie security baseline
-- Severity: Medium
-- Location: `src/session.ts:6`, `src/session.ts:40`, `src/session.ts:42`, `src/session.ts:85`
+### SBP-003
+
+- Status: Remediated
+- Original issue: Cookie-authenticated write routes had no visible CSRF or origin validation.
 - Evidence:
-  - `const COOKIE_SECURE = Deno.env.get("COOKIE_SECURE") === "1";`
-  - `const proto = new URL(req.url).protocol;`
-  - `return COOKIE_SECURE || proto === "https:";`
-- Impact:
-  - In common reverse-proxy deployments where upstream-to-app is HTTP, cookies may be set without `Secure` unless operators remember explicit env configuration.
-- Fix:
-  - Make production cookie behavior explicit: require `COOKIE_SECURE=1` in production and fail startup if missing.
-  - Optionally support trusted `X-Forwarded-Proto` only from known proxy IPs (similar to the existing trusted proxy IP pattern).
-- Mitigation:
-  - Add deployment checks/health diagnostics to confirm `Set-Cookie` includes `Secure` in production responses.
-- False positive notes:
-  - If traffic reaches this app directly over HTTPS or envs are already set correctly in production, practical risk is reduced.
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L191)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L197)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L208)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L216)
+  - [src/server.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/server.ts#L266)
+- Notes:
+  - The server now blocks cross-origin writes for cookie-authenticated state-changing routes using exact-origin checks plus `Sec-Fetch-Site` fallback logic.
+  - Protected routes include `/chat`, `/me/profile`, `/auth/logout`, `/auth/change-password`, `/auth/delete-account`, and `/saved-chats` writes.
 
-## Severity: Low
+### SBP-004
 
-### [SBP-004] Third-party CDN scripts/styles are loaded without Subresource Integrity (SRI)
-- Rule ID: `JS-SRI-001`, `JS-SUPPLY-001`
+- Status: Remediated
+- Original issue: Runtime browser dependencies were loaded from third-party CDNs.
+- Evidence:
+  - [public/chat.html](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/chat.html#L10)
+  - [public/reset-password.html](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/reset-password.html#L9)
+  - [public/vendor/tailwindcss-browser.js](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/vendor/tailwindcss-browser.js)
+  - [public/vendor/dompurify.min.js](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/vendor/dompurify.min.js)
+  - [public/vendor/marked.min.js](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/vendor/marked.min.js)
+  - [public/vendor/highlight.min.js](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/vendor/highlight.min.js)
+  - [public/vendor/supabase.min.js](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/vendor/supabase.min.js)
+  - [src/security.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/security.ts#L18)
+- Notes:
+  - The reviewed runtime dependencies are now served locally from `public/vendor/`.
+  - CSP `script-src` is now reduced to `'self'`, and `connect-src` no longer allows jsDelivr.
+
+## Residual Observation
+
+### RES-001
+
 - Severity: Low
-- Location: `public/chat.html:12`, `public/chat.html:15`, `public/chat.html:16`, `public/chat.html:19`, `public/chat.html:20`, `public/index.html:17`, `public/about.html:10`
+- Location:
+  - [public/css/industrial/01-base.css](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/public/css/industrial/01-base.css#L1)
+  - [src/security.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/security.ts#L23)
+  - [src/security.ts](/mnt/c/Users/RadiumPCs/Documents/GitHub/YummyTummyAi2/src/security.ts#L25)
 - Evidence:
-  - External scripts/styles from `cdn.tailwindcss.com` and `cdn.jsdelivr.net` are included without `integrity="..."`.
-- Impact:
-  - If a CDN asset is tampered with or unexpectedly changed, malicious script/style can execute in the app origin.
-- Fix:
-  - Pin versions and add SRI hashes to third-party resources, or self-host critical JS/CSS assets.
-  - Keep CSP script/style allowlists as narrow as possible.
-- Mitigation:
-  - Prefer build-time bundling and local hosting for Tailwind/marked/DOMPurify/highlight assets.
-- False positive notes:
-  - This is defense-in-depth; risk depends on your threat model and supply-chain assumptions.
 
-## Positive Controls Observed
-- Request body size limits and JSON parse handling: `src/http.ts:14-60`
-- Security headers including CSP/frame restrictions: `src/security.ts:4-20`
-- Message rendering sanitization path via DOMPurify: `public/js/chat/markdown.js:3-6`
-- Error redaction before logging model API errors: `src/server.ts:144-146`
+```css
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap");
+```
 
-## Suggested Fix Order
-1. Enforce signed session cookies and mandatory `SESSION_SECRET` (`SBP-001`).
-2. Lock origin/host handling with required canonical origin + host allowlist (`SBP-002`).
-3. Harden production cookie secure behavior for proxy/TLS deployments (`SBP-003`).
-4. Add SRI or self-host third-party static assets (`SBP-004`).
+- Impact: Font assets still depend on third-party delivery, which keeps a small external supply-chain and privacy surface.
+- Fix: Self-host the font CSS and `woff2` files or replace them with local/system fonts.
+- Notes: This was not one of the original four report findings, but it is the main remaining externally hosted frontend asset path.
+
+## Verification
+
+- `deno fmt src/auth.ts src/server.ts src/security.ts public/js/reset-password-page.js`
+- `deno check main.ts`

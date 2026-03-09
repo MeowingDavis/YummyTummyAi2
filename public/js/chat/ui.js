@@ -55,7 +55,7 @@ export function appendMessage(sender, text) {
   senderEl.textContent = sender;
 
   const textEl = document.createElement("div");
-  textEl.className = "text-slate-100 whitespace-pre-wrap leading-relaxed";
+  textEl.className = "chat-message-body whitespace-pre-wrap leading-relaxed";
   textEl.textContent = text;
 
   wrapper.appendChild(senderEl);
@@ -78,7 +78,7 @@ export function appendMarkdown(sender, markdown) {
     isUser ? "ml-auto" : "mr-auto",
   ].join(" ");
   const safe = renderMarkdown(markdown);
-  wrapper.innerHTML = `<div class="mb-2 skeuo-label text-emerald-300">${sender}</div><div class="prose max-w-none text-slate-100">${safe}</div>`;
+  wrapper.innerHTML = `<div class="mb-2 skeuo-label text-emerald-300">${sender}</div><div class="chat-message-body prose max-w-none">${safe}</div>`;
   const acts = makeActions({
     onCopy: () => navigator.clipboard.writeText(markdown),
     onDelete: () => wrapper.remove()
@@ -121,7 +121,7 @@ export function renderTray(){
   state.pendingFiles.forEach((f, i) => {
     const url = URL.createObjectURL(f);
     const card = document.createElement('div');
-    card.className = "relative w-20 h-20 overflow-hidden border border-slate-700";
+    card.className = "chat-preview-card relative h-20 w-20 overflow-hidden border";
 
     const img = document.createElement("img");
     img.src = url;

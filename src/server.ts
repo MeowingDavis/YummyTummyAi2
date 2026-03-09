@@ -2082,27 +2082,58 @@ export function startServer() {
         const lastSuggestions = getLastRecipeSuggestions(ownerKey);
         const shouldTryExactRecipe =
           mode === "EXPAND" || isRecipeSelectionFollowup(message);
-        if (shouldTryExactRecipe && lastSuggestions?.suggestions?.length) {
+        if (shouldTryExactRecipe) {
+          const h = new Headers(
+            withSecurity({ "Content-Type": "application/json" }),
+          );
+          if (setCookie) h.append("Set-Cookie", setCookie);
+
+          if (!lastSuggestions?.suggestions?.length) {
+            const guidance =
+              "I need a fresh suggestion list to open an exact API recipe. Run `/recipe <dish or ingredients>` first, then pick one.";
+            await pushAndClamp(ownerKey, { role: "user", content: message });
+            await pushAndClamp(ownerKey, {
+              role: "assistant",
+              content: guidance,
+            });
+            return new Response(
+              JSON.stringify({ reply: guidance, markdown: guidance }),
+              { headers: h },
+            );
+          }
+
           const selected = resolveSuggestedRecipeFromMessage(
             message,
             lastSuggestions.suggestions,
           );
-          if (selected?.id) {
-            const detail = await fetchRecipeDetailById(selected.id);
-            const markdown = recipeDetailToMarkdown(detail);
+          if (!selected?.id) {
+            const options = lastSuggestions.suggestions
+              .slice(0, 5)
+              .map((s, i) => `${i + 1}. ${s.title}`)
+              .join("\n");
+            const guidance =
+              `I couldn't confidently match that to one of the last API suggestions.\n\nReply with a number or exact title:\n${options}`;
             await pushAndClamp(ownerKey, { role: "user", content: message });
             await pushAndClamp(ownerKey, {
               role: "assistant",
-              content: markdown,
+              content: guidance,
             });
-            const h = new Headers(
-              withSecurity({ "Content-Type": "application/json" }),
+            return new Response(
+              JSON.stringify({ reply: guidance, markdown: guidance }),
+              { headers: h },
             );
-            if (setCookie) h.append("Set-Cookie", setCookie);
-            return new Response(JSON.stringify({ reply: markdown, markdown }), {
-              headers: h,
-            });
           }
+
+          const detail = await fetchRecipeDetailById(selected.id);
+          const markdown = recipeDetailToMarkdown(detail);
+          await pushAndClamp(ownerKey, { role: "user", content: message });
+          await pushAndClamp(ownerKey, {
+            role: "assistant",
+            content: markdown,
+          });
+          return new Response(JSON.stringify({ reply: markdown, markdown }), {
+            headers: h,
+          });
         }
 
         let recipeRagSteer = "";

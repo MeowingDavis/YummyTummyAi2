@@ -5,11 +5,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
   const banner = document.createElement("section");
   banner.setAttribute("aria-label", "Cookie consent");
-  banner.className = "fixed inset-x-3 bottom-3 z-[100] rounded-2xl border border-slate-700/70 bg-slate-950/92 p-4 text-slate-100 shadow-[0_20px_40px_rgba(15,23,42,0.55)] backdrop-blur-md sm:inset-x-auto sm:right-4 sm:w-[34rem]";
+  banner.className = "fixed inset-x-3 bottom-3 z-[100] rounded-2xl border border-slate-300/90 bg-white/95 p-5 text-slate-800 shadow-[0_20px_40px_rgba(15,23,42,0.28)] backdrop-blur-md sm:inset-x-auto sm:right-4 sm:w-[38rem]";
 
   const text = document.createElement("p");
-  text.className = "text-sm leading-6";
-  text.innerHTML = 'We use cookies for essential functions like login, sessions, saved chats, and security. By continuing with <strong>I Agree</strong>, you consent to this use. <a href="/about.html#privacy-section" class="underline decoration-emerald-300/70 hover:decoration-emerald-200">Learn more</a>.';
+  text.className = "text-base leading-7";
+  text.innerHTML = 'We use cookies for essential functions like login, sessions, saved chats, and security. By continuing with <strong>I Agree</strong>, you consent to this use. <a href="/about.html#privacy-section" class="font-semibold text-emerald-700 underline decoration-emerald-500/70 hover:text-emerald-800 hover:decoration-emerald-700">Learn more</a>.';
 
   const actions = document.createElement("div");
   actions.className = "mt-3 flex items-center gap-2";

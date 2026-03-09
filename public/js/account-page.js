@@ -17,6 +17,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   const deleteErrorEl = document.getElementById('deleteError');
   const deleteSuccessEl = document.getElementById('deleteSuccess');
 
+  const profileSection = document.getElementById('profileSection');
+  const profileForm = document.getElementById('profileForm');
+  const allergiesInput = document.getElementById('allergies');
+  const profileSaveBtn = document.getElementById('profileSaveBtn');
+  const profileHelpEl = document.getElementById('profileHelp');
+  const profileErrorEl = document.getElementById('profileError');
+  const profileSuccessEl = document.getElementById('profileSuccess');
+
   let currentUser = null;
 
   async function request(url, options = {}) {
@@ -72,6 +80,42 @@ window.addEventListener('DOMContentLoaded', async () => {
     accountStatusEl.classList.remove('opacity-0');
   }
 
+  function parseList(value) {
+    const seen = new Set();
+    return String(value || '')
+      .split(/\r?\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .filter((item) => {
+        const key = item.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 30);
+  }
+
+  function formatList(items) {
+    return Array.isArray(items) ? items.filter(Boolean).join('\n') : '';
+  }
+
+  function renderProfileForm(user) {
+    if (allergiesInput) allergiesInput.value = formatList(user?.profile?.allergies);
+  }
+
+  function setProfileFormEnabled(enabled, message, html = false) {
+    if (allergiesInput) allergiesInput.disabled = !enabled;
+    if (profileSaveBtn) {
+      profileSaveBtn.disabled = !enabled;
+      profileSaveBtn.classList.toggle('opacity-50', !enabled);
+      profileSaveBtn.classList.toggle('cursor-not-allowed', !enabled);
+    }
+    if (profileHelpEl) {
+      if (html) profileHelpEl.innerHTML = message;
+      else profileHelpEl.textContent = message;
+    }
+  }
+
   try {
     const me = await request('/me');
     currentUser = me?.user ?? null;
@@ -80,14 +124,41 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (!currentUser) {
+    setProfileFormEnabled(false, 'Sign in to save allergies and have the chat avoid those ingredients. <a href="/auth.html?mode=login&next=%2Faccount.html" class="skeuo-link">Go to login</a>.', true);
     setAccountStatus('You are not logged in. <a href="/auth.html?mode=login&next=%2Faccount.html" class="skeuo-link">Go to login</a>.', true);
     return;
   }
 
   setAccountStatus(`Signed in as ${currentUser.email}`);
 
+  setProfileFormEnabled(true, 'Add one allergy per line or separate them with commas. The chat will avoid suggesting dishes with these ingredients.');
   changePasswordSection?.classList.remove('hidden');
   deleteSection?.classList.remove('hidden');
+  renderProfileForm(currentUser);
+
+  profileForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const allergies = parseList(allergiesInput?.value || '');
+    allergiesInput?.setAttribute('aria-invalid', 'false');
+
+    try {
+      setSubmitting(profileSaveBtn, true, 'Saving...', 'Save food profile');
+      const data = await request('/me/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allergies }),
+      });
+      currentUser = data?.user ?? currentUser;
+      renderProfileForm(currentUser);
+      showMessage(profileErrorEl, profileSuccessEl, 'Food profile saved. Future signed-in chats will use your allergy list.', false);
+    } catch (err) {
+      allergiesInput?.setAttribute('aria-invalid', 'true');
+      showMessage(profileErrorEl, profileSuccessEl, err?.message || 'Unable to save your food profile right now.', true);
+    } finally {
+      setSubmitting(profileSaveBtn, false, 'Saving...', 'Save food profile');
+    }
+  });
 
   changePasswordForm?.addEventListener('submit', async (event) => {
     event.preventDefault();

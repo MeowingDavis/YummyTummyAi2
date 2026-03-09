@@ -130,5 +130,5 @@
     <circle cx="241" cy="597" r="6" fill="#B2FFE7"/>
   </g>
 
-  <image href="/YumTumRightMiddleLogo.png" x="1070" y="192" width="392" height="588" preserveAspectRatio="xMidYMid meet"/>
+  <image href="/assets/images/branding/yumtum-right-middle-logo.png" x="1070" y="192" width="392" height="588" preserveAspectRatio="xMidYMid meet"/>
 </svg>

@@ -47,9 +47,45 @@
       <section class="stack-surface skeuo-surface skeuo-card-pad-lg" aria-labelledby="account-title">
         <h1 id="account-title" class="text-xl font-semibold tracking-tight">Account settings</h1>
         <p id="accountStatus" class="mt-2 min-h-5 text-sm text-slate-200 opacity-0 transition-opacity"> </p>
-        <div class="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100" role="status" aria-live="polite">
-          Notice: User profiles are new. We are building a way for users to define dietary needs in their profile for use when talking to the AI.
+        <div class="mt-3 rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100" role="status" aria-live="polite">
+          Your food profile is used in signed-in chats so recipe suggestions can avoid ingredients that are unsafe for you.
         </div>
+      </section>
+
+      <section id="profileSection" class="stack-surface skeuo-surface skeuo-card-pad-lg space-y-3" aria-labelledby="profile-title">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 id="profile-title" class="text-lg font-semibold">Food profile</h2>
+            <p class="mt-1 text-sm text-slate-200">Keep your allergy info here so Yummy Tummy AI can factor it into recipe suggestions.</p>
+          </div>
+          <span class="rounded-full border border-emerald-300/35 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">
+            Used in chat
+          </span>
+        </div>
+
+        <form id="profileForm" class="space-y-4" novalidate>
+          <div>
+            <label class="skeuo-label" for="allergies">Allergies</label>
+            <textarea
+              id="allergies"
+              rows="4"
+              class="skeuo-input mt-1 w-full px-3 py-3"
+              placeholder="Peanuts&#10;Shellfish&#10;Sesame"
+              spellcheck="false"
+              disabled
+            ></textarea>
+            <p id="profileHelp" class="mt-2 text-sm text-slate-300">
+              Add one allergy per line or separate them with commas. The chat will avoid suggesting dishes with these ingredients.
+            </p>
+          </div>
+
+          <p id="profileError" class="hidden rounded-xl border border-[rgba(248,113,113,0.55)] bg-[rgba(248,113,113,0.12)] p-3 text-sm font-medium text-[#1a3d37]" role="alert"></p>
+          <p id="profileSuccess" class="hidden rounded-xl border border-[rgba(79,209,165,0.55)] bg-[rgba(79,209,165,0.14)] p-3 text-sm font-medium text-[#1a3d37]" role="status" aria-live="polite"></p>
+
+          <button id="profileSaveBtn" type="submit" class="skeuo-btn skeuo-btn-primary skeuo-interactive w-full opacity-50 cursor-not-allowed" disabled>
+            Save food profile
+          </button>
+        </form>
       </section>
 
       <section id="changePasswordSection" class="hidden stack-surface skeuo-surface skeuo-card-pad-lg space-y-3" aria-labelledby="change-password-title">

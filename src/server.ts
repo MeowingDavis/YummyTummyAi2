@@ -709,10 +709,14 @@ export function startServer() {
           Array.isArray(v)
             ? v.map((x) => String(x).trim()).filter(Boolean).slice(0, 30)
             : [];
+        const hasOwn = (key: "dietaryRequirements" | "allergies" | "dislikes") =>
+          Object.prototype.hasOwnProperty.call(body, key);
         const updated = await updateUserProfile(user.id, {
-          dietaryRequirements: toArr(body.dietaryRequirements),
-          allergies: toArr(body.allergies),
-          dislikes: toArr(body.dislikes),
+          dietaryRequirements: hasOwn("dietaryRequirements")
+            ? toArr(body.dietaryRequirements)
+            : undefined,
+          allergies: hasOwn("allergies") ? toArr(body.allergies) : undefined,
+          dislikes: hasOwn("dislikes") ? toArr(body.dislikes) : undefined,
         });
         if (updated) h.append("Set-Cookie", await setAuthCookie(req, updated));
         return new Response(JSON.stringify({ user: updated }), { headers: h });
@@ -1117,6 +1121,7 @@ export function startServer() {
         const profileSteer = profile
           ? [
             "Apply user profile preferences when generating food responses:",
+            "Never suggest or include a listed allergen in a recipe unless the user explicitly asks to discuss that allergen. If a request conflicts, explain the conflict and offer safe alternatives.",
             `dietaryRequirements: ${
               (profile.dietaryRequirements ?? []).join(", ") || "none"
             }`,
